@@ -6,7 +6,7 @@ Screen-by-screen storyboard (final for build, 19 October 2026)
 
 # A. How to read this storyboard
 
-This storyboard is the single source of truth for the app. It moves the content of **v7 of the SLS document** into the structure of the **EBS Learning Journey app (V45)**: a landing page with a route of five stations, step tabs inside each station, Submit then recap, badges, a learning report and a teacher area. Edit it directly. Once your group is happy with it, it goes to Claude Code with the build prompt.
+This storyboard is the single source of truth for the app. It moves the content of **v7 of the SLS document** into the structure of the **EBS Learning Journey app (V45)**: a landing page with a route of five levels, step tabs inside each level, Submit then recap, badges, a learning report and a teacher area. Edit it directly. Once your group is happy with it, it goes to Claude Code with the build prompt.
 
 - Each screen is a table. Rows in **pale rose** are what the student sees and does, in final wording. Rows marked **Teacher only** (grey) are notes for your group and Claude Code, and never appear on screen.
 
@@ -24,14 +24,15 @@ This storyboard is the single source of truth for the app. It moves the content 
 | Header with school crest and school name                                                                                                                                     | Crest and school name removed: the app is for any school. Header shows the app title only.                                                                                                                                             |
 | Team login (choose team, key in access code)                                                                                                                                 | Student login: choose class from a dropdown (classes added by teachers in Teacher Mode), then key in register number. No access code for students.                                                                                     |
 | "Before you start" pop-up that must be agreed to                                                                                                                             | Kept, rewritten as 5 points on how the module works.                                                                                                                                                                                   |
-| "Words you'll use today" page                                                                                                                                                | Kept as "4 key terms" (pre-training before Station 2).                                                                                                                                                                                 |
-| Route of 5 station cards, any order                                                                                                                                          | Kept, but stations now unlock in order (each opens when the one before is finished), because the flow depends on it. Teacher Mode can unlock all stations on a device.                                                                 |
+| "Words you'll use today" page                                                                                                                                                | Kept as "4 key terms" (pre-training before Level 2).                                                                                                                                                                                   |
+| Route of 5 station cards, any order                                                                                                                                          | Kept, but levels now unlock in order (each opens when the one before is finished), because the flow depends on it. Teacher Mode can unlock all levels on a device.                                                                     |
 | Station page: step dots, reading, warm-up, main task, scenario; Submit, then 💡 recap and missed items                                                                       | Kept: step tabs (sticky), Submit, then recap. New: after Submit, each wrong answer shows a hint written for that question, with one retry before the answer is revealed. The first attempt is what is recorded.                        |
-| Station badges and team badges                                                                                                                                               | Five new station badges (prompts in Section F). Team badges removed.                                                                                                                                                                   |
+| Station badges and team badges                                                                                                                                               | Five new level badges (prompts in Section F). Team badges removed.                                                                                                                                                                     |
 | Learning report, Email our teachers, post-survey, Help button (calls or WhatsApps teachers), photo tasks, foot-traffic timer, VivoCity unit links, guide characters on pages | Learning report kept. Email, post-survey, Help button, photo tasks, timer and unit links removed. Guide characters removed (Mayer's image principle: the speaker's image does not add learning).                                       |
 | Teacher Access (results, CSV, team report) and Reset                                                                                                                         | Kept as Teacher Mode, adding a Classes tab where teachers key in class names.                                                                                                                                                          |
 | Credits footer with the anime-style team picture                                                                                                                             | Picture removed. Text: "A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)".                                                                                                                                             |
 | Teal colour scheme                                                                                                                                                           | Wine red (Section C).                                                                                                                                                                                                                  |
+| The five parts are called stations                                                                                                                                           | Called levels (Level 1 to Level 5), because the whole app is already called a module.                                                                                                                                                  |
 | Pinch-to-zoom blocked (maximum-scale=1.0)                                                                                                                                    | Zoom allowed, for accessibility.                                                                                                                                                                                                       |
 
 # C. Look, layout and Mayer's principles
@@ -51,7 +52,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 
 - Clean sans-serif font (system font stack, as in the LJ). Light, high-contrast theme.
 
-- Sticky top bar (title, 🏠 Home) and sticky step tabs inside a station. Locked tabs show 🔒 and cannot be tapped.
+- Sticky top bar (title, 🏠 Home) and sticky step tabs inside a level. Locked tabs show 🔒 and cannot be tapped.
 
 - Inside a step, long content is split by **Continue ↓** buttons that reveal the next part below. Moving between steps uses **Next →**. The two are never labelled the same.
 
@@ -67,11 +68,11 @@ This storyboard is the single source of truth for the app. It moves the content 
 
 | **Principle**                   | **Where it shows in the app**                                                                                                                                                       |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Multimedia (words and pictures) | The four Nexora comics and the real-life Foodpanda and Uniqlo examples sit inside the notes. New images are added only where they explain an idea; no decorative station banners.   |
+| Multimedia (words and pictures) | The four Nexora comics and the real-life Foodpanda and Uniqlo examples sit inside the notes. New images are added only where they explain an idea; no decorative level banners.     |
 | Spatial contiguity              | Each picture sits directly under the paragraph it explains. Feedback appears directly under its question. The Uniqlo screenshot sits right above its "Think about it" box.          |
 | Coherence                       | No extra facts beyond the textbook. LJ leftovers that do not serve learning are removed ("Your mission" cards, "Share the jobs" tips, guide characters, emoji clutter).             |
 | Signaling                       | Clear headings, bold key terms, numbered stages and steps, the same stage colours on the stage table and comics, and step tabs that show where the student is (site-map principle). |
-| Segmenting                      | Station 2 is split into three step tabs, and each tab into Continue ↓ parts, so students move at their own pace.                                                                    |
+| Segmenting                      | Level 2 is split into three step tabs, and each tab into Continue ↓ parts, so students move at their own pace.                                                                      |
 | Pre-training                    | The "4 key terms" page comes before the notes.                                                                                                                                      |
 | Personalization                 | Instructions talk to the student ("you") in a friendly tone. Definitions stay word for word from the textbook.                                                                      |
 | Image                           | No guide characters or speaker pictures on learning pages. Alex and Suzzie get one small picture each, to show who the student is chatting with.                                    |
@@ -79,7 +80,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 
 # D. Student screens
 
-*Suggested times (self-study at home): Station 1 about 5 min, Station 2 about 15 min, Station 3 about 10 min, Station 4 about 10 min, Station 5 about 8 min. Total about 45 to 50 min, which can be spread over several sittings.*
+*Suggested times (self-study at home): Level 1 about 5 min, Level 2 about 15 min, Level 3 about 10 min, Level 4 about 10 min, Level 5 about 8 min. Total about 45 to 50 min, which can be spread over several sittings.*
 
 ## Landing and login
 
@@ -121,7 +122,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <li><p>Start: checks both fields, then loads any work this student has already saved on the server.</p>
 <ul>
 <li><p>New student: opens the Before you start pop-up (0.2).</p></li>
-<li><p>Returning student: shows "Welcome back! Your work has been loaded." and opens the home page (0.3) where they left off, with their finished stations, badges and saved answers.</p></li>
+<li><p>Returning student: shows "Welcome back! Your work has been loaded." and opens the home page (0.3) where they left off, with their finished levels, badges and saved answers.</p></li>
 <li><p>Offline: uses the work saved on this device, and shows the LJ's yellow offline bar until the server can be reached.</p></li>
 </ul></li>
 </ul></td>
@@ -144,7 +145,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <td><strong>Teacher only</strong></td>
 <td><p>Student identity is class plus register number only, with no names. The server is a Google Sheet owned by one Google account; a school or group account is better than a personal one. Please confirm with your tutor that storing class and register number there is acceptable.</p>
 <p>The class list is fetched from the server on load and cached on the device, so a student who has loaded it once can log in offline (as in the LJ).</p>
-<p><strong>Saving progress (new).</strong> The app saves the student's whole progress to the server under class plus register number: stations finished, current tab and Continue parts opened, badges, all answers (including half-typed ones) and first attempts. It saves on every Continue, Next, Submit and tab change, and every 30 seconds while the student is typing. A copy is also kept on the device as a backup, and changes made offline are sent when the connection returns (the LJ's offline queue).</p>
+<p><strong>Saving progress (new).</strong> The app saves the student's whole progress to the server under class plus register number: levels finished, current tab and Continue parts opened, badges, all answers (including half-typed ones) and first attempts. It saves on every Continue, Next, Submit and tab change, and every 30 seconds while the student is typing. A copy is also kept on the device as a backup, and changes made offline are sent when the connection returns (the LJ's offline queue).</p>
 <p>If the device copy and the server copy differ, the newer one is used. First attempts are never overwritten once recorded, so a student cannot redo a first try on another device.</p>
 <p>There is no password, so anyone who keys in the same class and register number can open that student's work. This is acceptable for a revision module, but tell students to key in their own register number carefully.</p></td>
 </tr>
@@ -170,9 +171,9 @@ This storyboard is the single source of truth for the app. It moves the content 
 <td><strong>Student sees</strong></td>
 <td><p><strong>📋 Before you start</strong></p>
 <blockquote>
-<p>1. Go through the stations in order. Each one opens when you finish the one before.</p>
+<p>1. Go through the levels in order. Each one opens when you finish the one before.</p>
 <p>2. Your work saves automatically. You can stop and come back any time, even on a different device: just log in with the same class and register number.</p>
-<p>3. Stations 3 and 4 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.</p>
+<p>3. Levels 3 and 4 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.</p>
 <p>4. After you submit, you'll see a hint for anything you got wrong, and you get one more try.</p>
 <p>5. Your teacher can see your answers, so do your best.</p>
 <p>[✅ I'm ready]</p>
@@ -213,8 +214,8 @@ This storyboard is the single source of truth for the app. It moves the content 
 <p>{Welcome line, see below}</p>
 </blockquote>
 <p>Links: 📋 How this works · 🔄 Sharing this device? Switch student</p>
-<p>Card: <strong>📘 Start here: 4 key terms</strong> / A 1-minute look before Station 2</p>
-<p><strong>Your route</strong>: "2 of 5 stations done" with a progress bar, then five station cards:</p>
+<p>Card: <strong>📘 Start here: 4 key terms</strong> / A 1-minute look before Level 2</p>
+<p><strong>Your route</strong>: "2 of 5 levels done" with a progress bar, then five level cards:</p>
 <blockquote>
 <p>1 📝 <strong>Your Customer Service Stories</strong>: Think about your own experiences as a customer.</p>
 <p>2 📘 <strong>Learn: Customer Service</strong>: Short notes on quality customer service, the four stages and service recovery.</p>
@@ -224,21 +225,21 @@ This storyboard is the single source of truth for the app. It moves the content 
 </blockquote>
 <p>Each card shows a status: Not started / In progress / ✅ {badge name} / 🔒 Locked.</p>
 <p><strong>🏅 Your badges</strong>: five badge slots (greyed out until earned, with the badge name underneath).</p>
-<p>After all five stations: button <strong>📊 My learning report</strong>.</p></td>
+<p>After all five levels: button <strong>📊 My learning report</strong>.</p></td>
 </tr>
 <tr class="odd">
 <td><strong>Interactions</strong></td>
 <td><ul>
-<li><p>Tap an open card to go to that station. Tapping a locked card shows: "Finish Station {n − 1} first to open this station."</p></li>
+<li><p>Tap an open card to go to that level. Tapping a locked card shows: "Finish Level {n − 1} first to open this level."</p></li>
 <li><p>"Switch student" asks: "Log in as a different student? The work for Class {class}, Register No. {n} stays saved." [Switch student] [Cancel]. Switch student returns to 0.1.</p></li>
 </ul></td>
 </tr>
 <tr class="even">
 <td><strong>Welcome line</strong></td>
 <td><ul>
-<li><p>0 done: "Welcome! Start with Station 1."</p></li>
-<li><p>1 to 4 done: "Welcome back! You've finished {n} of 5 stations. Keep going!"</p></li>
-<li><p>5 done: "You've finished all 5 stations. Well done! Have a look at your learning report."</p></li>
+<li><p>0 done: "Welcome! Start with Level 1."</p></li>
+<li><p>1 to 4 done: "Welcome back! You've finished {n} of 5 levels. Keep going!"</p></li>
+<li><p>5 done: "You've finished all 5 levels. Well done! Have a look at your learning report."</p></li>
 </ul></td>
 </tr>
 <tr class="odd">
@@ -268,7 +269,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <td><strong>Student sees</strong></td>
 <td><p><strong>📘 4 key terms</strong></p>
 <blockquote>
-<p>You'll meet these words in Station 2. Read them once now.</p>
+<p>You'll meet these words in Level 2. Read them once now.</p>
 </blockquote>
 <ul>
 <li><p><strong>Customer service</strong>: Customer service refers to what businesses do for their customers so that they are happy and satisfied.</p></li>
@@ -282,12 +283,12 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="odd">
 <td><strong>Teacher only</strong></td>
-<td>Textbook pp. 120, 123 and 140. The same wording is used in Station 2, so students see each definition twice: once as pre-training and once in context.</td>
+<td>Textbook pp. 120, 123 and 140. The same wording is used in Level 2, so students see each definition twice: once as pre-training and once in context.</td>
 </tr>
 </tbody>
 </table>
 
-## Station 1: Your Customer Service Stories
+## Level 1: Your Customer Service Stories
 
 <table>
 <colgroup>
@@ -302,11 +303,11 @@ This storyboard is the single source of truth for the app. It moves the content 
 <tbody>
 <tr class="odd">
 <td><strong>Trigger</strong></td>
-<td>Tapping Station 1. Open from the start.</td>
+<td>Tapping Level 1. Open from the start.</td>
 </tr>
 <tr class="even">
 <td><strong>Student sees</strong></td>
-<td><p>Station header: <strong>📝 Station 1: Your Customer Service Stories</strong></p>
+<td><p>Level header: <strong>📝 Level 1: Your Customer Service Stories</strong></p>
 <blockquote>
 <p>Think about your own experiences as a customer. There are no right or wrong answers.</p>
 <p>Tip: don't name real people. Your teacher will read your answers.</p>
@@ -327,13 +328,13 @@ This storyboard is the single source of truth for the app. It moves the content 
 <li><p>After Submit (not scored), the recap card:</p></li>
 </ul>
 <blockquote>
-<p>💡 <strong>Remember this</strong>: Keep your stories in mind. In Station 2, see whether your ideas match what businesses call quality customer service.</p>
-<p>[Finish Station 1]</p>
+<p>💡 <strong>Remember this</strong>: Keep your stories in mind. In Level 2, see whether your ideas match what businesses call quality customer service.</p>
+<p>[Finish Level 1]</p>
 </blockquote></td>
 </tr>
 <tr class="even">
 <td><strong>Complete</strong></td>
-<td>Badge pop-up: <strong>[Badge 1] 📝 Story Sharer</strong> "You earned the Story Sharer badge!" [Back to my route]. Station 2 unlocks.</td>
+<td>Badge pop-up: <strong>[Badge 1] 📝 Story Sharer</strong> "You earned the Story Sharer badge!" [Back to my route]. Level 2 unlocks.</td>
 </tr>
 <tr class="odd">
 <td><strong>Student thinks or does</strong></td>
@@ -346,9 +347,9 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tbody>
 </table>
 
-## Station 2: Learn: Customer Service
+## Level 2: Learn: Customer Service
 
-*Three step tabs: 1 Quality Customer Service · 2 The Four Stages · 3 Breakdown and Recovery. Nothing in Station 2 is scored. Tabs unlock in order as each one is read to the end.*
+*Three step tabs: 1 Quality Customer Service · 2 The Four Stages · 3 Breakdown and Recovery. Nothing in Level 2 is scored. Tabs unlock in order as each one is read to the end.*
 
 <table>
 <colgroup>
@@ -363,7 +364,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <tbody>
 <tr class="odd">
 <td><strong>Trigger</strong></td>
-<td>Opening Station 2.</td>
+<td>Opening Level 2.</td>
 </tr>
 <tr class="even">
 <td><strong>Student sees (part 1)</strong></td>
@@ -603,7 +604,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <p><strong>[Image R03] Uniqlo return and exchange conditions, cropped to the time limits and icons (existing, R03-uniqlo-returns.jpg)</strong></p>
 <p>Box <strong>Think about it (optional)</strong>: Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule? [box, hint "One item Uniqlo will not accept is... I think they have this rule because..."]</p>
 <blockquote>
-<p>[Finish Station 2]</p>
+<p>[Finish Level 2]</p>
 </blockquote></td>
 </tr>
 <tr class="odd">
@@ -612,7 +613,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="even">
 <td><strong>Complete</strong></td>
-<td>Recap: "💡 <strong>Remember this</strong>: The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery." Badge pop-up: <strong>[Badge 2] 📘 Service Scholar</strong>. Station 3 unlocks.</td>
+<td>Recap: "💡 <strong>Remember this</strong>: The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery." Badge pop-up: <strong>[Badge 2] 📘 Service Scholar</strong>. Level 3 unlocks.</td>
 </tr>
 <tr class="odd">
 <td><strong>Alt text</strong></td>
@@ -629,7 +630,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tbody>
 </table>
 
-## Station 3: Chat with Alex
+## Level 3: Chat with Alex
 
 *Two step tabs: 1 Chat · 2 Think back.*
 
@@ -646,7 +647,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <tbody>
 <tr class="odd">
 <td><strong>Trigger</strong></td>
-<td>Opening Station 3 (unlocked after Station 2).</td>
+<td>Opening Level 3 (unlocked after Level 2).</td>
 </tr>
 <tr class="even">
 <td><strong>Student sees</strong></td>
@@ -742,7 +743,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="odd">
 <td><strong>Complete</strong></td>
-<td>Recap: "💡 <strong>Remember this</strong>: The same four stages happen in every customer interaction, whether it's in a shop or in a chat." Badge pop-up <strong>[Badge 3] 🔍 Service Spotter</strong>. Station 4 unlocks.</td>
+<td>Recap: "💡 <strong>Remember this</strong>: The same four stages happen in every customer interaction, whether it's in a shop or in a chat." Badge pop-up <strong>[Badge 3] 🔍 Service Spotter</strong>. Level 4 unlocks.</td>
 </tr>
 <tr class="even">
 <td><strong>Teacher only</strong></td>
@@ -751,7 +752,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tbody>
 </table>
 
-## Station 4: Serve Suzzie at Stylez
+## Level 4: Serve Suzzie at Stylez
 
 *Two step tabs: 1 Roleplay · 2 Reflect.*
 
@@ -768,7 +769,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <tbody>
 <tr class="odd">
 <td><strong>Trigger</strong></td>
-<td>Opening Station 4 (unlocked after Station 3).</td>
+<td>Opening Level 4 (unlocked after Level 3).</td>
 </tr>
 <tr class="even">
 <td><strong>Student sees</strong></td>
@@ -779,7 +780,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <p>Card <strong>About Stylez</strong> (placeholder): <mark>⚑ PLACEHOLDER: fill in from the Stylez document (what Stylez sells, prices, store policies) so that it matches what Suzzie's Gem knows. Claude Code builds the card with this placeholder text until then.</mark></p>
 <blockquote>
 <p><strong>You start the conversation.</strong> Try: "Hi, welcome to Stylez! How may I assist you?"</p>
-<p>Try to use the four stages from Station 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.</p>
+<p>Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.</p>
 <p>[🛍️ Open Suzzie (new tab) ↗]</p>
 <p>☐ I have finished serving Suzzie.</p>
 <p>[Next: Reflect →] (greyed out until ticked)</p>
@@ -792,7 +793,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <tr class="even">
 <td><strong>Teacher only</strong></td>
 <td><p>Suzzie's Gem link (in the config file): https://gemini.google.com/gem/1lfkE4kuic0cBsFwXlTNjKbOaGi6r0tK_?usp=sharing</p>
-<p>"Station 2" replaces v7's "Section 1", because the app has no section numbers. The opening line was suggested in the 1 October walkthrough; delete it if Suzzie's Gem already starts the chat.</p></td>
+<p>"Level 2" replaces v7's "Section 1", because the app has no section numbers. The opening line was suggested in the 1 October walkthrough; delete it if Suzzie's Gem already starts the chat.</p></td>
 </tr>
 </tbody>
 </table>
@@ -823,12 +824,12 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="odd">
 <td><strong>Complete</strong></td>
-<td>Badge pop-up <strong>[Badge 4] ⭐ Service Star</strong>. Station 5 unlocks.</td>
+<td>Badge pop-up <strong>[Badge 4] ⭐ Service Star</strong>. Level 5 unlocks.</td>
 </tr>
 </tbody>
 </table>
 
-## Station 5: Check and Exit Ticket
+## Level 5: Check and Exit Ticket
 
 *Two step tabs: 1 Check · 2 Exit ticket.*
 
@@ -845,7 +846,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <tbody>
 <tr class="odd">
 <td><strong>Trigger</strong></td>
-<td>Opening Station 5 (unlocked after Station 4).</td>
+<td>Opening Level 5 (unlocked after Level 4).</td>
 </tr>
 <tr class="even">
 <td><strong>Student sees</strong></td>
@@ -879,7 +880,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <li><p>i wrong (True): "Look back at what customer service means. Does it stop the moment the customer pays, or continue after the purchase?"</p></li>
 <li><p>ii wrong (False): "Think about Alex. How did knowing the prices and features help him answer your questions?"</p></li>
 <li><p>iii wrong (True): "Count the 8 steps of service recovery. Is apologising the last step?"</p></li>
-<li><p>iv wrong (False): "Look at the definition of service breakdown in Station 2. When does a service breakdown occur?"</p></li>
+<li><p>iv wrong (False): "Look at the definition of service breakdown in Level 2. When does a service breakdown occur?"</p></li>
 </ul>
 <p>Right: i "Correct: customer service continues even after the customer has made a purchase." ii "Correct: knowing the product lets staff answer accurately instead of guessing." iii "Correct: apologising is only Step 3; the officer still needs to acknowledge feelings, ask questions and offer solutions." iv "Correct: that is the textbook definition of service breakdown."</p></td>
 </tr>
@@ -899,7 +900,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="even">
 <td><strong>Teacher only</strong></td>
-<td><p>Statement iv uses the textbook definition, matching Station 2.</p>
+<td><p>Statement iv uses the textbook definition, matching Level 2.</p>
 <p>The Q3 and Q4 hints come from v7's answer key, rewritten so each refers to its own statement.</p></td>
 </tr>
 </tbody>
@@ -921,7 +922,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <td><p><strong>Q6.</strong> What is one thing you have learnt about customer service? [box, hint "One thing I learnt is..."]</p>
 <p><strong>Q7.</strong> What is one question you still have about this chapter? [box, hint "I am still not sure about..."]</p>
 <p><strong>Q8.</strong> How confident are you that you can do each of these? Tap one face for each.</p>
-<p>Four rows, each with a row of four faces (as in the LJ's Station 5 rating row), labels underneath: 😟 Not yet / 🙁 A little / 🙂 Confident / 😄 Very confident.</p>
+<p>Four rows, each with a row of four faces (as in the LJ's Level 5 rating row), labels underneath: 😟 Not yet / 🙁 A little / 🙂 Confident / 😄 Very confident.</p>
 <blockquote>
 <p>I can explain why quality customer service matters to a business</p>
 <p>I can name the skills and qualities a good customer service employee needs</p>
@@ -960,15 +961,15 @@ This storyboard is the single source of truth for the app. It moves the content 
 <tbody>
 <tr class="odd">
 <td><strong>Trigger</strong></td>
-<td>"My learning report" on the home page (after all 5 stations), or from the Station 5 pop-up.</td>
+<td>"My learning report" on the home page (after all 5 levels), or from the Level 5 pop-up.</td>
 </tr>
 <tr class="even">
 <td><strong>Student sees</strong></td>
 <td><p><strong>📊 My learning report</strong>: Class {class}, Register No. {n}</p>
 <ul>
-<li><p>One row per station: ✅ and the date finished, plus the badge.</p></li>
-<li><p>Station 3, Q2: first try {x} / 4. Station 5, Q3 and Q4: first try {y} / 5.</p></li>
-<li><p><strong>Look at these again:</strong> one line per item wrong on the first try, naming the topic and where to find it, e.g. "Closing the customer experience positively (Station 2, The Four Stages)".</p></li>
+<li><p>One row per level: ✅ and the date finished, plus the badge.</p></li>
+<li><p>Level 3, Q2: first try {x} / 4. Level 5, Q3 and Q4: first try {y} / 5.</p></li>
+<li><p><strong>Look at these again:</strong> one line per item wrong on the first try, naming the topic and where to find it, e.g. "Closing the customer experience positively (Level 2, The Four Stages)".</p></li>
 <li><p><strong>How confident you felt:</strong> the four exit-ticket rows with the face the student chose.</p></li>
 </ul>
 <blockquote>
@@ -1006,7 +1007,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="odd">
 <td><strong>Teacher only</strong></td>
-<td>The teacher code is checked on the server and never written in app.js (as in the LJ). Use a new code for this app, stored in the Apps Script project's settings (Script Properties), never in the code.</td>
+<td>The teacher code is checked on the server and never written in app.js or anywhere in the repo (as in the LJ). It is not case sensitive: the script compares it after trimming spaces and ignoring capitals. The group has chosen the code; it is not written in this storyboard because the repo is public. Use a new code for this app, stored in the Apps Script project's settings (Script Properties), never in the code.</td>
 </tr>
 </tbody>
 </table>
@@ -1057,10 +1058,10 @@ This storyboard is the single source of truth for the app. It moves the content 
 <td><strong>Teacher sees</strong></td>
 <td><p>Choose a class [dropdown]. Then:</p>
 <ul>
-<li><p><strong>Class summary</strong>: how many students finished each station; the most-missed Q2 and Q3/Q4 items (first try); the confidence spread for each of the four exit-ticket rows; and a list of all Q7 answers ("one question I still have") for planning reteaching.</p></li>
-<li><p><strong>Students table</strong>: Register No. | Stations done | Q2 first try | Q3 and Q4 first try | Confidence (four faces). Tap a row to open the student's full report: Station 1 stories, Station 2 optional answers, Q1, Q2 (first and second try), Station 4 reflections, Q3 to Q5, and the exit ticket.</p></li>
+<li><p><strong>Class summary</strong>: how many students finished each level; the most-missed Q2 and Q3/Q4 items (first try); the confidence spread for each of the four exit-ticket rows; and a list of all Q7 answers ("one question I still have") for planning reteaching.</p></li>
+<li><p><strong>Students table</strong>: Register No. | Levels done | Q2 first try | Q3 and Q4 first try | Confidence (four faces). Tap a row to open the student's full report: Level 1 stories, Level 2 optional answers, Q1, Q2 (first and second try), Level 4 reflections, Q3 to Q5, and the exit ticket.</p></li>
 <li><p>[Download CSV] for the chosen class.</p></li>
-<li><p>In a student's full report: [Clear this student's work]. Pop-up: "Clear all work for Class {class}, Register No. {n}? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy." [Clear work] [Cancel]. Afterwards: "Work cleared. This student starts again from Station 1 the next time they log in."</p></li>
+<li><p>In a student's full report: [Clear this student's work]. Pop-up: "Clear all work for Class {class}, Register No. {n}? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy." [Clear work] [Cancel]. Afterwards: "Work cleared. This student starts again from Level 1 the next time they log in."</p></li>
 </ul></td>
 </tr>
 <tr class="even">
@@ -1085,7 +1086,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <tr class="odd">
 <td><strong>Teacher sees</strong></td>
 <td><ul>
-<li><p>[Unlock all stations on this device]: for demos and for students who need to skip ahead. Shows "All stations are unlocked on this device." and can be turned off.</p></li>
+<li><p>[Unlock all levels on this device]: for demos and for students who need to skip ahead. Shows "All levels are unlocked on this device." and can be turned off.</p></li>
 <li><p>[Reset this device]: logs out the student and clears the copy of their work on this device (asks for the teacher code again, as in the LJ). Their work stays saved on the server.</p></li>
 </ul></td>
 </tr>
@@ -1096,14 +1097,14 @@ This storyboard is the single source of truth for the app. It moves the content 
 
 ### Existing images (from v7, in the assets pack)
 
-| **ID**   | **File**                                                     | **Where**                                                  |
-|----------|--------------------------------------------------------------|------------------------------------------------------------|
-| C01      | assets/img/C01-good-vs-poor-service.jpg                      | Station 2, Tab 1, part 1                                   |
-| C02      | assets/img/C02-four-stages.jpg                               | Station 2, Tab 2, part 1                                   |
-| C03      | assets/img/C03-three-approaches.jpg                          | Station 2, Tab 2, part 2                                   |
-| C04      | assets/img/C04-breakdown-to-recovery.jpg                     | Station 2, Tab 3, part 1                                   |
-| R01, R02 | assets/img/R01-foodpanda-chat.jpg, R02-foodpanda-voucher.jpg | Station 2, Tab 3, part 2 (side by side; stacked on phones) |
-| R03      | assets/img/R03-uniqlo-returns.jpg (cropped)                  | Station 2, Tab 3, part 3                                   |
+| **ID**   | **File**                                                     | **Where**                                                |
+|----------|--------------------------------------------------------------|----------------------------------------------------------|
+| C01      | assets/img/C01-good-vs-poor-service.jpg                      | Level 2, Tab 1, part 1                                   |
+| C02      | assets/img/C02-four-stages.jpg                               | Level 2, Tab 2, part 1                                   |
+| C03      | assets/img/C03-three-approaches.jpg                          | Level 2, Tab 2, part 2                                   |
+| C04      | assets/img/C04-breakdown-to-recovery.jpg                     | Level 2, Tab 3, part 1                                   |
+| R01, R02 | assets/img/R01-foodpanda-chat.jpg, R02-foodpanda-voucher.jpg | Level 2, Tab 3, part 2 (side by side; stacked on phones) |
+| R03      | assets/img/R03-uniqlo-returns.jpg (cropped)                  | Level 2, Tab 3, part 3                                   |
 
 *The VivoCity images, logos, badges, guide characters, school crest and team picture from the LJ are all removed.*
 
@@ -1144,30 +1145,30 @@ Generate the five badges as one consistent set. Paste the **style block** first 
 |-------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Prompt**                                            | I'm making a set of five achievement badges for a secondary school revision app about customer service. Make every badge in the same style: a round badge with a thick outer ring in deep wine red (#5C1229) and a soft pale-rose inner circle (#F9ECEF), one simple, bold, flat-vector icon in the centre using wine red, white and one accent colour, and a ribbon banner across the bottom of the badge in wine red (#8B1E3F) showing the badge name in white, bold, rounded, easy-to-read capital letters. The ribbon text is the only text on the badge, and it must be spelled exactly as I give it. Clean edges, gentle shading, no gradients that look muddy, plain white background, centred, square image. Friendly and modern, suitable for 15-year-old students. Reply "Ready" and wait for the first badge. |
 
-| **Badge 1 📝 Story Sharer (Station 1)** |                                                                                                                                                      |
-|-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **File**                                | assets/img/badge-story-sharer.png                                                                                                                    |
-| **Prompt**                              | BADGE 1. Ribbon text: "STORY SHARER". Centre icon: a speech bubble with a small smiley face inside it, next to a pencil. Accent colour: warm yellow. |
+| **Badge 1 📝 Story Sharer (Level 1)** |                                                                                                                                                      |
+|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **File**                              | assets/img/badge-story-sharer.png                                                                                                                    |
+| **Prompt**                            | BADGE 1. Ribbon text: "STORY SHARER". Centre icon: a speech bubble with a small smiley face inside it, next to a pencil. Accent colour: warm yellow. |
 
-| **Badge 2 📘 Service Scholar (Station 2)** |                                                                                                                                             |
-|--------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| **File**                                   | assets/img/badge-service-scholar.png                                                                                                        |
-| **Prompt**                                 | BADGE 2. Ribbon text: "SERVICE SCHOLAR". Centre icon: an open book with a small shop-counter bell on the right page. Accent colour: orange. |
+| **Badge 2 📘 Service Scholar (Level 2)** |                                                                                                                                             |
+|------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| **File**                                 | assets/img/badge-service-scholar.png                                                                                                        |
+| **Prompt**                               | BADGE 2. Ribbon text: "SERVICE SCHOLAR". Centre icon: an open book with a small shop-counter bell on the right page. Accent colour: orange. |
 
-| **Badge 3 🔍 Service Spotter (Station 3)** |                                                                                                                                              |
-|--------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| **File**                                   | assets/img/badge-service-spotter.png                                                                                                         |
-| **Prompt**                                 | BADGE 3. Ribbon text: "SERVICE SPOTTER". Centre icon: a magnifying glass over a chat bubble that has three dots in it. Accent colour: green. |
+| **Badge 3 🔍 Service Spotter (Level 3)** |                                                                                                                                              |
+|------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| **File**                                 | assets/img/badge-service-spotter.png                                                                                                         |
+| **Prompt**                               | BADGE 3. Ribbon text: "SERVICE SPOTTER". Centre icon: a magnifying glass over a chat bubble that has three dots in it. Accent colour: green. |
 
-| **Badge 4 ⭐ Service Star (Station 4)** |                                                                                                                                             |
-|-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| **File**                                | assets/img/badge-service-star.png                                                                                                           |
-| **Prompt**                              | BADGE 4. Ribbon text: "SERVICE STAR". Centre icon: a big five-pointed star with a small name-tag shape in front of it. Accent colour: gold. |
+| **Badge 4 ⭐ Service Star (Level 4)** |                                                                                                                                             |
+|---------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| **File**                              | assets/img/badge-service-star.png                                                                                                           |
+| **Prompt**                            | BADGE 4. Ribbon text: "SERVICE STAR". Centre icon: a big five-pointed star with a small name-tag shape in front of it. Accent colour: gold. |
 
-| **Badge 5 🏆 Chapter 6 Champion (Station 5)** |                                                                                                                                                            |
-|-----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **File**                                      | assets/img/badge-chapter-6-champion.png                                                                                                                    |
-| **Prompt**                                    | BADGE 5. Ribbon text: "CHAPTER 6 CHAMPION". Centre icon: a trophy cup with a large number 6 on it and two small sparkles. Accent colour: purple (#7C3AED). |
+| **Badge 5 🏆 Chapter 6 Champion (Level 5)** |                                                                                                                                                            |
+|---------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **File**                                    | assets/img/badge-chapter-6-champion.png                                                                                                                    |
+| **Prompt**                                  | BADGE 5. Ribbon text: "CHAPTER 6 CHAMPION". Centre icon: a trophy cup with a large number 6 on it and two small sparkles. Accent colour: purple (#7C3AED). |
 
 *ChatGPT sometimes misspells badge text. Check each ribbon carefully; if one is wrong, ask it to "redo the same badge, ribbon text exactly: …".*
 
@@ -1175,7 +1176,7 @@ Generate the five badges as one consistent set. Paste the **style block** first 
 
 ### Checked as a struggling reader, an average student and a strong student
 
-- Order matters in this module (stories before notes, notes before Alex, Alex before Suzzie), so stations unlock in order; a strong student can't skip straight to the quiz. Teacher Mode can unlock everything.
+- Order matters in this module (stories before notes, notes before Alex, Alex before Suzzie), so levels unlock in order; a strong student can't skip straight to the quiz. Teacher Mode can unlock everything.
 
 - Every instruction before an interaction is under about 60 words; the longest notes sections are split with Continue ↓ so students never face a wall of text.
 
@@ -1183,9 +1184,9 @@ Generate the five badges as one consistent set. Paste the **style block** first 
 
 - The Q2 dropdown options and the Q3/Q4 answers carry no colour or order cues; stage colours appear only in the notes.
 
-- v7 referred to "Section 1", which doesn't exist in the app; it now says "Station 2".
+- v7 referred to "Section 1", which doesn't exist in the app; it now says "Level 2".
 
-- Students who tick "I have finished" without chatting can still answer Station 3 from the notes; this is accepted, because the app cannot check, and the teacher can see Q1 answers that don't refer to the chat.
+- Students who tick "I have finished" without chatting can still answer Level 3 from the notes; this is accepted, because the app cannot check, and the teacher can see Q1 answers that don't refer to the chat.
 
 - Every hint refers to its own question and asks a guiding question rather than giving the answer.
 
@@ -1195,4 +1196,4 @@ Generate the five badges as one consistent set. Paste the **style block** first 
 
 ### Next step
 
-Once your group has edited and approved this storyboard, I'll write the Claude Code build prompt and a CLAUDE.md with the house rules. The prompt will tell Claude Code to fork V45 (keeping its shell), strip all LJ content and student data, build one station first for review, and then the rest.
+Once your group has edited and approved this storyboard, I'll write the Claude Code build prompt and a CLAUDE.md with the house rules. The prompt will tell Claude Code to fork V45 (keeping its shell), strip all LJ content and student data, build one level first for review, and then the rest.
