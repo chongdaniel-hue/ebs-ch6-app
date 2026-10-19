@@ -429,8 +429,6 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 
 /* ---------- 4 key terms ---------- */
 .term-list{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
-.term-card{border-left:4px solid var(--brand);}
-.term-card strong{color:var(--brand-dark);}
 
 /* ---------- Pop-ups (V45 style) ---------- */
 .modal-backdrop{
@@ -584,18 +582,9 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .notes-list{margin:0;padding-left:1.3em;}
 .notes-list li{margin-bottom:8px;}
 .notes-list li:last-child{margin-bottom:0;}
-.tip{
-  padding:10px 14px;
-  border-left:4px solid var(--brand);
-  background:var(--paper);
-  border-radius:0 10px 10px 0;
-}
 .comic-img,.notes-img{max-width:760px;}
-.img-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:640px;align-items:start;}
-.img-pair .img-placeholder{min-height:140px;}
 .uniqlo-img{max-width:420px;border:1px solid var(--border);}
 .screenshot-img{border:1px solid var(--border);}
-@media (max-width:560px){ .img-pair{grid-template-columns:1fr;} }
 .nav-row .btn{min-width:180px;}
 
 /* ---------- Answer boxes ---------- */
@@ -606,14 +595,6 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
   line-height:1.5;
 }
 .textarea-input[readonly]{background:#F7F4F5;color:var(--ink);border-style:dashed;}
-.story-boxes{display:grid;gap:16px;}
-.page .story-boxes .field + .field{margin-top:0;}
-.story-boxes .field{display:flex;flex-direction:column;}
-.story-boxes .field-label{font-weight:500;}
-.story-boxes .textarea-input{flex:1;}
-@media (min-width:860px){
-  .story-boxes{grid-template-columns:repeat(3, minmax(0, 1fr));}
-}
 
 /* ---------- Recap card (V45 re-teach card) ---------- */
 .recap-card{border-left:6px solid #F59E0B;background:#FFFBEB;border-color:#F3D9A4;}
@@ -707,8 +688,6 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
   box-shadow:0 0 0 4px var(--bg);
   line-height:1;
 }
-.path-num{font-size:1.15rem;font-weight:800;}
-.path-icon{font-size:1.15rem;margin-top:3px;}
 .path-card{
   position:relative;
   background:var(--paper);
@@ -765,3 +744,226 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
   .path-stop::before{left:23px;top:46px;}
   .page .part .path-more{padding-left:62px;}
 }
+
+/* ============================================================
+   Visual and Mayer pass (G1 students need strong visual support).
+   Each style below means one thing everywhere:
+     📖 definition box = textbook definition to learn
+     💡 tip box        = a tip
+     📌 recap card     = remember this
+     icon cards        = a list of points, one idea per card
+     speech bubble     = an example of what staff say
+   ============================================================ */
+
+/* ---------- Headings with icons ---------- */
+.h-icon{display:inline-block;margin-right:2px;}
+.section-title .h-icon,.path-title .h-icon,.think-title .h-icon{font-size:1.15em;}
+
+/* ---------- Welcome card (home page) ---------- */
+.welcome-card{
+  padding:18px 20px;
+  border:1px solid var(--border);
+  border-left:6px solid var(--brand);
+  border-radius:var(--radius);
+  background:var(--paper);
+  box-shadow:0 2px 8px rgba(60,10,25,0.06);
+}
+.page .welcome-card .welcome-text{margin:0;font-size:1.08rem;line-height:1.6;max-width:none;}
+
+/* ---------- 💡 Tip ---------- */
+.tip{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:12px 16px;
+  border:1px solid #F3D9A4;
+  border-radius:12px;
+  background:#FFFDF5;
+  color:#5B3A0A;
+}
+.tip-icon{font-size:1.3rem;line-height:1.2;}
+
+/* ---------- 📖 Definition box ---------- */
+.definition{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:14px 16px;
+  border:1px solid #E3C3CD;
+  border-left:6px solid var(--brand);
+  border-radius:12px;
+  background:var(--brand-light);
+}
+.def-icon{font-size:1.5rem;line-height:1.2;}
+.def-body{min-width:0;}
+.page .def-body p{margin:0;max-width:none;font-size:1.04rem;}
+.page .def-body p + p{margin-top:8px;}
+.def-body strong{color:var(--brand-dark);}
+.page .def-body .def-more{font-size:0.97rem;color:var(--ink);}
+.term-list{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+.page .term-list > li{max-width:none;}
+
+/* ---------- Icon cards ---------- */
+.icon-cards{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+.page .icon-cards > li{max-width:none;}
+.icon-card{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-top:4px solid var(--brand);
+  border-radius:12px;
+  background:var(--paper);
+}
+.ic-icon{font-size:2rem;line-height:1;}
+.ic-body{line-height:1.5;}
+.ic-body strong{color:var(--brand-dark);}
+/* Chips: shorter points, icon beside the text. */
+.icon-cards.chips .icon-card{flex-direction:row;align-items:center;gap:12px;padding:12px 14px;border-top-width:1px;border-left:4px solid var(--brand);}
+.icon-cards.chips .ic-icon{font-size:1.6rem;}
+@media (min-width:640px){
+  .icon-cards.cols-2{grid-template-columns:repeat(2, minmax(0, 1fr));}
+  .icon-cards.cols-3{grid-template-columns:repeat(3, minmax(0, 1fr));}
+  .icon-cards.chips{grid-template-columns:repeat(2, minmax(0, 1fr));}
+}
+@media (min-width:640px) and (max-width:859px){
+  .icon-cards.grid-6{grid-template-columns:repeat(2, minmax(0, 1fr));}
+}
+@media (min-width:860px){
+  .icon-cards.chips{grid-template-columns:repeat(3, minmax(0, 1fr));}
+}
+
+/* ---------- Speech bubbles (examples of what staff say) ---------- */
+.say{
+  display:inline-block;
+  margin:4px 0;
+  padding:4px 10px;
+  border-radius:12px 12px 12px 4px;
+  background:#F1F5FF;
+  border:1px solid #CBD7F5;
+  color:#1E2B5C;
+  font-weight:600;
+}
+
+/* ---------- Three approaches ---------- */
+.when-box{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:12px 16px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--paper);
+}
+.page p.when-box{max-width:none;}
+.when-icon{font-size:1.4rem;line-height:1.2;}
+.approach-cards{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+.page .approach-cards > li{max-width:none;}
+.approach-card{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-top:4px solid var(--brand);
+  border-radius:12px;
+  background:var(--paper);
+}
+.approach-name{margin:0;font-size:1.08rem;color:var(--brand-dark);}
+.page .approach-card p{margin:0;max-width:none;}
+.page .approach-card .approach-combine{padding-top:10px;border-top:1px dashed var(--border);}
+@media (min-width:760px){
+  .approach-cards{grid-template-columns:repeat(3, minmax(0, 1fr));}
+}
+
+/* ---------- Four stages: icon beside the stage colour ---------- */
+.stage-row th{display:table-cell;}
+.stage-row th > span{vertical-align:middle;}
+.stage-icon{display:inline-block;font-size:1.4rem;margin-right:8px;}
+@media (max-width:560px){ .stage-row th{display:block;} }
+
+/* ---------- Level 1: three equal question cards ---------- */
+.story-cards{display:grid;gap:16px;}
+.page .story-cards .field + .field{margin-top:0;}
+.story-card{
+  display:flex;
+  flex-direction:column;
+  padding:16px;
+  border:1px solid var(--border);
+  border-top:4px solid var(--brand);
+  border-radius:12px;
+  background:var(--paper);
+}
+.answer-icon{font-size:2.6rem;line-height:1;margin-bottom:10px;}
+.story-card .field-label{flex:1 1 auto;font-weight:500;margin-bottom:12px;}
+.story-card .textarea-input{height:9.5em;min-height:0;resize:none;}
+@media (min-width:860px){
+  .story-cards{grid-template-columns:repeat(3, minmax(0, 1fr));align-items:stretch;}
+}
+
+/* ---------- Service Recovery Path: bigger, clearer icons ---------- */
+.path-stop{grid-template-columns:72px minmax(0, 1fr);}
+.path-stop::before{left:33px;top:64px;}
+.path-circle{width:72px;height:72px;}
+.path-icon{font-size:2.1rem;line-height:1;}
+.path-num{
+  position:absolute;
+  top:-4px;
+  left:-4px;
+  width:28px;height:28px;
+  border-radius:50%;
+  background:#fff;
+  color:var(--stage4);
+  border:2px solid var(--stage4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.95rem;
+  font-weight:800;
+}
+.page .part .path-more{padding-left:86px;}
+@media (max-width:420px){
+  .path-stop{grid-template-columns:60px minmax(0, 1fr);}
+  .path-circle{width:60px;height:60px;}
+  .path-icon{font-size:1.8rem;}
+  .path-stop::before{left:27px;top:54px;}
+  .page .part .path-more{padding-left:70px;}
+}
+
+/* ---------- Images: always shown in full, never cropped ---------- */
+.content-img{object-fit:contain;}
+.uniqlo-img{max-width:480px;height:auto;}
+/* Foodpanda pair: same height side by side; stacked on phones. */
+.img-pair{display:flex;gap:12px;max-width:640px;align-items:flex-start;}
+.img-pair-item{flex:1 1 0;min-width:0;}
+.img-pair-item .img-placeholder{min-height:140px;}
+@media (max-width:560px){
+  .img-pair{flex-direction:column;}
+  .img-pair-item{width:100%;}
+}
+
+/* ---------- 🔊 Listen ---------- */
+.listen-row{display:flex;justify-content:flex-end;}
+.page .part > .listen-row + *,.page .terms-block > .listen-row + *{margin-top:8px;}
+.listen-btn{min-height:44px;padding:6px 14px;font-size:0.95rem;}
+.listen-btn[aria-pressed="true"]{background:var(--brand-light);}
+.terms-block > * + *{margin-top:12px;}
+
+/* ---------- Before you start: icon beside each point ---------- */
+.briefing-list{list-style:none;padding-left:0;counter-reset:brief;}
+.briefing-list li{display:flex;gap:10px;align-items:flex-start;counter-increment:brief;}
+.briefing-list li::before{content:counter(brief) ".";font-weight:700;min-width:1.2em;}
+.brief-icon{font-size:1.3rem;line-height:1.3;}
+
+/* ---------- Visual check fixes ---------- */
+/* Listen sits beside the block's first heading, not on a line of its own. */
+.part > .listen-row,
+.terms-block > .listen-row{float:right;margin:0 0 8px 12px;}
+.page .part > .listen-row + *{margin-top:0;}
+.page .terms-block > .listen-row + *{margin-top:0;}
+.terms-block::after,.part::after{content:"";display:block;clear:both;}
+/* Definitions: a neutral cool tint, so they never look like the pink wrong-answer box. */
+.definition{background:#F1F5F9;border-color:#CBD5E1;border-left-color:var(--brand);}
+/* Tips: light and friendly, clearly different from the amber 📌 recap card. */
+.tip{background:#FFFEF7;border:1px dashed #E2C77A;}
+.stage-head{display:flex;align-items:flex-start;gap:8px;}
+.stage-head .stage-icon{margin-right:0;line-height:1.2;}

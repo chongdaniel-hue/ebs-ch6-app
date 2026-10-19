@@ -8,7 +8,7 @@ Read this with `CLAUDE.md` and `docs/storyboard.md` when starting a fresh sessio
 |---|---|---|
 | 1 | Clean-up and shell: removals, blue theme, header, footer, `config.js`, image map with placeholder boxes, viewport fix | Done (commit "Slice 1") |
 | 2 | Back end and login: `apps-script/Code.gs`, local stand-in `server/server.js`, setup guides, Teacher Mode sign-in and Classes tab, landing, Before you start, home, 4 key terms, Switch student, saving and loading, offline | Done (commits "Slice 2", "Slice 2 fixes") |
-| 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Built, awaiting review (commit "Slice 3") |
+| 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Built, awaiting review (commits "Slice 3", "Slice 3 visual and Mayer pass") |
 | 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Not started |
 | 5 | Learning report and the rest of Teacher Mode | Not started |
 | 6 | Full check, GitHub Pages workflow, summary | Not started |
@@ -68,6 +68,20 @@ These fill gaps in the storyboard. Student-facing wording here is approved and m
 - Where V45 already has working logic (submit guard and "Not finished yet" pop-up, recap card, badge pop-up, offline bar and queue, CSV export, form labels), port it from `../V45/app.js` rather than rewriting it.
 - Git is local only (no remote, no push). Commit after each slice, before reporting back. Local commit identity is the neutral "EBS Ch6 team" so no personal email ends up in the public history; the user may change it before the first push.
 
+### Visual and Mayer pass (agreed 19 October 2026, after slice 3)
+G1 students need strong visual support. Visual treatment may change how text looks, never what it says: storyboard wording stays word for word. Every slice's checks include a visual check of every screenshot at 1280px and 360px (alignment, equal card heights in rows, consistent styles, spacing, no clipped images, appeal for a 15-year-old). The user's updated `CLAUDE.md` with these rules had not reached this folder when this was written; these notes stand in for it until it does.
+- **Home welcome card** (replaces the storyboard's welcome lines, shown in a card at the top of the home page):
+  - 0 levels done: "👋 Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!"
+  - 1 to 4 done: "👋 Welcome back! You've finished {n} of 5 levels. Great progress! Carry on with Level {n+1} below."
+  - All 5 done: "🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did."
+- **💡 means Tip.** Every tip starts with 💡 in a light tip box. The recap card heading is "📌 Remember this" everywhere (the storyboard's "💡 Remember this" is replaced).
+- **One style per meaning, the same everywhere:** 📖 definition box (neutral cool tint, wine left bar) for textbook definitions; icon cards for lists of points; speech bubbles for examples of what staff say; 📌 amber recap card; 💡 tip box. Headings in the notes carry an icon.
+- **Level 1:** three equal-height question cards in a row (😊 GOOD, 😞 BAD, 🤔 what makes it good or bad), text boxes aligned at the bottom and the same size; stacked on phones.
+- **Level 2:** icons on every heading; "If a business provides quality customer service" as three icon cards (🔁 🗣️ 🤝); skills and qualities as six icon cards; good product knowledge as five icon chips; three approach cards with examples as speech bubbles (the "combine" line sits in the Service Approach card, keeping the order); purpose of approaching as two icon cards; stage icons 👋 📱 ✅ 🛠️ beside the stage colours; returns as three icon cards (🔁 🔄 💵); larger path icons with the step number in a badge.
+- **Images:** always shown in full, never cropped; the Foodpanda pair is the same height side by side (each image's share of the row is set from its own shape when it loads).
+- **🔊 Listen** on each block of notes in Level 2 and on the 4 key terms page (notes only, never questions or answers): browser speech, en-GB or en-SG voice if available (an on-device voice first, so it works offline), rate 0.9; tapping again stops it ("⏹ Stop"); not shown where the browser has no speech; leaving the page stops it.
+- **Before you start:** an icon beside each numbered point (🗺️ 💾 🤖 🔁 👀).
+
 ## How slice 2 works (for the next session)
 
 - **Record shape** (one per student, `ch6_rec_<class>#<reg>` on the device, Record column in the Sheet): `v, cls, reg, updatedAt, baseClearedAt, agreed, done{level:time}, submitted{key:time}, reached{key:number}, first{item:{a,ok,t}}, second{item:{a,ok,t}}, answers{key:{v,t}}, ui{key:{v,t}}`.
@@ -89,4 +103,5 @@ These fill gaps in the storyboard. Student-facing wording here is approved and m
 
 ## Open questions
 
-- None.
+- **R03 (Uniqlo) file is cut off at the bottom** in the file itself (the bottom row of labels is cut mid-line). The app shows the whole file; a re-cropped R03 with a little more at the bottom will appear with no code change. The image also shows "Return & Exchange Conditions", an ampersand inside a real screenshot.
+- The user's updated `CLAUDE.md` (visual checks, Mayer section for G1) is not in this folder yet; re-read it when it arrives.

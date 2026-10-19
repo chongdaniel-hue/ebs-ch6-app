@@ -82,7 +82,7 @@ test.describe("new student", () => {
 
     const modal = page.locator("#briefing");
     await expect(modal.locator("h2")).toHaveText("📋 Before you start");
-    await expect(modal.locator("li")).toHaveText(BRIEFING);
+    await expect(modal.locator("li > span:last-child")).toHaveText(BRIEFING);
     await expect(modal.locator("button")).toHaveText("✅ I'm ready");
     await checkPage(page, testInfo, "slice2-before-you-start");
 
@@ -96,7 +96,7 @@ test.describe("new student", () => {
     expect(page.url()).toMatch(/#home$/);
 
     await expect(page.locator(".topbar-chip")).toHaveText("Class 3E1 · Register No. 12");
-    await expect(page.locator(".lead").first()).toHaveText("Welcome! Start with Level 1.");
+    await expect(page.locator(".welcome-card")).toHaveText("👋 Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!");
     await expect(page.locator(".notice")).toHaveCount(0);
     await expect(page.locator("#howLink")).toHaveText("📋 How this works");
     await expect(page.locator("#switchLink")).toHaveText("🔄 Sharing this device? Switch student");
@@ -143,7 +143,8 @@ test.describe("new student", () => {
     await page.click(".terms-card");
     await expect(page.locator("h1.page-title")).toHaveText("📘 4 key terms");
     await expect(page.locator(".lead")).toHaveText("You'll meet these words in Level 2. Read them once now.");
-    await expect(page.locator(".term-card")).toHaveText([
+    await expect(page.locator(".term-list .definition")).toHaveCount(4);
+    await expect(page.locator(".term-list .def-body")).toHaveText([
       "Customer service: Customer service refers to what businesses do for their customers so that they are happy and satisfied.",
       "Quality customer service: Quality customer service means doing more for customers to exceed their expectations.",
       "Service breakdown: A service breakdown occurs when customers make a complaint about a product or service.",
