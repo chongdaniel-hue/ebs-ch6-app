@@ -10,7 +10,7 @@ Read this with `CLAUDE.md` and `docs/storyboard.md` when starting a fresh sessio
 | 2 | Back end and login: `apps-script/Code.gs`, local stand-in `server/server.js`, setup guides, Teacher Mode sign-in and Classes tab, landing, Before you start, home, 4 key terms, Switch student, saving and loading, offline | Done (commits "Slice 2", "Slice 2 fixes") |
 | 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Done (commits "Slice 3" to "Slice 3 final tweaks") |
 | 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Done (commits "Slice 4", "Slice 4 fixes") |
-| 5 | Learning report and the rest of Teacher Mode | Not started |
+| 5 | Learning report and the rest of Teacher Mode | Built, awaiting review (commit "Slice 5") |
 | 6 | Full check, GitHub Pages workflow, summary | Not started |
 
 ## Decisions agreed with the user (19 October 2026)
@@ -129,6 +129,14 @@ G1 students need strong visual support. Visual treatment may change how text loo
 - **Badge pop-ups** use each badge's own emoji from the image map (🔍 Service Spotter, ⭐ Service Star), not the level's.
 - **Tabs**: `tab.nextState(ctx)` returns "show", "disabled" (greyed) or "hidden" (held back).
 - Choices made where the storyboard is silent (please check): "Not finished yet" names the missing items "Q1 (skill or quality)", "Q1 (why it is important)", "Q2 P", "Q3 i", "Q4", "Q5", "Q6", "Q7", "Q8 (row 1)" and so on; the Q1 and Q5 self-check notes after Submit are shown in a neutral 🔎 note box (they are not marked); the "Not sure what to ask?" tip is a 💡 box that opens on tap, its three examples shown as speech bubbles; Alex's three "try to" points are icon cards (📱 🤔 🛠️); the "four stages" line in Level 4 sits in a 🗺️ box; Level 4 Reflect uses two equal cards (👍 🔄) like Level 1; picked answers are shown in wine (never green or red, which mean right or wrong).
+
+## How slice 5 works (for the next session)
+
+- **Learning report** (`renderReport`, route `#report`): one card per level (badge, ✅ and the date finished, badge name), the two first-try scores as written in the storyboard, "🔁 Look at these again" (the approved lines, or the agreed "Nothing to look at again..." line), "💭 How confident you felt" (each exit-ticket row with the face and its label), "Back to my route". Reading helpers that work on any record: `recAnswer`, `recDone`, `recFirstTry`, `recLookAgain`, `attemptText`.
+- **Teacher Mode** has three tabs: Classes, Results, This device (`teacher.tab`).
+- **Results**: "Choose a class" (current classes, then removed classes with saved work marked "(removed)"); the records come from the `results` action and everything else is worked out in the browser. Class summary (levels finished, most missed on the first try, confidence spread table, all Q7 answers), students table (tap a row for the full report), "⬇️ Download CSV" (one row per student: levels and dates, first-try scores, every answer, first and second tries as "{answer} (right/wrong)", confidence labels, last saved, cleared at). Full report: every answer by level, Q2 and Q3/Q4 first and second tries in tables, "Clear this student's work" with the storyboard pop-up and message.
+- **This device**: "Unlock all levels on this device" (the storyboard message, then a "Turn off" button); "Reset this device" asks for the teacher code again, then clears every student's copy on the device and logs out; work not yet sent is kept until it reaches the server.
+- Teacher-facing wording I added (please check): Results "Choose a class", "Loading…", "Class summary: {class}", "{n} students with saved work.", "Levels finished", "Most missed on the first try" (only items someone got wrong; "Nothing missed on the first try yet." otherwise), "Confidence", "Q7: one question I still have", "Students", "Tap a row to open the student's full report.", item labels such as "Q2 R (answer: Closing the customer experience positively): wrong for 2 of 2", "No. 12 (cleared)", "← Back to the class", "(blank)" for empty answers; This device "🔓 Unlock all levels" and "🧹 Reset this device" headings with the storyboard descriptions, "Turn off", the reset pop-up "Key in the teacher code." and "Reset" / "Cancel", "Device reset. It is ready for the next student." (or, when work is still unsent, "Device reset. Work for {n} students has not been sent yet. It has been kept on this device and will be sent when the device is online."). Student-facing: the report shows "Not finished yet" for a level not finished (only possible with Unlock all levels).
 
 ## Open questions
 

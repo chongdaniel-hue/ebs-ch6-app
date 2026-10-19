@@ -42,9 +42,12 @@
         the options; changed answers prompt "Tap Check again"; tick note
         under a greyed Next; summary card (V45 missedHtml); level
         subtitles; ✓ on finished tabs.
+   0.5  Slice 5: learning report; Teacher Mode Results (class summary,
+        students table, full report, CSV, Clear this student's work) and
+        This device (unlock all levels, Reset this device).
    ============================================================ */
 
-const APP_VERSION = "0.4.1";
+const APP_VERSION = "0.5";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -568,6 +571,7 @@ function render() {
   if (!student) { renderLanding(); return; }
   const m = hash.match(/^#level([1-5])$/);
   if (hash === "#terms") renderTerms();
+  else if (hash === "#report") renderReport();
   else if (m && isUnlocked(Number(m[1]))) renderLevel(Number(m[1]));
   else {
     if (hash !== "#home" && hash !== "") { history.replaceState(null, "", "#home"); }
@@ -2034,8 +2038,101 @@ const LEVEL_CONTENT = {
   5: { tabs: L5_TABS }
 };
 
+/* ---------------- Reading any student's record ----------------
+   Used by the learning report (this student) and by Teacher Mode (any student). */
+
+const ALL_MARKED = () => L3_Q2.concat(L5_MARKED);
+function recAnswer(r, key) { const a = r && r.answers && r.answers[key]; return a ? a.v : undefined; }
+function recDone(r, n) { return r && r.done ? r.done[n] : null; }
+function recLevelsDone(r) { return r && r.done ? Object.keys(r.done).length : 0; }
+// Right on the first try, out of the items, or null until every item has a first try.
+function recFirstTry(r, items) {
+  const first = (r && r.first) || {};
+  if (!items.every(it => first[it.attemptKey])) return null;
+  return items.filter(it => first[it.attemptKey].ok).length;
+}
+// The approved "Look at these again" lines for items wrong on the first try (no repeats).
+function recLookAgain(r) {
+  const lines = [];
+  ALL_MARKED().forEach(it => {
+    const f = r && r.first && r.first[it.attemptKey];
+    if (f && !f.ok && !lines.includes(it.lookAgain)) lines.push(it.lookAgain);
+  });
+  return lines;
+}
+function shortDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" });
+}
+// How an attempt reads in Teacher Mode and the CSV, e.g. "Presenting product information (wrong)".
+function attemptText(item, att) {
+  if (!att) return "";
+  let label = att.a;
+  if (item.type === "select") label = item.options[att.a];
+  if (item.type === "tf") label = att.a === true ? "True" : att.a === false ? "False" : "";
+  return `${label == null ? "(blank)" : label} (${att.ok ? "right" : "wrong"})`;
+}
+
+/* ---------------- 6.1 My learning report ---------------- */
+
+function renderReport() {
+  const r = rec;
+  const q2 = recFirstTry(r, L3_Q2);
+  const q34 = recFirstTry(r, L5_MARKED);
+  const look = recLookAgain(r);
+  app.innerHTML = `
+    ${topBarHtml({ showHome: true, showChip: true })}
+    <main class="page">
+      <div class="block">
+        <h1 class="page-title">📊 My learning report</h1>
+        <p class="level-sub">Class ${escapeHtml(student.cls)}, Register No. ${student.reg}</p>
+      </div>
+      <div class="block">
+        <ul class="report-levels">
+          ${LEVELS.map(s => {
+            const when = recDone(r, s.num);
+            const badge = (CONFIG.IMAGES[s.badgeImg] || {}).emoji || s.icon;
+            return `<li class="report-level ${when ? "done" : ""}">
+              <div class="report-badge">${imgHtml(s.badgeImg, "badge-img")}</div>
+              <div class="report-level-body">
+                <p class="report-level-name">Level ${s.num}: ${escapeHtml(s.title)}</p>
+                <p class="report-level-when">${when ? `✅ ${escapeHtml(shortDate(when))}` : "Not finished yet"}</p>
+                <p class="report-level-badge">${when ? `${badge} ${escapeHtml(s.badge)}` : ""}</p>
+              </div>
+            </li>`;
+          }).join("")}
+        </ul>
+      </div>
+      <div class="block">
+        ${iconCardsHtml([
+          { icon: "🎯", html: `Level 3, Q2: first try <strong>${q2 == null ? "–" : q2} / 4</strong>.` },
+          { icon: "🎯", html: `Level 5, Q3 and Q4: first try <strong>${q34 == null ? "–" : q34} / 5</strong>.` }
+        ], "cols-2 report-scores")}
+      </div>
+      <section class="block" aria-labelledby="lookTitle">
+        <h2 class="section-title" id="lookTitle">${hIcon("🔁")}Look at these again</h2>
+        ${look.length ? `<ul class="look-list">${look.map(t => `<li>${escapeHtml(t)}</li>`).join("")}</ul>`
+          : `<p class="look-none">Nothing to look at again. You got everything right on the first try! 🎉</p>`}
+      </section>
+      <section class="block" aria-labelledby="confTitle">
+        <h2 class="section-title" id="confTitle">${hIcon("💭")}How confident you felt</h2>
+        <ul class="conf-list">
+          ${CONFIDENCE_ROWS.map((row, i) => {
+            const v = recAnswer(r, `s5.q8.${i + 1}`);
+            return `<li class="conf-row"><span class="conf-text">${escapeHtml(row)}</span>
+              <span class="conf-face">${typeof v === "number" ? `<span aria-hidden="true">${FACES[v][0]}</span> ${FACES[v][1]}` : "–"}</span></li>`;
+          }).join("")}
+        </ul>
+      </section>
+      <div class="block"><div class="btn-row"><a href="#home" class="btn" id="reportBack">Back to my route</a></div></div>
+    </main>
+    ${footerHtml()}
+  `;
+}
+
 /* ---------------- Teacher Mode ----------------
-   T.1 sign in and T.2 Classes. Results and This device come in slice 5.
+   T.1 sign in, T.2 Classes, T.3 Results, T.4 This device.
    The code is kept only in memory while the page is open, never stored. */
 
 let teacher = null; // {code, classes, removed, tab}
@@ -2095,26 +2192,9 @@ function renderTeacherGate() {
       btn.textContent = "Enter";
       return;
     }
-    teacher = { code, classes: reply.classes || [], removed: reply.removed || [], tab: "classes" };
+    teacher = { code, classes: reply.classes || [], removed: reply.removed || [], tab: "classes", results: null, view: null, notice: "" };
     renderTeacherHome();
   });
-}
-
-function renderTeacherHome() {
-  app.innerHTML = `
-    ${topBarHtml({ showHome: true })}
-    <main class="page">
-      <div class="block">
-        <h1 class="page-title">Teacher Mode</h1>
-        <div class="tabs" role="tablist" aria-label="Teacher Mode">
-          <button type="button" role="tab" class="tab current" aria-selected="true" id="tabClasses">Classes</button>
-        </div>
-      </div>
-      <div class="block" id="teacherPanel" role="tabpanel" aria-labelledby="tabClasses"></div>
-    </main>
-    ${footerHtml()}
-  `;
-  renderClassesTab(document.getElementById("teacherPanel"));
 }
 
 /* T.2 Classes */
@@ -2180,6 +2260,320 @@ function renderClassesTab(el, message) {
       ]
     });
   }));
+}
+
+function renderTeacherHome() {
+  const tabs = [["classes", "Classes"], ["results", "Results"], ["device", "This device"]];
+  const cur = teacher.tab || "classes";
+  app.innerHTML = `
+    ${topBarHtml({ showHome: true })}
+    <main class="page">
+      <div class="block">
+        <h1 class="page-title">Teacher Mode</h1>
+        <div class="tabs" role="tablist" aria-label="Teacher Mode">
+          ${tabs.map(([id, label]) => `<button type="button" role="tab" class="tab ${cur === id ? "current" : ""}" aria-selected="${cur === id}" id="tab_${id}" data-tab="${id}">${label}</button>`).join("")}
+        </div>
+      </div>
+      <div class="block" id="teacherPanel" role="tabpanel" aria-labelledby="tab_${cur}"></div>
+    </main>
+    ${footerHtml()}
+  `;
+  app.querySelectorAll(".tabs .tab").forEach(b => b.addEventListener("click", () => {
+    teacher.tab = b.getAttribute("data-tab");
+    renderTeacherHome();
+  }));
+  const panel = document.getElementById("teacherPanel");
+  if (cur === "results") renderResultsTab(panel);
+  else if (cur === "device") renderDeviceTab(panel);
+  else renderClassesTab(panel);
+}
+
+/* ---------------- T.3 Results ----------------
+   One class at a time: the records come from the server ("results"), and the class
+   summary, students table, full reports and CSV are worked out here. */
+
+function itemTeacherLabel(it) {
+  if (it.type === "select") return `Q2 ${it.id} (answer: ${it.answerLabel})`;
+  if (it.type === "tf") return `Q3 ${it.id}: ${it.text} (answer: ${it.answerLabel})`;
+  return `Q4 (answer: ${it.answerLabel})`;
+}
+
+async function loadResults(cls) {
+  teacher.results = { cls, loading: true, students: [] };
+  const reply = await teacherCall({ action: "results", "class": cls });
+  if (!reply.ok) { teacher.results = { cls, error: teacherErrorText(reply), students: [] }; return; }
+  teacher.results = { cls, students: reply.students || [] };
+}
+
+function renderResultsTab(el) {
+  const res = teacher.results || {};
+  const options = teacher.classes.map(c => ({ value: c, label: c }))
+    .concat((teacher.removed || []).map(c => ({ value: c, label: `${c} (removed)` })));
+  el.innerHTML = `
+    <div class="field">
+      <label for="resultsClass" class="field-label">Choose a class</label>
+      <select id="resultsClass" class="select-input results-class">
+        <option value="" disabled ${res.cls ? "" : "selected"}>Choose a class…</option>
+        ${options.map(o => `<option value="${escapeHtml(o.value)}" ${o.value === res.cls ? "selected" : ""}>${escapeHtml(o.label)}</option>`).join("")}
+      </select>
+    </div>
+    <div id="resultsBody"></div>
+  `;
+  el.querySelector("#resultsClass").addEventListener("change", async (e) => {
+    const cls = e.target.value;
+    teacher.view = null;
+    teacher.notice = "";
+    el.querySelector("#resultsBody").innerHTML = `<p class="muted">Loading…</p>`;
+    await loadResults(cls);
+    renderResultsTab(el);
+  });
+  const body = el.querySelector("#resultsBody");
+  if (!res.cls) return;
+  if (res.error) { body.innerHTML = `<p class="form-error" role="alert">${escapeHtml(res.error)}</p>`; return; }
+  if (teacher.view != null) { renderStudentReport(body, el); return; }
+  renderClassResults(body, el);
+}
+
+function renderClassResults(body, panel) {
+  const res = teacher.results;
+  const students = res.students;
+  const withWork = students.filter(s => s.record);
+  const n = withWork.length;
+  const marked = ALL_MARKED();
+  const missed = marked.map(it => {
+    const tried = withWork.filter(s => s.record.first && s.record.first[it.attemptKey]);
+    const wrong = tried.filter(s => !s.record.first[it.attemptKey].ok).length;
+    return { it, tried: tried.length, wrong };
+  }).filter(m => m.wrong > 0).sort((a, b) => b.wrong - a.wrong); // only items someone got wrong
+  const q7 = withWork.map(s => ({ reg: s.reg, v: recAnswer(s.record, "s5.q7") })).filter(x => x.v && String(x.v).trim());
+
+  body.innerHTML = `
+    ${teacher.notice ? `<p class="notice" role="status">${escapeHtml(teacher.notice)}</p>` : ""}
+    <section class="card results-summary" aria-labelledby="sumTitle">
+      <h2 class="section-title" id="sumTitle">Class summary: ${escapeHtml(res.cls)}</h2>
+      <p class="muted">${n} student${n === 1 ? "" : "s"} with saved work.</p>
+      <h3 class="sum-head">Levels finished</h3>
+      <ul class="sum-list">${LEVELS.map(s => `<li>Level ${s.num}: ${withWork.filter(x => recDone(x.record, s.num)).length} of ${n}</li>`).join("")}</ul>
+      <h3 class="sum-head">Most missed on the first try</h3>
+      ${missed.length ? `<ul class="sum-list">${missed.map(m => `<li>${escapeHtml(itemTeacherLabel(m.it))}: wrong for ${m.wrong} of ${m.tried}</li>`).join("")}</ul>` : `<p class="muted">Nothing missed on the first try yet.</p>`}
+      <h3 class="sum-head">Confidence</h3>
+      <div class="table-wrap"><table class="results-table">
+        <thead><tr><th scope="col">Statement</th>${FACES.map(f => `<th scope="col"><span aria-hidden="true">${f[0]}</span> ${f[1]}</th>`).join("")}</tr></thead>
+        <tbody>${CONFIDENCE_ROWS.map((row, i) => `<tr><th scope="row">${escapeHtml(row)}</th>${FACES.map((f, v) => `<td>${withWork.filter(x => recAnswer(x.record, `s5.q8.${i + 1}`) === v).length}</td>`).join("")}</tr>`).join("")}</tbody>
+      </table></div>
+      <h3 class="sum-head">Q7: one question I still have</h3>
+      ${q7.length ? `<ul class="sum-list">${q7.map(x => `<li><strong>No. ${x.reg}:</strong> ${escapeHtml(x.v)}</li>`).join("")}</ul>` : `<p class="muted">No answers yet.</p>`}
+    </section>
+    <section class="card" aria-labelledby="tableTitle">
+      <h2 class="section-title" id="tableTitle">Students</h2>
+      <p class="muted">Tap a row to open the student's full report.</p>
+      <div class="table-wrap"><table class="results-table students-table">
+        <thead><tr><th scope="col">Register No.</th><th scope="col">Levels done</th><th scope="col">Q2 first try</th><th scope="col">Q3 and Q4 first try</th><th scope="col">Confidence</th></tr></thead>
+        <tbody>${students.map((s, i) => {
+          const r = s.record;
+          const q2 = recFirstTry(r, L3_Q2), q34 = recFirstTry(r, L5_MARKED);
+          const faces = CONFIDENCE_ROWS.map((row, k) => { const v = recAnswer(r, `s5.q8.${k + 1}`); return typeof v === "number" ? `<span title="${FACES[v][1]}">${FACES[v][0]}</span>` : "·"; }).join(" ");
+          return `<tr class="student-row" data-i="${i}">
+            <td><button type="button" class="row-link" data-i="${i}">No. ${s.reg}</button>${r ? "" : `<span class="muted"> (cleared)</span>`}</td>
+            <td>${r ? recLevelsDone(r) : 0}</td><td>${q2 == null ? "–" : `${q2} / 4`}</td><td>${q34 == null ? "–" : `${q34} / 5`}</td><td class="faces-cell">${faces}</td>
+          </tr>`;
+        }).join("") || `<tr><td colspan="5">No students yet.</td></tr>`}</tbody>
+      </table></div>
+      <div class="btn-row"><button type="button" class="btn secondary" id="downloadCsv">⬇️ Download CSV</button></div>
+    </section>
+  `;
+  const open = (i) => { teacher.view = i; teacher.notice = ""; renderResultsTab(panel); window.scrollTo(0, 0); };
+  body.querySelectorAll(".student-row").forEach(row => row.addEventListener("click", () => open(Number(row.getAttribute("data-i")))));
+  body.querySelector("#downloadCsv").addEventListener("click", () => downloadClassCsv(res));
+}
+
+// A student's full report (Teacher Mode).
+function qa(label, value) {
+  const v = value == null || String(value).trim() === "" ? "(blank)" : String(value);
+  return `<div class="qa"><p class="qa-q">${escapeHtml(label)}</p><p class="qa-a">${escapeHtml(v)}</p></div>`;
+}
+function attemptsTable(items, firstCol) {
+  return `<div class="table-wrap"><table class="results-table">
+    <thead><tr><th scope="col">${firstCol}</th><th scope="col">First try</th><th scope="col">Second try</th></tr></thead>
+    <tbody>${items.map(it => `<tr><th scope="row">${escapeHtml(it.type === "select" ? `${it.id}. ${it.quote}` : it.type === "tf" ? `${it.id}. ${it.text}` : "Q4")}</th>
+      <td>${escapeHtml(attemptText(it, it._r.first && it._r.first[it.attemptKey]) || "–")}</td>
+      <td>${escapeHtml(attemptText(it, it._r.second && it._r.second[it.attemptKey]) || "–")}</td></tr>`).join("")}</tbody>
+  </table></div>`;
+}
+
+function renderStudentReport(body, panel) {
+  const res = teacher.results;
+  const s = res.students[teacher.view];
+  const r = s.record || {};
+  const withR = items => items.map(it => Object.assign({ _r: r }, it));
+  body.innerHTML = `
+    <div class="btn-row"><button type="button" class="btn secondary" id="backToClass">← Back to the class</button></div>
+    <section class="card student-report" aria-labelledby="stuTitle">
+      <h2 class="section-title" id="stuTitle">Class ${escapeHtml(res.cls)}, Register No. ${s.reg}</h2>
+      <p class="muted">Levels done: ${recLevelsDone(r)} of 5${s.lastSaved ? ` · Last saved ${escapeHtml(s.lastSaved)}` : ""}${s.clearedAt ? ` · Work cleared ${escapeHtml(s.clearedAt)}` : ""}</p>
+      <h3 class="sum-head">Level 1: stories</h3>
+      ${L1_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
+      <h3 class="sum-head">Level 2: Think about it (optional)</h3>
+      ${qa("Was this good service recovery? Which of the 8 steps above were missing?", recAnswer(r, "s2.think1"))}
+      ${qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?", recAnswer(r, "s2.think2"))}
+      <h3 class="sum-head">Level 3: Q1</h3>
+      ${qa("Skill or quality:", recAnswer(r, "s3.q1a"))}
+      ${qa("This is important to customers because", recAnswer(r, "s3.q1b"))}
+      <h3 class="sum-head">Level 3: Q2</h3>
+      ${attemptsTable(withR(L3_Q2), "Line")}
+      <h3 class="sum-head">Level 4: reflections</h3>
+      ${L4_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
+      <h3 class="sum-head">Level 5: Q3 and Q4</h3>
+      ${attemptsTable(withR(L5_MARKED), "Item")}
+      ${qa("Q5. Quality customer service matters because", recAnswer(r, "s5.q5"))}
+      <h3 class="sum-head">Exit ticket</h3>
+      ${qa("Q6. What is one thing you have learnt about customer service?", recAnswer(r, "s5.q6"))}
+      ${qa("Q7. What is one question you still have about this chapter?", recAnswer(r, "s5.q7"))}
+      <ul class="conf-list">${CONFIDENCE_ROWS.map((row, i) => { const v = recAnswer(r, `s5.q8.${i + 1}`); return `<li class="conf-row"><span class="conf-text">${escapeHtml(row)}</span><span class="conf-face">${typeof v === "number" ? `<span aria-hidden="true">${FACES[v][0]}</span> ${FACES[v][1]}` : "–"}</span></li>`; }).join("")}</ul>
+    </section>
+    <div class="btn-row"><button type="button" class="btn secondary danger" id="clearStudent">Clear this student's work</button></div>
+  `;
+  body.querySelector("#backToClass").addEventListener("click", () => { teacher.view = null; renderResultsTab(panel); });
+  body.querySelector("#clearStudent").addEventListener("click", () => {
+    showModal({
+      id: "clearModal",
+      title: "Clear this student's work",
+      bodyHtml: `<p>Clear all work for Class ${escapeHtml(res.cls)}, Register No. ${s.reg}? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy.</p>`,
+      buttons: [
+        {
+          label: "Clear work", primary: true, onClick: async () => {
+            const reply = await teacherCall({ action: "clearStudent", "class": res.cls, reg: s.reg });
+            if (!reply.ok) { teacher.notice = teacherErrorText(reply); }
+            else {
+              await loadResults(res.cls);
+              teacher.notice = "Work cleared. This student starts again from Level 1 the next time they log in.";
+            }
+            teacher.view = null;
+            renderResultsTab(panel);
+          }
+        },
+        { label: "Cancel" }
+      ]
+    });
+  });
+}
+
+// CSV for one class (V45's csvCell and download, with a byte order mark for Excel).
+function csvCell(v) {
+  const s = String(v == null ? "" : v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function downloadClassCsv(res) {
+  const header = ["Class", "Register No.", "Levels done"]
+    .concat(LEVELS.map(s => `Level ${s.num} finished`))
+    .concat(["Q2 first try (/4)", "Q3 and Q4 first try (/5)"])
+    .concat(L1_BOXES.map(b => `Level 1 story ${b.num}`))
+    .concat(["Level 2 Think about it 1", "Level 2 Think about it 2", "Level 3 Q1 skill or quality", "Level 3 Q1 why important"])
+    .concat(L3_Q2.reduce((a, it) => a.concat([`Q2 ${it.id} first try`, `Q2 ${it.id} second try`]), []))
+    .concat(L4_BOXES.map(b => `Level 4 reflection ${b.num}`))
+    .concat(L5_Q3.reduce((a, it) => a.concat([`Q3 ${it.id} first try`, `Q3 ${it.id} second try`]), []))
+    .concat(["Q4 first try", "Q4 second try", "Q5", "Q6", "Q7"])
+    .concat(CONFIDENCE_ROWS.map((row, i) => `Q8 confidence ${i + 1}: ${row}`))
+    .concat(["Last saved", "Cleared at"]);
+  const rows = res.students.map(s => {
+    const r = s.record || {};
+    const att = (it, which) => attemptText(it, r[which] && r[which][it.attemptKey]);
+    const q2 = recFirstTry(r, L3_Q2), q34 = recFirstTry(r, L5_MARKED);
+    return [res.cls, s.reg, recLevelsDone(r)]
+      .concat(LEVELS.map(lv => shortDate(recDone(r, lv.num))))
+      .concat([q2 == null ? "" : q2, q34 == null ? "" : q34])
+      .concat(L1_BOXES.map(b => recAnswer(r, b.key)))
+      .concat(["s2.think1", "s2.think2", "s3.q1a", "s3.q1b"].map(k => recAnswer(r, k)))
+      .concat(L3_Q2.reduce((a, it) => a.concat([att(it, "first"), att(it, "second")]), []))
+      .concat(L4_BOXES.map(b => recAnswer(r, b.key)))
+      .concat(L5_MARKED.reduce((a, it) => a.concat([att(it, "first"), att(it, "second")]), []))
+      .concat(["s5.q5", "s5.q6", "s5.q7"].map(k => recAnswer(r, k)))
+      .concat(CONFIDENCE_ROWS.map((row, i) => { const v = recAnswer(r, `s5.q8.${i + 1}`); return typeof v === "number" ? FACES[v][1] : ""; }))
+      .concat([s.lastSaved || "", s.clearedAt || ""]);
+  });
+  const csv = "﻿" + [header].concat(rows).map(row => row.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `EBS-Ch6-${String(res.cls).replace(/[^A-Za-z0-9_-]/g, "_")}-results-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* ---------------- T.4 This device ---------------- */
+
+function renderDeviceTab(el, message) {
+  const on = unlockAllOnDevice();
+  el.innerHTML = `
+    ${message ? `<p class="notice" role="status">${escapeHtml(message)}</p>` : ""}
+    <section class="card device-card" aria-labelledby="unlockTitle">
+      <h2 class="section-title" id="unlockTitle">${hIcon("🔓")}Unlock all levels</h2>
+      <p>For demos and for students who need to skip ahead.</p>
+      ${on ? `<p class="notice" role="status">All levels are unlocked on this device.</p>
+        <div class="btn-row"><button type="button" class="btn secondary" id="unlockToggle">Turn off</button></div>`
+        : `<div class="btn-row"><button type="button" class="btn" id="unlockToggle">Unlock all levels on this device</button></div>`}
+    </section>
+    <section class="card device-card" aria-labelledby="resetTitle">
+      <h2 class="section-title" id="resetTitle">${hIcon("🧹")}Reset this device</h2>
+      <p>Logs out the student and clears the copy of their work on this device. Their work stays saved on the server.</p>
+      <div class="btn-row"><button type="button" class="btn secondary" id="resetDevice">Reset this device</button></div>
+    </section>
+  `;
+  el.querySelector("#unlockToggle").addEventListener("click", () => {
+    if (on) lsRemove(KEYS.unlockAll); else lsSet(KEYS.unlockAll, true);
+    renderDeviceTab(el);
+  });
+  el.querySelector("#resetDevice").addEventListener("click", () => askCodeThenReset(el));
+}
+
+// Reset this device: asks for the teacher code again (as in the LJ), then clears every
+// student's copy on this device. Work not yet sent stays until it reaches the server.
+function askCodeThenReset(el, error) {
+  let code = "";
+  const wrap = showModal({
+    id: "resetModal",
+    title: "Reset this device",
+    bodyHtml: `<label for="resetCode" class="field-label">Key in the teacher code.</label>
+      <input type="password" id="resetCode" class="text-input" autocomplete="off">
+      ${error ? `<p class="form-error" role="alert">${escapeHtml(error)}</p>` : ""}`,
+    buttons: [
+      {
+        label: "Reset", primary: true, onClick: async () => {
+          let reply;
+          try { reply = await api("POST", { action: "teacherCheck", code }, 20000); }
+          catch (e) { reply = { ok: false, error: "server" }; }
+          if (!reply.ok) { askCodeThenReset(el, teacherErrorText(reply)); return; }
+          renderDeviceTab(el, resetThisDevice());
+        }
+      },
+      { label: "Cancel" }
+    ]
+  });
+  if (!wrap) return;
+  const input = wrap.querySelector("#resetCode");
+  input.addEventListener("input", () => { code = input.value; });
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") wrap.querySelector(".modal-btns .btn").click(); });
+  input.focus();
+}
+
+function resetThisDevice() {
+  const q = loadQueue();
+  let kept = 0;
+  Object.keys(localStorage).filter(k => k.indexOf("ch6_rec_") === 0).forEach(k => {
+    const key = k.slice("ch6_rec_".length);
+    if (q[key]) { q[key].forget = true; kept++; } // sent later, then deleted
+    else lsRemove(k);
+  });
+  saveQueue(q);
+  lsRemove(KEYS.active);
+  student = null;
+  rec = null;
+  serverUnreachable = false;
+  flushQueue();
+  return kept
+    ? `Device reset. Work for ${kept} student${kept === 1 ? " has" : "s have"} not been sent yet. It has been kept on this device and will be sent when the device is online.`
+    : "Device reset. It is ready for the next student.";
 }
 
 /* ---------------- Start ---------------- */

@@ -89,7 +89,7 @@ async function edgeProblems(page) {
 
 test("blocks line up: same left and right edges on every page", async ({ page, request }) => {
   await student(page, request, 35);
-  const pages = [["home", "/#home"], ["terms", "/#terms"], ["level1", "/#level1"]];
+  const pages = [["home", "/#home"], ["terms", "/#terms"], ["level1", "/#level1"], ["report", "/#report"]];
   for (const [name, url] of pages) {
     await page.goto(url);
     await page.waitForTimeout(300);
