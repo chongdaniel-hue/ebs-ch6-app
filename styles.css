@@ -132,7 +132,9 @@ a:hover{color:var(--brand-dark);}
   padding:24px 16px var(--block-gap);
 }
 .block + .block{margin-top:var(--block-gap);}
-.block > * + *{margin-top:var(--inner-gap);}
+/* Gap between items inside a block. ".page" makes this beat components that reset
+   their own margins to 0 (lists of cards), so an intro line never sits tight on top. */
+.page .block > * + *{margin-top:var(--inner-gap);}
 
 .page-title{
   margin:0 0 var(--inner-gap);
