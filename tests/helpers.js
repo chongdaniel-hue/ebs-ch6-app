@@ -38,8 +38,11 @@ async function expectNoSidewaysScroll(page) {
   expect(overflow, "page wider than the screen").toBeLessThanOrEqual(0);
 }
 
+// Full-page screenshot as a student would see it: from the top (so sticky bars sit at the
+// top), with any slide-in finished.
 async function shot(page, testInfo, name) {
-  await page.screenshot({ path: `tests/screenshots/${name}-${testInfo.project.name}.png`, fullPage: true });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: `tests/screenshots/${name}-${testInfo.project.name}.png`, fullPage: true, animations: "disabled" });
 }
 
 module.exports = { watchErrors, expectNoAmpersand, expectNoSidewaysScroll, shot };

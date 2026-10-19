@@ -7,8 +7,8 @@ Read this with `CLAUDE.md` and `docs/storyboard.md` when starting a fresh sessio
 | Slice | What | Status |
 |---|---|---|
 | 1 | Clean-up and shell: removals, blue theme, header, footer, `config.js`, image map with placeholder boxes, viewport fix | Done (commit "Slice 1") |
-| 2 | Back end and login: `apps-script/Code.gs`, local stand-in `server/server.js`, setup guides, Teacher Mode sign-in and Classes tab, landing, Before you start, home, 4 key terms, Switch student, saving and loading, offline | Built, awaiting review (commit "Slice 2") |
-| 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Not started |
+| 2 | Back end and login: `apps-script/Code.gs`, local stand-in `server/server.js`, setup guides, Teacher Mode sign-in and Classes tab, landing, Before you start, home, 4 key terms, Switch student, saving and loading, offline | Done (commits "Slice 2", "Slice 2 fixes") |
+| 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Built, awaiting review (commit "Slice 3") |
 | 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Not started |
 | 5 | Learning report and the rest of Teacher Mode | Not started |
 | 6 | Full check, GitHub Pages workflow, summary | Not started |
@@ -78,6 +78,14 @@ These fill gaps in the storyboard. Student-facing wording here is approved and m
 - **Tests**: `npx playwright test`. The test teacher code is generated at random for each run; test data lives in the system temp folder.
 - Wording I had to add because the storyboard has none (teacher-facing or transient, please check): Teacher Mode "Too many wrong codes. Wait 10 minutes and try again.", "The teacher code has not been set up yet. See the setup guide.", Classes tab "Key in a class name.", "Class names can be at most 20 characters.", "{name} is already in your classes.", "No classes yet."; the Start and Enter buttons read "Checking..." while waiting (as in V45); the Switch student pop-up title "🔄 Switch student" and the Remove class pop-up title "Remove class".
 - `docs/github-setup.md` is written in slice 6 with the Pages workflow it describes.
+
+## How slice 3 works (for the next session)
+
+- **Level engine** (`renderLevel`, `drawTab` in `app.js`): `LEVEL_CONTENT[n].tabs[i]` = `{label, next, parts: [{html(ctx), wire(el, ctx), continueWhen(ctx)}]}`. Parts are revealed with Continue ↓ (`reached["s<n>.t<i>"]`); Next → raises `reached["s<n>.tabs"]` and moves on; the current tab is `ui["s<n>.tab"]`. A level with one tab shows no tab bar. Locked tabs show 🔒, are `aria-disabled` and do nothing when tapped.
+- **Saving**: Continue, Next, tab change, Show Step: `"soon"`; Submit and Finish: `"now"`; answer boxes: `"typing"`. Answer boxes are limited to 1,500 characters.
+- **Shared pieces**: `answerBoxHtml` / `wireAnswerBoxes`, `recapHtml` (💡 card, amber), `finishButtonHtml` / `finishLevel` / `showBadgePopup` (Badges 1 to 4), `showNotFinished(missing, onSubmitAnyway)` (V45 submit guard: red outline with "✗ Not done yet", items listed by name; pass `onSubmitAnyway` only for Level 1).
+- **Service Recovery Path**: `RECOVERY_STEPS`; `reached["s2.path"]` counts stops shown. The first visit to Tab 3 shows Step 1 only; any later arrival at the tab (coming back, reload) shows all 8. Continue ↓, the "Handled well" line and C04 appear only once all 8 are shown.
+- Choices made where the storyboard is silent (please check): a level counts as "In progress" once opened (after "I'm ready"); after Level 1 Submit, the instruction line "Type at least one sentence in each box, then tap Submit." is replaced by the recap card; hidden screen-reader text for the mood faces reads "Customer feels angry / upset / calmer / reassured / happy"; the badge pop-up title is the badge emoji and name (e.g. "📝 Story Sharer").
 
 ## Open questions
 

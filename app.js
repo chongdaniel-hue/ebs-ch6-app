@@ -21,9 +21,13 @@
         Teacher Mode sign-in and Classes tab.
    0.2.1 "Station" renamed "Level" everywhere on screen and in the
         code. The teacher code ignores capitals and spaces.
+   0.3  Slice 3: Levels 1 and 2. Level engine (sticky step tabs,
+        Continue ↓ parts, Next →, tabs unlocking in order), the
+        Service Recovery Path, "Not finished yet" pop-up (V45 submit
+        guard), 💡 recap card and badge pop-ups for Badges 1 and 2.
    ============================================================ */
 
-const APP_VERSION = "0.2.1";
+const APP_VERSION = "0.3";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -82,7 +86,7 @@ function imgFallback(el) {
 
 /* ---------------- Levels (home page route) ---------------- */
 
-const STATIONS = [
+const LEVELS = [
   { num: 1, icon: "📝", title: "Your Customer Service Stories", desc: "Think about your own experiences as a customer.", badge: "Story Sharer", badgeImg: "BADGE1" },
   { num: 2, icon: "📘", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the four stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
   { num: 3, icon: "💬", title: "Chat with Alex", desc: "Be the customer. Chat with Nexora's customer service officer.", badge: "Service Spotter", badgeImg: "BADGE3" },
@@ -682,7 +686,7 @@ async function startLogin() {
 /* ---------------- Progress helpers ---------------- */
 
 function isDone(num) { return !!(rec && rec.done && rec.done[num]); }
-function doneCount() { return STATIONS.filter(s => isDone(s.num)).length; }
+function doneCount() { return LEVELS.filter(s => isDone(s.num)).length; }
 function unlockAllOnDevice() { return lsGet(KEYS.unlockAll) === true; }
 function isUnlocked(num) { return num === 1 || isDone(num - 1) || unlockAllOnDevice(); }
 
@@ -703,7 +707,7 @@ function levelStatus(num) {
 
 function welcomeLine(done) {
   if (done === 0) return "Welcome! Start with Level 1.";
-  if (done === STATIONS.length) return "You've finished all 5 levels. Well done! Have a look at your learning report.";
+  if (done === LEVELS.length) return "You've finished all 5 levels. Well done! Have a look at your learning report.";
   return `Welcome back! You've finished ${done} of 5 levels. Keep going!`;
 }
 
@@ -728,7 +732,7 @@ function renderLevelCard(s) {
 }
 
 function badgeShelfHtml() {
-  return `<ul class="badge-shelf">${STATIONS.map(s => {
+  return `<ul class="badge-shelf">${LEVELS.map(s => {
     const got = isDone(s.num);
     return `<li class="shelf-badge ${got ? "earned" : ""}">
       <div class="shelf-img">${imgHtml(s.badgeImg, "badge-img")}</div>
@@ -765,19 +769,19 @@ function renderHome() {
           <p class="journey-count">${done} of 5 levels done</p>
           <div class="progress-track" role="progressbar" aria-label="Levels done" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${done}"><div class="progress-fill" style="width:${done / 5 * 100}%"></div></div>
         </div>
-        <ol class="route">${STATIONS.map(renderLevelCard).join("")}</ol>
+        <ol class="route">${LEVELS.map(renderLevelCard).join("")}</ol>
       </section>
       <section class="block" aria-labelledby="badgesTitle">
         <h2 class="section-title" id="badgesTitle">🏅 Your badges</h2>
         ${badgeShelfHtml()}
-        ${done === STATIONS.length ? `<div class="btn-row"><a href="#report" class="btn">📊 My learning report</a></div>` : ""}
+        ${done === LEVELS.length ? `<div class="btn-row"><a href="#report" class="btn">📊 My learning report</a></div>` : ""}
       </section>
     </main>
     ${footerHtml()}
   `;
   document.getElementById("howLink").addEventListener("click", (e) => { e.preventDefault(); showBriefing(); });
   document.getElementById("switchLink").addEventListener("click", (e) => { e.preventDefault(); confirmSwitchStudent(); });
-  STATIONS.forEach(s => {
+  LEVELS.forEach(s => {
     document.getElementById(`levelCard${s.num}`).addEventListener("click", () => {
       if (levelStatus(s.num) === "locked") {
         const msg = document.getElementById(`lockedMsg${s.num}`);
@@ -848,21 +852,473 @@ function renderTerms() {
   `;
 }
 
-/* ---------------- Levels ----------------
-   Slice 2: the level frame only. Levels 1 to 5 are built in slices 3 and 4. */
+/* ---------------- Levels: shared engine ----------------
+   Each level has one or more step tabs; each tab has parts. "Continue ↓" reveals
+   the next part below on the same page; "Next →" moves to the next tab. Tabs
+   unlock in order once the tab before has been read to the end.
 
-function renderLevel(num) {
-  const s = STATIONS[num - 1];
+   Progress kept in the record (all merge safely across devices):
+     reached["s<n>.tabs"]    highest tab index unlocked (0 = first tab only)
+     reached["s<n>.t<i>"]    how many parts of tab i have been shown
+     ui["s<n>.tab"]          the tab the student is on
+     submitted["s<n>..."]    when a question group was submitted
+     done[n]                 when the level was finished */
+
+const ANSWER_MAX = 1500; // characters per answer box (keeps a record well under the Sheet's cell limit)
+
+function lvl(n) { return LEVELS[n - 1]; }
+function tabsUnlocked(n) { return Number(rec.reached[`s${n}.tabs`]) || 0; }
+function partsShown(n, t) { return Math.max(1, Number(rec.reached[`s${n}.t${t}`]) || 0); }
+function isTabUnlocked(n, t) { return t === 0 || isDone(n) || tabsUnlocked(n) >= t || unlockAllOnDevice(); }
+
+function currentTab(n) {
+  const content = LEVEL_CONTENT[n];
+  let t = Number(getUi(`s${n}.tab`)) || 0;
+  if (t >= content.tabs.length || !isTabUnlocked(n, t)) t = 0;
+  return t;
+}
+
+// Smooth scrolling and focus for newly revealed content; no motion if the student asked for less.
+function reducedMotion() {
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+function revealFocus(el) {
+  if (!el) return;
+  if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+  el.focus({ preventScroll: true });
+  el.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" });
+}
+
+// Sticky step tabs sit just under the sticky top bar, whatever its height.
+function syncStickyOffsets() {
+  const bar = document.querySelector(".topbar");
+  if (bar) document.documentElement.style.setProperty("--topbar-h", bar.offsetHeight + "px");
+}
+window.addEventListener("resize", syncStickyOffsets);
+
+function tabBarHtml(n, current) {
+  const content = LEVEL_CONTENT[n];
+  if (content.tabs.length < 2) return "";
+  return `
+    <nav class="step-tabs" aria-label="Steps in Level ${n}">
+      <ol class="step-tabs-list" style="--tab-count:${content.tabs.length}">
+        ${content.tabs.map((t, i) => {
+          const open = isTabUnlocked(n, i);
+          const cls = i === current ? "current" : open ? "" : "locked";
+          return `<li><button type="button" class="step-tab ${cls}" data-tab="${i}"
+            ${i === current ? `aria-current="step"` : ""} ${open ? "" : `aria-disabled="true"`}>
+            <span class="step-num" aria-hidden="true">${open ? i + 1 : "🔒"}</span>
+            <span class="step-label">${escapeHtml(t.label)}${open ? "" : `<span class="visually-hidden"> (locked)</span>`}</span>
+          </button></li>`;
+        }).join("")}
+      </ol>
+    </nav>`;
+}
+
+// Draws the level page: arriving at a level, switching tab, or after Next or Submit.
+function renderLevel(n) {
+  const s = lvl(n);
+  const content = LEVEL_CONTENT[n];
+  const t = currentTab(n);
+  const tab = content.tabs[t];
   app.innerHTML = `
     ${topBarHtml({ showHome: true, showChip: true })}
-    <main class="page">
-      <div class="block">
-        <h1 class="page-title">${s.icon} Level ${num}: ${escapeHtml(s.title)}</h1>
-      </div>
-    </main>
+    <div class="level-head"><div class="level-head-inner">
+      <h1 class="page-title">${s.icon} Level ${n}: ${escapeHtml(s.title)}</h1>
+    </div></div>
+    ${tabBarHtml(n, t)}
+    <main class="page level-page" id="levelMain"></main>
     ${footerHtml()}
   `;
+  syncStickyOffsets();
+  // Opening a level counts as starting it ("In progress" on the home page), but not
+  // while the Before you start pop-up is still waiting for "I'm ready".
+  if (rec.agreed && !isStarted(n)) { raiseReached(`s${n}.t${t}`, 1); queueSave("soon"); }
+  app.querySelectorAll(".step-tab").forEach(b => b.addEventListener("click", () => {
+    const i = Number(b.getAttribute("data-tab"));
+    if (!isTabUnlocked(n, i) || i === t) return; // locked tabs cannot be opened
+    setUi(`s${n}.tab`, i);
+    queueSave("soon");
+    renderLevel(n);
+    window.scrollTo(0, 0);
+  }));
+  drawTab(n, t, tab, { fresh: true });
 }
+
+// Draws every part of the tab shown so far, then the button that comes next.
+function drawTab(n, t, tab, o) {
+  const main = document.getElementById("levelMain");
+  const shown = Math.min(partsShown(n, t), tab.parts.length);
+  const ctx = { n, t, readOnly: isDone(n), fresh: !!o.fresh };
+  main.innerHTML = tab.parts.slice(0, shown).map((part, i) =>
+    `<section class="block part" id="part${i}" aria-labelledby="part${i}Title">${part.html(ctx)}</section>`).join("");
+  tab.parts.slice(0, shown).forEach((part, i) => { if (part.wire) part.wire(document.getElementById(`part${i}`), ctx); });
+
+  const last = shown === tab.parts.length;
+  const part = tab.parts[shown - 1];
+  const gateOpen = !part.continueWhen || part.continueWhen(ctx);
+  let nav = "";
+  if (!last && gateOpen) nav = `<button type="button" class="btn" id="continueBtn">Continue ↓</button>`;
+  else if (last && tab.next) nav = `<button type="button" class="btn" id="nextBtn">${escapeHtml(tab.next)}</button>`;
+  if (nav) main.insertAdjacentHTML("beforeend", `<div class="block nav-row">${nav}</div>`);
+
+  const cont = document.getElementById("continueBtn");
+  if (cont) cont.addEventListener("click", () => {
+    raiseReached(`s${n}.t${t}`, shown + 1);
+    queueSave("soon");
+    drawTab(n, t, tab, {});
+    revealFocus(document.getElementById(`part${shown}Title`));
+  });
+  const next = document.getElementById("nextBtn");
+  if (next) next.addEventListener("click", () => {
+    raiseReached(`s${n}.tabs`, t + 1);
+    setUi(`s${n}.tab`, t + 1);
+    queueSave("soon");
+    renderLevel(n);
+    window.scrollTo(0, 0);
+  });
+}
+
+/* ---------- Shared pieces: answer boxes, recap card, finish ---------- */
+
+// A text answer box. Saves on the device as the student types; the server copy follows
+// the typing timing. Read-only once its question group is submitted.
+function answerBoxHtml(key, { label, hint, readOnly, rows, labelHtml }) {
+  const v = getAnswer(key);
+  return `
+    <div class="field answer-field" data-key="${escapeHtml(key)}">
+      <label class="field-label" for="ans_${cssId(key)}">${labelHtml || escapeHtml(label)}</label>
+      <textarea id="ans_${cssId(key)}" class="textarea-input" data-answer="${escapeHtml(key)}" rows="${rows || 4}"
+        maxlength="${ANSWER_MAX}" placeholder="${escapeHtml(hint || "")}" ${readOnly ? "readonly" : ""}>${escapeHtml(v == null ? "" : v)}</textarea>
+    </div>`;
+}
+function cssId(key) { return String(key).replace(/[^a-zA-Z0-9_-]/g, "_"); }
+
+function wireAnswerBoxes(el) {
+  el.querySelectorAll("textarea[data-answer]").forEach(box => {
+    if (box.readOnly) return;
+    box.addEventListener("input", () => setAnswer(box.getAttribute("data-answer"), box.value, "typing"));
+  });
+}
+function isBlank(key) { return !String(getAnswer(key) == null ? "" : getAnswer(key)).trim(); }
+
+// 💡 Remember this (V45's re-teach card).
+function recapHtml(text) {
+  return `<div class="card recap-card" role="note">
+    <h3 class="recap-title">💡 Remember this</h3>
+    <p>${rich(text)}</p>
+  </div>`;
+}
+
+function finishButtonHtml(n) {
+  return isDone(n) ? "" : `<div class="btn-row"><button type="button" class="btn" id="finishBtn">Finish Level ${n}</button></div>`;
+}
+function wireFinish(el, n) {
+  const b = el.querySelector("#finishBtn");
+  if (b) b.addEventListener("click", () => finishLevel(n));
+}
+
+function finishLevel(n) {
+  if (!rec.done[n]) rec.done[n] = nowIso();
+  queueSave("now");
+  showBadgePopup(n);
+}
+
+// Badge pop-up (V45 badge modal). Badge 5 has its own pop-up, built with Level 5.
+function showBadgePopup(n) {
+  const s = lvl(n);
+  showModal({
+    id: "badgeModal",
+    className: "badge-modal",
+    title: `${s.icon} ${escapeHtml(s.badge)}`,
+    bodyHtml: `<div class="badge-pop-img">${imgHtml(s.badgeImg, "badge-img")}</div>
+      <p class="badge-pop-text">You earned the ${escapeHtml(s.badge)} badge!</p>`,
+    buttons: [{ label: "Back to my route", primary: true, onClick: () => { window.location.hash = "#home"; } }]
+  });
+}
+
+/* ---------- "Not finished yet" (V45 submit guard) ----------
+   missing: [{el, name}]. Each is outlined in red with "✗ Not done yet" and listed by
+   name in the pop-up. Only Level 1 offers "Submit anyway"; required questions only
+   offer "Go back". */
+function showNotFinished(missing, onSubmitAnyway) {
+  missing.forEach(m => m.el.classList.add("incomplete"));
+  const count = missing.length;
+  showModal({
+    id: "notFinished",
+    title: "⚠️ Not finished yet",
+    bodyHtml: `
+      <p>${count} ${count === 1 ? "item is" : "items are"} not done. ${count === 1 ? "It is" : "They are"} marked in <strong class="red-text">red</strong>.</p>
+      <ul class="missing-list">${missing.map(m => `<li>✗ ${escapeHtml(m.name)}</li>`).join("")}</ul>
+      ${onSubmitAnyway ? `<p>Do you want to go back and finish, or submit anyway?</p>` : ""}`,
+    buttons: [
+      { label: "Go back", primary: true, onClick: () => revealFocus(missing[0].el) }
+    ].concat(onSubmitAnyway ? [{ label: "Submit anyway", onClick: onSubmitAnyway }] : [])
+  });
+}
+// The red mark goes as soon as the student fills that item in (V45).
+document.addEventListener("input", (e) => { const x = e.target.closest && e.target.closest(".incomplete"); if (x) x.classList.remove("incomplete"); });
+document.addEventListener("change", (e) => { const x = e.target.closest && e.target.closest(".incomplete"); if (x) x.classList.remove("incomplete"); });
+
+/* ---------------- Level 1: Your Customer Service Stories ---------------- */
+
+const L1_BOXES = [
+  { key: "s1.q1", num: 1, text: "Think of a time you got GOOD customer service (e.g. at a bubble tea shop, a hawker stall, or when ordering on GrabFood). What did the staff do?", hint: "The staff member..." },
+  { key: "s1.q2", num: 2, text: "Think of a time you got BAD customer service. What happened?", hint: "What happened was..." },
+  { key: "s1.q3", num: 3, text: "Look at your two stories. What do you think makes customer service good or bad?", hint: "I think customer service is good when... and bad when..." }
+];
+
+const L1_PART = {
+  html: (ctx) => {
+    const submitted = !!rec.submitted.s1;
+    return `
+      <h2 class="visually-hidden" id="part0Title">Your stories</h2>
+      <p>Think about your own experiences as a customer. There are no right or wrong answers.</p>
+      <p class="tip">Tip: don't name real people. Your teacher will read your answers.</p>
+      <div class="story-boxes">
+        ${L1_BOXES.map(b => answerBoxHtml(b.key, {
+          labelHtml: `<strong>${b.num}.</strong> ${escapeHtml(b.text)}`, hint: b.hint, readOnly: submitted, rows: 6
+        })).join("")}
+      </div>
+      ${submitted ? `
+        ${recapHtml("Keep your stories in mind. In Level 2, see whether your ideas match what businesses call quality customer service.")}
+        ${finishButtonHtml(1)}` : `
+        <p>Type at least one sentence in each box, then tap Submit.</p>
+        <div class="btn-row"><button type="button" class="btn" id="submitL1">Submit</button></div>`}`;
+  },
+  wire: (el) => {
+    wireAnswerBoxes(el);
+    wireFinish(el, 1);
+    const btn = el.querySelector("#submitL1");
+    if (!btn) return;
+    const submit = () => {
+      rec.submitted.s1 = nowIso();
+      queueSave("now");
+      renderLevel(1);
+      revealFocus(document.querySelector(".recap-card"));
+    };
+    btn.addEventListener("click", () => {
+      const missing = L1_BOXES.filter(b => isBlank(b.key))
+        .map(b => ({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}` }));
+      if (missing.length) showNotFinished(missing, submit);
+      else submit();
+    });
+  }
+};
+
+/* ---------------- Level 2: Learn: Customer Service ---------------- */
+
+const STAGES = [
+  { name: "Approaching customers", text: "Greet the customer, show you're happy to help." },
+  { name: "Presenting product information", text: "Find out their needs, present a suitable product, explain why it suits their needs, handle questions or objections (when the customer is unsure or disagrees)." },
+  { name: "Closing the customer experience positively", text: "Summarise what the customer decided and any next steps (e.g. warranty, collection date), thank the customer, leave a good final impression." },
+  { name: "Performing service recovery", text: "Respond well when something goes wrong." }
+];
+
+// The 8 service recovery steps: textbook wording, with the approved example lines.
+const RECOVERY_STEPS = [
+  { icon: "👂", label: "Listen", text: "Listen carefully to the complaint. Give customers full attention.", bubble: "(Puts his own phone away and faces the customer.)", face: "😠", mood: "angry" },
+  { icon: "⏳", label: "Be patient", text: "Be patient. Do not interrupt customers when they are describing their unhappiness.", bubble: "(Nods and lets her finish.)", face: "😠", mood: "angry" },
+  { icon: "🙏", label: "Apologise", text: "Apologise to the customers for the inconvenience caused.", bubble: "\"I'm really sorry for the trouble this has caused you.\"", face: "😣", mood: "upset" },
+  { icon: "💙", label: "Acknowledge", text: "Acknowledge their feelings and assure them of help to solve the problem.", bubble: "\"I understand why you're upset. I'll help you sort this out.\"", face: "😐", mood: "calmer" },
+  { icon: "❓", label: "Ask questions", text: "Ask questions if more information is needed.", bubble: "\"When did you buy it, and when did you first notice the crack?\"", face: "😐", mood: "calmer" },
+  { icon: "🛠️", label: "Offer solutions", text: "Offer solutions.", bubble: "\"Since it's still under warranty, I can give you a replacement phone today.\"", face: "🙂", mood: "reassured" },
+  { icon: "🧑‍💼", label: "Refer", text: "Refer customers to more senior staff if unable to provide them with an acceptable solution.", bubble: "\"If you'd prefer something else, my manager can look at other options for you.\"", face: "🙂", mood: "reassured" },
+  { icon: "😊", label: "Thank", text: "Thank customers for bringing the problem to our attention.", bubble: "\"Thank you for letting us know about this.\"", face: "😊", mood: "happy" }
+];
+
+// How many path stops are on screen. The path starts with Step 1 only; a student
+// coming back to the tab later sees all 8 at once.
+let pathShownNow = 0;
+function pathShown() { return Number(rec.reached["s2.path"]) || 0; }
+
+function recoveryStopHtml(step, i, animate) {
+  const actionLine = /^\(/.test(step.bubble);
+  return `
+    <li class="path-stop ${animate ? "slide-in" : ""}" id="pathStop${i + 1}">
+      <div class="path-circle" aria-hidden="true"><span class="path-num">${i + 1}</span><span class="path-icon">${step.icon}</span></div>
+      <div class="path-card">
+        <h4 class="path-label" id="pathLabel${i + 1}"><span class="visually-hidden">Step ${i + 1}: </span>${escapeHtml(step.label)}</h4>
+        <p class="path-text">${escapeHtml(step.text)}</p>
+        <p class="path-bubble ${actionLine ? "action" : ""}"><span class="visually-hidden">The staff member: </span>${escapeHtml(step.bubble)}</p>
+        <p class="path-face"><span aria-hidden="true">${step.face}</span><span class="visually-hidden">Customer feels ${step.mood}</span></p>
+      </div>
+    </li>`;
+}
+
+function recoveryPathHtml(count, animateLast) {
+  return `
+    <div class="recovery-path-wrap">
+      <ol class="recovery-path" aria-label="The Service Recovery Path">
+        ${RECOVERY_STEPS.slice(0, count).map((s, i) => recoveryStopHtml(s, i, animateLast && i === count - 1)).join("")}
+      </ol>
+      ${count < 8 ? `<div class="btn-row path-more"><button type="button" class="btn secondary" id="showStepBtn">Show Step ${count + 1} ↓</button></div>` : ""}
+    </div>`;
+}
+
+const L2_TABS = [
+  {
+    label: "Quality Customer Service",
+    next: "Next: The Four Stages →",
+    parts: [
+      { html: () => `
+        <h2 class="section-title" id="part0Title">What is customer service?</h2>
+        <p>Customer service refers to what businesses do for their customers so that they are happy and satisfied. It takes place the moment a customer enters a shop, a restaurant or an attraction, and continues even after the customer has made a purchase and left the venue.</p>
+        <h2 class="section-title">What is quality customer service?</h2>
+        <p>Quality customer service means doing more for customers to exceed their expectations.</p>
+        <h2 class="section-title">Why does quality customer service matter?</h2>
+        <p>If a business provides quality customer service:</p>
+        <ul class="notes-list">
+          <li>customers will have a positive experience and they will choose to <strong>return repeatedly</strong>;</li>
+          <li>customers will <strong>recommend</strong> the business to their relatives and friends; and</li>
+          <li><strong>customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>.</li>
+        </ul>
+        ${imgHtml("C01", "comic-img")}` },
+      { html: () => `
+        <h2 class="section-title" id="part1Title">Skills and qualities of a good customer service employee</h2>
+        <p>Some skills and qualities customer service employees need:</p>
+        <ul class="notes-list">
+          <li>Approachable: friendly and easy to talk to, so customers feel comfortable asking for help</li>
+          <li>Customer-focused: paying attention to what each customer needs and putting those needs first</li>
+          <li>Clear communication skills: explaining things simply</li>
+          <li>Knowledgeable: knowing the products well, so you can answer questions accurately</li>
+          <li>Problem-solving skills: providing solutions, not just apologising</li>
+          <li>Able to close the customer experience positively: ending on a good note, e.g. thanking the customer and inviting them back</li>
+        </ul>` },
+      { html: () => `
+        <h2 class="section-title" id="part2Title">Good product knowledge</h2>
+        <p>Staff need good product knowledge to answer questions accurately, not guess. This includes:</p>
+        <ul class="notes-list">
+          <li>Product features and specifications (e.g. screen size, battery life)</li>
+          <li>Price and available options</li>
+          <li>How to use or care for the product</li>
+          <li>Warranty and after-sales support</li>
+          <li>Unique selling points of the product (why your product is better than competitors' products)</li>
+        </ul>
+        ${imgHtml("N02", "notes-img")}` }
+    ]
+  },
+  {
+    label: "The Four Stages",
+    next: "Next: Breakdown and Recovery →",
+    parts: [
+      { html: () => `
+        <h2 class="section-title" id="part0Title">The four stages of providing customer service</h2>
+        <table class="stage-table">
+          <thead class="visually-hidden"><tr><th scope="col">Stage</th><th scope="col">What to do</th></tr></thead>
+          <tbody>
+            ${STAGES.map((s, i) => `<tr class="stage-row stage-${i + 1}"><th scope="row">${i + 1}. ${escapeHtml(s.name)}</th><td>${escapeHtml(s.text)}</td></tr>`).join("")}
+          </tbody>
+        </table>
+        ${imgHtml("C02", "comic-img")}` },
+      { html: () => `
+        <h2 class="section-title" id="part1Title">Approaching customers: 3 approaches</h2>
+        <p><strong>When to approach:</strong> as soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by making eye contact, smiling and greeting them politely.</p>
+        <ul class="notes-list">
+          <li><strong>1. Greeting Approach:</strong> Greet the customer in a friendly way as they enter, e.g. "Good morning!" For a regular customer, use their name: "Good morning, Mr Tan!"</li>
+          <li><strong>2. Service Approach:</strong> Ask a polite question to show you're ready to help, e.g. "How may I assist you?" If a customer comes up to you to ask for something or to pay, serve them as quickly as possible.</li>
+          <li>You can also combine the greeting and service approaches: "Good morning! How may I assist you?"</li>
+          <li><strong>3. Product Approach:</strong> When a customer is looking closely at a product, ask a question about it to help them go from just being interested to actually buying it, e.g. "This phone has a great camera. Would you like to try it out?"</li>
+        </ul>
+        <p>Whether salespeople use the greeting, service or product approach, the purpose is to:</p>
+        <ul class="notes-list">
+          <li>make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and</li>
+          <li>ensure customers return to the business again in the future.</li>
+        </ul>
+        ${imgHtml("C03", "comic-img")}` },
+      { html: () => `
+        <h2 class="section-title" id="part2Title">Presenting product information: suitability</h2>
+        <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>` }
+    ]
+  },
+  {
+    label: "Breakdown and Recovery",
+    parts: [
+      {
+        // Continue ↓ appears only once all 8 stops of the path have been shown.
+        continueWhen: () => pathShownNow >= 8,
+        html: (ctx) => {
+          // First time on this tab: Step 1 only. Coming back later: all 8 at once.
+          if (ctx.fresh || !pathShownNow) pathShownNow = pathShown() >= 1 ? 8 : 1;
+          if (pathShown() < pathShownNow) { raiseReached("s2.path", pathShownNow); saveLocal(); }
+          return `
+          <h2 class="section-title" id="part0Title">Service breakdown and service recovery</h2>
+          <ul class="notes-list">
+            <li><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service. Common causes: unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</li>
+            <li><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</li>
+          </ul>
+          <p>To perform service recovery, follow these 8 steps:</p>
+          <p>Follow Nexora's staff member as he handles a customer whose new phone screen has cracked.</p>
+          <h3 class="path-title">The Service Recovery Path</h3>
+          <div id="pathHolder">${recoveryPathHtml(pathShownNow, false)}</div>
+          <div id="afterPath">${pathShownNow >= 8 ? afterPathHtml() : ""}</div>`;
+        },
+        wire: (el, ctx) => wirePath(el, ctx)
+      },
+      { html: (ctx) => `
+        <h2 class="section-title" id="part1Title">Real-life example: poor service recovery</h2>
+        <p>A customer complained to a food delivery app that their orders from one restaurant had been cancelled 4 times. The replies? "oh" and "so sad", followed by a $3.30 voucher "to say we're sorry".</p>
+        <div class="img-pair">${imgHtml("R01", "screenshot-img")}${imgHtml("R02", "screenshot-img")}</div>
+        <div class="card think-card">
+          <h3 class="think-title">Think about it (optional)</h3>
+          ${answerBoxHtml("s2.think1", { label: "Was this good service recovery? Which of the 8 steps above were missing?", hint: "I think this was / was not good service recovery because... The steps that were missing were...", readOnly: ctx.readOnly })}
+        </div>`,
+        wire: (el) => wireAnswerBoxes(el) },
+      { html: (ctx) => `
+        <h2 class="section-title" id="part2Title">Handling returns of unsatisfactory products</h2>
+        <p>If a customer returns a product they are unhappy with, the business can offer:</p>
+        <ul class="notes-list">
+          <li><strong>Replacement:</strong> Replace it with the same product.</li>
+          <li><strong>Exchange:</strong> Offer to exchange it with a different product.</li>
+          <li><strong>Refund:</strong> Give a refund.</li>
+        </ul>
+        ${imgHtml("N03", "comic-img")}
+        <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt.</p>
+        ${imgHtml("R03", "uniqlo-img")}
+        <div class="card think-card">
+          <h3 class="think-title">Think about it (optional)</h3>
+          ${answerBoxHtml("s2.think2", { label: "Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?", hint: "One item Uniqlo will not accept is... I think they have this rule because...", readOnly: ctx.readOnly })}
+        </div>
+        ${recapHtml("The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery.")}
+        ${finishButtonHtml(2)}`,
+        wire: (el) => { wireAnswerBoxes(el); wireFinish(el, 2); } }
+    ]
+  }
+];
+
+function afterPathHtml() {
+  return `<p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
+    ${imgHtml("C04", "comic-img")}`;
+}
+
+function wirePath(el, ctx) {
+  const btn = el.querySelector("#showStepBtn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    pathShownNow = Math.min(8, pathShownNow + 1);
+    raiseReached("s2.path", pathShownNow);
+    queueSave("soon");
+    if (pathShownNow < 8) {
+      el.querySelector("#pathHolder").innerHTML = recoveryPathHtml(pathShownNow, true);
+      wirePath(el, ctx);
+      revealFocus(document.getElementById(`pathLabel${pathShownNow}`));
+      return;
+    }
+    // All 8 shown: the button goes, the rest of the part and Continue ↓ appear.
+    drawTab(2, 2, L2_TABS[2], {});
+    const stop = document.getElementById("pathStop8");
+    if (stop && !reducedMotion()) stop.classList.add("slide-in");
+    revealFocus(document.getElementById("pathLabel8"));
+  });
+}
+
+const LEVEL_CONTENT = {
+  1: { tabs: [{ label: "Your stories", parts: [L1_PART] }] },
+  2: { tabs: L2_TABS },
+  3: { tabs: [{ label: "Chat", parts: [{ html: () => `<h2 class="visually-hidden" id="part0Title">Level 3</h2>` }] }] },
+  4: { tabs: [{ label: "Roleplay", parts: [{ html: () => `<h2 class="visually-hidden" id="part0Title">Level 4</h2>` }] }] },
+  5: { tabs: [{ label: "Check", parts: [{ html: () => `<h2 class="visually-hidden" id="part0Title">Level 5</h2>` }] }] }
+};
 
 /* ---------------- Teacher Mode ----------------
    T.1 sign in and T.2 Classes. Results and This device come in slice 5.
