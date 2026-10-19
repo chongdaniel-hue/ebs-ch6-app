@@ -68,5 +68,23 @@ Hosting and back end (different from V45, which used Vercel):
 - Build in small slices and stop for review after each one (see the build prompt for the order).
 - Do not add features the storyboard does not ask for (timers, extra inputs, sounds, animations, extra badges). Suggest them to the user instead.
 - After each slice, test at 1280px and 360px wide (Playwright is available) and check: wording matches the storyboard, nothing pre-selected, locks work, saving and reloading restores work, no ampersand on any student screen, no console errors.
+- Every check is also a **visual check**. Open every new screenshot and look at it as a designer would, then fix anything that fails before reporting:
+  - Alignment: items side by side line up (same top edge for inputs, same heights for cards in a row, labels and boxes on a shared baseline). Nothing looks ragged or randomly sized.
+  - Consistency: the same kind of element looks the same everywhere (cards, tips, definition boxes, buttons, images, captions).
+  - Spacing: the 40 to 48px and 12 to 16px rhythm is kept; nothing touches, nothing floats too far away.
+  - Images: never clipped or cut off, never stretched, sensible size, and images placed side by side are the same height.
+  - Visual appeal: the page looks inviting to a 15-year-old, not like a form or a wall of text.
+  Report what you checked and fixed visually, not only the test results.
+
+## Designing for G1 students (Mayer's multimedia principles)
+
+The app is for G1 students, many with lower literacy, who rely on visual and multimedia support. Apply Mayer's principles on every screen:
+- **Multimedia:** words and pictures together. Every section of notes gets a visual anchor: a comic, a diagram, or an icon beside each key point. A list of more than three items becomes icon cards or icon chips, not a plain bullet list.
+- **Signaling:** textbook definitions sit in a clearly styled "definition" box; key words are bold; headings carry an icon; numbered steps look like steps.
+- **Spatial contiguity:** each picture, icon or example sits right next to the words it explains; feedback sits right under its question.
+- **Coherence:** icons and pictures must explain something (no decoration for its own sake), and wording stays exactly as in the storyboard. Visual treatment changes how text looks, never what it says.
+- **Segmenting:** no more than about one screen of reading before the next Continue ↓.
+- **Pre-training, personalization and image principles:** as in the storyboard (key terms first; a friendly "you" tone; no talking-head guide characters).
+- Use emoji as icons (they need no image files and work on every device), at a consistent size, with hidden text for screen readers where the emoji carries meaning.
 - Keep `APP_VERSION` in `app.js` up to date and shown in the footer.
 - When this session's context runs low, update `docs/progress.md` (what is built, what is next, open questions) so a fresh session can carry on.

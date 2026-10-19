@@ -619,7 +619,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <td><strong>Alt text</strong></td>
 <td><p>C04: Two-panel comic. "SERVICE BREAKDOWN": the customer holds a cracked phone: "I just bought this phone and the screen is already cracked!" The staff member: "I'm really sorry to hear that. Let me take a look and help you with this." "SERVICE RECOVERY": the staff member hands over a new phone box: "You're welcome! If you need any further help, just let us know." The customer: "Thank you so much for helping me! I'm really happy with the new phone."</p>
 <p>R01: Chat screenshot. The customer writes that they have ordered from the merchant at least 4 times and every order was cancelled. Two replies say "oh" and "so sad". R02: Foodpanda voucher reading "Here's $3.3000000000000003 to say we're sorry."</p>
-<p>R03: Uniqlo return and exchange conditions: returns within 30 days; products that cannot be returned or exchanged include used, washed and altered products, items past 30 days, items with no receipt and items with no price tag.</p></td>
+<p>R03: Uniqlo return and exchange conditions: returns within 30 days of purchase; products that cannot be returned or exchanged include used, washed and altered products.</p></td>
 </tr>
 <tr class="even">
 <td><strong>Teacher only</strong></td>
