@@ -145,4 +145,4 @@ npm install
 TEACHER_CODE=choose-a-test-code npm start
 ```
 
-and open <http://localhost:8787>. On Windows PowerShell, set the code with `$env:TEACHER_CODE="choose-a-test-code"; npm start`. Test data is stored in `server/data/`, which is never committed. Run the automated checks with `npx playwright test`.
+and open <http://localhost:8787>. On Windows PowerShell, run `$env:TEACHER_CODE = 'choose-a-test-code'; node server/server.js` instead (PowerShell often blocks `npm` scripts, and this starts the same server). Stop the server with Ctrl+C. Test data is stored in `server/data/`, which is never committed. Run the automated checks with `npx playwright test`.
