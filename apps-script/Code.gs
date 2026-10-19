@@ -31,7 +31,7 @@ var SCRIPT_VERSION = "1";
 var CLASSES_SHEET = "Classes";
 var STUDENTS_SHEET = "Students";
 var CLASSES_HEADERS = ["Class", "Order", "Added at"];
-var STUDENTS_HEADERS = ["Key", "Class", "Register No.", "Stations finished", "Q2 first try", "Q3 and Q4 first try",
+var STUDENTS_HEADERS = ["Key", "Class", "Register No.", "Levels finished", "Q2 first try", "Q3 and Q4 first try",
   "Confidence 1", "Confidence 2", "Confidence 3", "Confidence 4", "Last saved", "Cleared at", "Record"];
 var COL = { key: 0, cls: 1, reg: 2, finished: 3, q2: 4, q34: 5, conf1: 6, lastSaved: 10, clearedAt: 11, record: 12 };
 
@@ -46,7 +46,7 @@ var BAD_CODE_WINDOW_SECONDS = 600; // ...in this many seconds,
 var LOCKOUT_SECONDS = 600;         // then every code is refused for this long
 var TIME_ZONE = "Asia/Singapore";
 
-// Items scored on the first try (Station 3 Q2; Station 5 Q3 and Q4). The app
+// Items scored on the first try (Level 3 Q2; Level 5 Q3 and Q4). The app
 // records whether each first try was right, so no answer key is needed here.
 var Q2_ITEMS = ["s3q2.P", "s3q2.Q", "s3q2.R", "s3q2.S"];
 var Q34_ITEMS = ["s5q3.i", "s5q3.ii", "s5q3.iii", "s5q3.iv", "s5q4"];
@@ -330,7 +330,8 @@ function teacherOnly(code, fn) {
   if (cache.get("lockedOut")) return { ok: false, error: "locked_out" };
   var expected = PropertiesService.getScriptProperties().getProperty("TEACHER_CODE");
   if (!expected) return { ok: false, error: "no_teacher_code" };
-  // Not case sensitive, spaces around it ignored (as in the Learning Journey app).
+  // Not case sensitive, and spaces before or after it are ignored. Used by Teacher Mode
+  // sign-in, every teacher action and Reset this device.
   if (String(code == null ? "" : code).trim().toLowerCase() !== String(expected).trim().toLowerCase()) {
     var now = Date.now();
     var state = JSON.parse(cache.get("badCodes") || "null") || { n: 0, since: now };
@@ -353,7 +354,7 @@ function teacherOnly(code, fn) {
    A record:
      v, cls, reg, updatedAt, baseClearedAt
      agreed     time "I'm ready" was tapped           earliest kept
-     done       {station: time finished}              earliest kept, never removed
+     done       {level: time finished}              earliest kept, never removed
      submitted  {question: time submitted}            earliest kept, never removed
      reached    {"s2.tab": 2, "s2.t0.parts": 3, ...}  highest kept
      first      {item: {a, ok, t}} first attempts     never overwritten once recorded

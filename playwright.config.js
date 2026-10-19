@@ -4,9 +4,10 @@ const crypto = require("crypto");
 const os = require("os");
 const path = require("path");
 
-// A throwaway teacher code for this test run only, so no code is ever written in the repo.
-// Test workers inherit it from this process.
-process.env.TEST_TEACHER_CODE = process.env.TEST_TEACHER_CODE || "t-" + crypto.randomBytes(6).toString("hex");
+// A throwaway teacher code for this test run only, so no real code is ever written in the repo
+// (the repo is public). It is in capitals so the tests can check that capitals and spaces do
+// not matter. Test workers inherit it from this process.
+process.env.TEST_TEACHER_CODE = process.env.TEST_TEACHER_CODE || "T" + crypto.randomBytes(5).toString("hex").toUpperCase();
 
 module.exports = defineConfig({
   testDir: "tests",

@@ -15,7 +15,7 @@ test("landing page shell", async ({ page }, testInfo) => {
   await expect(ph).toContainText("🏬");
   await expect(ph).toHaveAttribute("role", "img");
   await expect(page.locator(".credits")).toContainText("A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)");
-  await expect(page.locator(".credits")).toContainText("Version 0.2");
+  await expect(page.locator(".credits")).toContainText("Version 0.2.1");
   await expect(page.locator(".credits a.teacher-link")).toHaveText("Teacher Mode");
   // Zoom allowed.
   const vp = await page.locator('meta[name="viewport"]').getAttribute("content");
@@ -50,7 +50,7 @@ test("image map: existing files load, missing files show placeholders", async ({
   await page.goto("/");
   const ids = await page.evaluate(() => Object.keys(window.APP_CONFIG.IMAGES));
   expect(ids).toEqual(["N01", "N02", "N03", "N04", "N05", "C01", "C02", "C03", "C04", "R01", "R02", "R03", "BADGE1", "BADGE2", "BADGE3", "BADGE4", "BADGE5"]);
-  // Draw every image into the page, as the stations will.
+  // Draw every image into the page, as the levels will.
   await page.evaluate(ids => {
     document.querySelector(".page").innerHTML = ids.map(id => `<div class="block test-img" data-id="${id}"><p><strong>${id}</strong></p>${imgHtml(id)}</div>`).join("");
   }, ids);

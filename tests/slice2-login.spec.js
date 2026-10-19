@@ -10,9 +10,9 @@ const {
 } = require("./helpers");
 
 const BRIEFING = [
-  "Go through the stations in order. Each one opens when you finish the one before.",
+  "Go through the levels in order. Each one opens when you finish the one before.",
   "Your work saves automatically. You can stop and come back any time, even on a different device: just log in with the same class and register number.",
-  "Stations 3 and 4 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.",
+  "Levels 3 and 4 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.",
   "After you submit, you'll see a hint for anything you got wrong, and you get one more try.",
   "Your teacher can see your answers, so do your best."
 ];
@@ -89,25 +89,25 @@ test.describe("new student", () => {
     // Until "I'm ready", every page shows the pop-up.
     await page.goto("/#terms");
     await expect(page.locator("#briefing")).toBeVisible();
-    await page.goto("/#station1");
+    await page.goto("/#level1");
     await expect(page.locator("#briefing")).toBeVisible();
     await page.click("#briefing button");
     await expect(page.locator("#briefing")).toHaveCount(0);
     expect(page.url()).toMatch(/#home$/);
 
     await expect(page.locator(".topbar-chip")).toHaveText("Class 3E1 · Register No. 12");
-    await expect(page.locator(".lead").first()).toHaveText("Welcome! Start with Station 1.");
+    await expect(page.locator(".lead").first()).toHaveText("Welcome! Start with Level 1.");
     await expect(page.locator(".notice")).toHaveCount(0);
     await expect(page.locator("#howLink")).toHaveText("📋 How this works");
     await expect(page.locator("#switchLink")).toHaveText("🔄 Sharing this device? Switch student");
     await expect(page.locator(".terms-card")).toContainText("Start here: 4 key terms");
-    await expect(page.locator(".terms-card")).toContainText("A 1-minute look before Station 2");
-    await expect(page.locator(".journey-count")).toHaveText("0 of 5 stations done");
-    await expect(page.locator(".station-name")).toHaveText([
-      "📝 Station 1: Your Customer Service Stories", "📘 Station 2: Learn: Customer Service",
-      "💬 Station 3: Chat with Alex", "🛍️ Station 4: Serve Suzzie at Stylez", "✅ Station 5: Check and Exit Ticket"
+    await expect(page.locator(".terms-card")).toContainText("A 1-minute look before Level 2");
+    await expect(page.locator(".journey-count")).toHaveText("0 of 5 levels done");
+    await expect(page.locator(".level-name")).toHaveText([
+      "📝 Level 1: Your Customer Service Stories", "📘 Level 2: Learn: Customer Service",
+      "💬 Level 3: Chat with Alex", "🛍️ Level 4: Serve Suzzie at Stylez", "✅ Level 5: Check and Exit Ticket"
     ]);
-    await expect(page.locator(".station-desc")).toHaveText([
+    await expect(page.locator(".level-desc")).toHaveText([
       "Think about your own experiences as a customer.",
       "Short notes on quality customer service, the four stages and service recovery.",
       "Be the customer. Chat with Nexora's customer service officer.",
@@ -122,17 +122,17 @@ test.describe("new student", () => {
     await expect(page.locator("a[href='#report']")).toHaveCount(0);
     await checkPage(page, testInfo, "slice2-home");
 
-    // A locked station cannot be opened: tapping explains, typing its address goes home.
-    await page.click("#stationCard3", { force: true }); // marked aria-disabled; a tap only explains
-    await expect(page.locator("#lockedMsg3")).toHaveText("Finish Station 2 first to open this station.");
+    // A locked level cannot be opened: tapping explains, typing its address goes home.
+    await page.click("#levelCard3", { force: true }); // marked aria-disabled; a tap only explains
+    await expect(page.locator("#lockedMsg3")).toHaveText("Finish Level 2 first to open this level.");
     expect(page.url()).toMatch(/#home$/);
-    await page.goto("/#station2");
+    await page.goto("/#level2");
     await expect(page.locator(".journey-count")).toBeVisible();
     expect(page.url()).toMatch(/#home$/);
 
-    // Station 1 is open.
-    await page.click("#stationCard1");
-    await expect(page.locator("h1.page-title")).toHaveText("📝 Station 1: Your Customer Service Stories");
+    // Level 1 is open.
+    await page.click("#levelCard1");
+    await expect(page.locator("h1.page-title")).toHaveText("📝 Level 1: Your Customer Service Stories");
     await page.click("#homeBtn");
 
     // "How this works" reopens the pop-up with Close.
@@ -142,7 +142,7 @@ test.describe("new student", () => {
 
     await page.click(".terms-card");
     await expect(page.locator("h1.page-title")).toHaveText("📘 4 key terms");
-    await expect(page.locator(".lead")).toHaveText("You'll meet these words in Station 2. Read them once now.");
+    await expect(page.locator(".lead")).toHaveText("You'll meet these words in Level 2. Read them once now.");
     await expect(page.locator(".term-card")).toHaveText([
       "Customer service: Customer service refers to what businesses do for their customers so that they are happy and satisfied.",
       "Quality customer service: Quality customer service means doing more for customers to exceed their expectations.",
@@ -324,6 +324,20 @@ test.describe("Teacher Mode", () => {
     expect(errors).toEqual([]);
   });
 
+  test("teacher code ignores capitals and spaces", async ({ page, request }) => {
+    await resetServer(request, []);
+    const code = CODE();
+    expect(code).toMatch(/[A-Z]/);
+    for (const variant of [code.toLowerCase(), "  " + code + " ", " " + code.toLowerCase() + "  "]) {
+      expect((await apiPost(request, { action: "teacherCheck", code: variant })).ok, JSON.stringify(variant)).toBe(true);
+    }
+    await page.goto("/#teacher");
+    await page.fill("#teacherCode", " " + code.toLowerCase() + " ");
+    await page.click("#teacherEnter");
+    await expect(page.locator(".tab.current")).toHaveText("Classes");
+    expect((await apiPost(request, { action: "teacherCheck", code: code + "x" })).error).toBe("bad_code");
+  });
+
   test("teacher code lock-out after 10 wrong codes", async ({ page, request }) => {
     await resetServer(request, []);
     for (let i = 0; i < 9; i++) expect((await apiPost(request, { action: "teacherCheck", code: "wrong" })).error).toBe("bad_code");
@@ -361,7 +375,7 @@ test.describe("back end rules", () => {
     expect(fromApp.answers["s1.q2"].v).toBe("mine");
     expect(fromApp.first["s3q2.P"].a).toBe("x");         // first attempt never overwritten
     expect(fromApp.first["s3q2.Q"].a).toBe("z");
-    expect(fromApp.done).toEqual({ 1: t(2), 2: t(6) });  // finished stations never removed
+    expect(fromApp.done).toEqual({ 1: t(2), 2: t(6) });  // finished levels never removed
     expect(fromApp.agreed).toBe(t(1));
     expect(fromApp.reached).toEqual({ "s2.tab": 2, "s2.t0.parts": 3 });
     expect(fromApp.updatedAt).toBe(t(6));
@@ -379,7 +393,7 @@ test.describe("back end rules", () => {
     // The sheet keeps "3E1" as text, not the number 30.
     const sheet = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), "ebs-ch6-playwright-data", "sheets.json"), "utf8"));
     expect(sheet.Classes[1][0]).toBe("3E1");
-    expect(sheet.Students[0]).toEqual(["Key", "Class", "Register No.", "Stations finished", "Q2 first try", "Q3 and Q4 first try",
+    expect(sheet.Students[0]).toEqual(["Key", "Class", "Register No.", "Levels finished", "Q2 first try", "Q3 and Q4 first try",
       "Confidence 1", "Confidence 2", "Confidence 3", "Confidence 4", "Last saved", "Cleared at", "Record"]);
   });
 });

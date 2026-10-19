@@ -361,8 +361,8 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .progress-fill{height:100%;background:var(--brand);border-radius:6px;}
 
 .route{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
-.station-item{margin:0;}
-.station-card{
+.level-item{margin:0;}
+.level-card{
   width:100%;
   display:flex;
   align-items:flex-start;
@@ -376,8 +376,8 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
   text-align:left;
   cursor:pointer;
 }
-.station-card:hover{border-color:var(--brand);}
-.station-card .num-badge{
+.level-card:hover{border-color:var(--brand);}
+.level-card .num-badge{
   flex:0 0 auto;
   width:36px;height:36px;
   border-radius:50%;
@@ -386,9 +386,9 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
   display:flex;align-items:center;justify-content:center;
   font-weight:800;
 }
-.station-card .info{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.station-name{font-weight:700;font-size:1.04rem;color:var(--brand-dark);}
-.station-desc{color:var(--muted);font-size:0.95rem;}
+.level-card .info{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.level-name{font-weight:700;font-size:1.04rem;color:var(--brand-dark);}
+.level-desc{color:var(--muted);font-size:0.95rem;}
 .status-pill{
   align-self:flex-start;
   margin-top:6px;
@@ -401,14 +401,14 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 }
 .status-pill.progress{background:var(--brand-light);color:var(--brand-dark);}
 .status-pill.done{background:var(--good-bg);color:var(--good);}
-.station-card.status-done{border-color:#86C59B;}
-.station-card.status-done .num-badge{background:var(--good);}
+.level-card.status-done{border-color:#86C59B;}
+.level-card.status-done .num-badge{background:var(--good);}
 /* Locked: clearly greyed, cannot be opened (tapping only explains why). */
-.station-card.status-locked{background:#F3F1F2;border-style:dashed;cursor:not-allowed;}
-.station-card.status-locked:hover{border-color:var(--border);}
-.station-card.status-locked .num-badge{background:#9CA3AF;font-size:1rem;}
-.station-card.status-locked .station-name,
-.station-card.status-locked .station-desc{color:#5B6370;}
+.level-card.status-locked{background:#F3F1F2;border-style:dashed;cursor:not-allowed;}
+.level-card.status-locked:hover{border-color:var(--border);}
+.level-card.status-locked .num-badge{background:#9CA3AF;font-size:1rem;}
+.level-card.status-locked .level-name,
+.level-card.status-locked .level-desc{color:#5B6370;}
 .status-pill.locked{background:#E5E7EB;color:#374151;}
 .locked-msg{margin:8px 0 0 4px;font-weight:600;color:var(--brand-dark);}
 
@@ -467,7 +467,7 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
   text-align:center;line-height:1.35;
 }
 
-/* ---------- Tabs (Teacher Mode; stations use the same look) ---------- */
+/* ---------- Tabs (Teacher Mode; levels use the same look) ---------- */
 .tabs{display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--border);}
 .tab{
   min-height:44px;

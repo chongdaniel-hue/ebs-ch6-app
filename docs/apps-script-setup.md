@@ -34,7 +34,7 @@ The teacher code lets teachers into Teacher Mode. It is kept in the script's set
 1. In the Apps Script editor, click the **gear icon** on the far left (**Project Settings**).
 2. Scroll down to **Script Properties** and click **Add script property**.
 3. In **Property**, type exactly: `TEACHER_CODE`
-4. In **Value**, type the code you want teachers to use. Choose a new code that you do not use anywhere else, and tell it only to teachers. Capital letters do not matter when the code is typed in the app.
+4. In **Value**, type the teacher code your group agreed on. Do not write the code in any file in this project, because the project is public on GitHub. Capital letters and spaces before or after the code do not matter when it is typed in the app.
 5. Click **Save script properties**.
 
 To change the code later, come back here and edit the value. The change works at once; you do not need to deploy again.
@@ -117,7 +117,7 @@ If `Code.gs` is updated later, paste the new version over the old one (Step 2, p
 You can read results in the app's Teacher Mode, which is easier. If you open the Sheet itself:
 
 - **Classes**: one row per class, with the order it appears in the app and when it was added.
-- **Students**: one row per student (class plus register number). The columns from **Stations finished** to **Cleared at** are there for you to read. The last column, **Record**, holds the student's full work in a computer format. Please do not edit it.
+- **Students**: one row per student (class plus register number). The columns from **Levels finished** to **Cleared at** are there for you to read. The last column, **Record**, holds the student's full work in a computer format. Please do not edit it.
 - Please do not rename the tabs, change the headings, or change the cell formatting (the script stores everything as plain text so that a class such as 3E1 is not turned into a number).
 - Sorting or filtering the Students tab to look at it is fine.
 

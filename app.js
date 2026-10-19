@@ -15,13 +15,15 @@
         allowed.
    0.2  Slice 2: wine-red theme. Log in with class and register
         number, Before you start, home page with the route of five
-        stations, 4 key terms, Switch student. Work saves on the
+        levels, 4 key terms, Switch student. Work saves on the
         device and to the Google Sheet (offline queue and yellow bar
         from V45, reworked to send one whole record per student).
         Teacher Mode sign-in and Classes tab.
+   0.2.1 "Station" renamed "Level" everywhere on screen and in the
+        code. The teacher code ignores capitals and spaces.
    ============================================================ */
 
-const APP_VERSION = "0.2";
+const APP_VERSION = "0.2.1";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -78,7 +80,7 @@ function imgFallback(el) {
   if (wrap.firstElementChild) el.replaceWith(wrap.firstElementChild);
 }
 
-/* ---------------- Stations (home page route) ---------------- */
+/* ---------------- Levels (home page route) ---------------- */
 
 const STATIONS = [
   { num: 1, icon: "📝", title: "Your Customer Service Stories", desc: "Think about your own experiences as a customer.", badge: "Story Sharer", badgeImg: "BADGE1" },
@@ -96,7 +98,7 @@ const KEYS = {
   active: "ch6_active",          // {cls, reg} of the student using this device
   classes: "ch6_classes",        // cached class list, so a student can log in offline
   queue: "ch6_queue",            // students whose work still has to reach the server
-  unlockAll: "ch6_unlock_all",   // Teacher Mode: all stations open on this device
+  unlockAll: "ch6_unlock_all",   // Teacher Mode: all levels open on this device
   rec: (key) => "ch6_rec_" + key // one student's work on this device
 };
 
@@ -506,9 +508,9 @@ function showModal({ id, title, bodyHtml, buttons, className }) {
 /* ---------------- 0.2 Before you start ---------------- */
 
 const BRIEFING = [
-  "Go through the stations in order. Each one opens when you finish the one before.",
+  "Go through the levels in order. Each one opens when you finish the one before.",
   "Your work saves automatically. You can stop and come back any time, even on a different device: just log in with the same class and register number.",
-  "Stations 3 and 4 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.",
+  "Levels 3 and 4 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.",
   "After you submit, you'll see a hint for anything you got wrong, and you get one more try.",
   "Your teacher can see your answers, so do your best."
 ];
@@ -543,9 +545,9 @@ function render() {
   document.querySelectorAll(".modal-backdrop").forEach(m => { if (m.id !== "briefing") m.remove(); });
   if (hash === "#teacher") { renderTeacher(); window.scrollTo(0, 0); return; }
   if (!student) { renderLanding(); return; }
-  const m = hash.match(/^#station([1-5])$/);
+  const m = hash.match(/^#level([1-5])$/);
   if (hash === "#terms") renderTerms();
-  else if (m && isUnlocked(Number(m[1]))) renderStation(Number(m[1]));
+  else if (m && isUnlocked(Number(m[1]))) renderLevel(Number(m[1]));
   else {
     if (hash !== "#home" && hash !== "") { history.replaceState(null, "", "#home"); }
     renderHome();
@@ -684,14 +686,14 @@ function doneCount() { return STATIONS.filter(s => isDone(s.num)).length; }
 function unlockAllOnDevice() { return lsGet(KEYS.unlockAll) === true; }
 function isUnlocked(num) { return num === 1 || isDone(num - 1) || unlockAllOnDevice(); }
 
-// "In progress" once the student has done anything in the station.
+// "In progress" once the student has done anything in the level.
 function isStarted(num) {
   if (!rec) return false;
   const re = new RegExp("^s" + num + "(\\D|$)");
   return ["answers", "reached", "ui", "submitted", "first"].some(sec => Object.keys(rec[sec] || {}).some(k => re.test(k)));
 }
 
-function stationStatus(num) {
+function levelStatus(num) {
   if (isDone(num)) return "done";
   if (!isUnlocked(num)) return "locked";
   return isStarted(num) ? "progress" : "new";
@@ -700,24 +702,24 @@ function stationStatus(num) {
 /* ---------------- 0.3 Home page ---------------- */
 
 function welcomeLine(done) {
-  if (done === 0) return "Welcome! Start with Station 1.";
-  if (done === STATIONS.length) return "You've finished all 5 stations. Well done! Have a look at your learning report.";
-  return `Welcome back! You've finished ${done} of 5 stations. Keep going!`;
+  if (done === 0) return "Welcome! Start with Level 1.";
+  if (done === STATIONS.length) return "You've finished all 5 levels. Well done! Have a look at your learning report.";
+  return `Welcome back! You've finished ${done} of 5 levels. Keep going!`;
 }
 
-function renderStationCard(s) {
-  const status = stationStatus(s.num);
+function renderLevelCard(s) {
+  const status = levelStatus(s.num);
   const pill = status === "done" ? `<span class="status-pill done">✅ ${escapeHtml(s.badge)}</span>`
     : status === "locked" ? `<span class="status-pill locked">🔒 Locked</span>`
     : status === "progress" ? `<span class="status-pill progress">In progress</span>`
     : `<span class="status-pill">Not started</span>`;
   return `
-    <li class="station-item">
-      <button type="button" class="station-card status-${status}" id="stationCard${s.num}" data-num="${s.num}" ${status === "locked" ? `aria-disabled="true" aria-describedby="lockedMsg${s.num}"` : ""}>
+    <li class="level-item">
+      <button type="button" class="level-card status-${status}" id="levelCard${s.num}" data-num="${s.num}" ${status === "locked" ? `aria-disabled="true" aria-describedby="lockedMsg${s.num}"` : ""}>
         <span class="num-badge" aria-hidden="true">${status === "done" ? "✓" : status === "locked" ? "🔒" : s.num}</span>
         <span class="info">
-          <span class="station-name"><span aria-hidden="true">${s.icon}</span> <span class="visually-hidden">Station ${s.num}: </span>${escapeHtml(s.title)}</span>
-          <span class="station-desc">${escapeHtml(s.desc)}</span>
+          <span class="level-name"><span aria-hidden="true">${s.icon}</span> <span class="visually-hidden">Level ${s.num}: </span>${escapeHtml(s.title)}</span>
+          <span class="level-desc">${escapeHtml(s.desc)}</span>
           ${pill}
         </span>
       </button>
@@ -754,16 +756,16 @@ function renderHome() {
       <div class="block">
         <a href="#terms" class="terms-card">
           <span class="terms-icon" aria-hidden="true">📘</span>
-          <span><strong>Start here: 4 key terms</strong><br><span class="terms-sub">A 1-minute look before Station 2</span></span>
+          <span><strong>Start here: 4 key terms</strong><br><span class="terms-sub">A 1-minute look before Level 2</span></span>
         </a>
       </div>
       <section class="block" aria-labelledby="routeTitle">
         <h2 class="section-title" id="routeTitle">Your route</h2>
         <div class="journey-progress">
-          <p class="journey-count">${done} of 5 stations done</p>
-          <div class="progress-track" role="progressbar" aria-label="Stations done" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${done}"><div class="progress-fill" style="width:${done / 5 * 100}%"></div></div>
+          <p class="journey-count">${done} of 5 levels done</p>
+          <div class="progress-track" role="progressbar" aria-label="Levels done" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${done}"><div class="progress-fill" style="width:${done / 5 * 100}%"></div></div>
         </div>
-        <ol class="route">${STATIONS.map(renderStationCard).join("")}</ol>
+        <ol class="route">${STATIONS.map(renderLevelCard).join("")}</ol>
       </section>
       <section class="block" aria-labelledby="badgesTitle">
         <h2 class="section-title" id="badgesTitle">🏅 Your badges</h2>
@@ -776,14 +778,14 @@ function renderHome() {
   document.getElementById("howLink").addEventListener("click", (e) => { e.preventDefault(); showBriefing(); });
   document.getElementById("switchLink").addEventListener("click", (e) => { e.preventDefault(); confirmSwitchStudent(); });
   STATIONS.forEach(s => {
-    document.getElementById(`stationCard${s.num}`).addEventListener("click", () => {
-      if (stationStatus(s.num) === "locked") {
+    document.getElementById(`levelCard${s.num}`).addEventListener("click", () => {
+      if (levelStatus(s.num) === "locked") {
         const msg = document.getElementById(`lockedMsg${s.num}`);
-        msg.textContent = `Finish Station ${s.num - 1} first to open this station.`;
+        msg.textContent = `Finish Level ${s.num - 1} first to open this level.`;
         msg.hidden = false;
         return;
       }
-      window.location.hash = `#station${s.num}`;
+      window.location.hash = `#level${s.num}`;
     });
   });
 }
@@ -835,7 +837,7 @@ function renderTerms() {
     <main class="page">
       <div class="block">
         <h1 class="page-title">📘 4 key terms</h1>
-        <p class="lead">You'll meet these words in Station 2. Read them once now.</p>
+        <p class="lead">You'll meet these words in Level 2. Read them once now.</p>
         <ul class="term-list">
           ${KEY_TERMS.map(t => `<li class="card term-card"><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.text)}</li>`).join("")}
         </ul>
@@ -846,16 +848,16 @@ function renderTerms() {
   `;
 }
 
-/* ---------------- Stations ----------------
-   Slice 2: the station frame only. Stations 1 to 5 are built in slices 3 and 4. */
+/* ---------------- Levels ----------------
+   Slice 2: the level frame only. Levels 1 to 5 are built in slices 3 and 4. */
 
-function renderStation(num) {
+function renderLevel(num) {
   const s = STATIONS[num - 1];
   app.innerHTML = `
     ${topBarHtml({ showHome: true, showChip: true })}
     <main class="page">
       <div class="block">
-        <h1 class="page-title">${s.icon} Station ${num}: ${escapeHtml(s.title)}</h1>
+        <h1 class="page-title">${s.icon} Level ${num}: ${escapeHtml(s.title)}</h1>
       </div>
     </main>
     ${footerHtml()}
