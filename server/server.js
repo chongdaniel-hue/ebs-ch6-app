@@ -6,19 +6,29 @@
    app.js, styles.css, config.js and assets/ are reachable. Docs,
    tests, this folder and hidden files are never served.
 
-   Slice 2 adds the local stand-in for the Google Apps Script API
-   (same actions, same request and response shapes), storing data
-   in server/data/.
+   It also stands in for the Google Apps Script web app at /api:
+   it runs apps-script/Code.gs itself (see apps-script-mock.js), so
+   the actions, requests and replies are exactly the live ones.
+   Data is kept in server/data/ (never committed).
 
-   Run:  npm start   (then open http://localhost:8787)
+   Run:  TEACHER_CODE=yourcode npm start   (then open http://localhost:8787)
+   The teacher code comes from the TEACHER_CODE environment variable,
+   like Script Properties on the live script. Never write it in a file.
    ============================================================ */
 
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
+const { createAppsScript } = require("./apps-script-mock");
+
 const PORT = process.env.PORT || 8787;
 const ROOT = path.join(__dirname, "..");
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, "data");
+const script = createAppsScript({ dataDir: DATA_DIR, teacherCode: process.env.TEACHER_CODE || "" });
+// Only the Playwright tests turn these on (reset the data, make saves fail for a while).
+const TEST_HOOKS = process.env.ALLOW_TEST_HOOKS === "1";
+const MAX_BODY = 200 * 1024;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -65,7 +75,49 @@ function serveStatic(req, res) {
   });
 }
 
-const server = http.createServer((req, res) => {
+function sendJsonText(res, text) {
+  // Apps Script always answers 200; failures are {ok:false, error} in the body.
+  res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+  res.end(text);
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    req.on("data", c => {
+      size += c.length;
+      if (size > MAX_BODY) { reject(new Error("too large")); req.destroy(); return; }
+      chunks.push(c);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    req.on("error", reject);
+  });
+}
+
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, "http://localhost");
+
+  if (url.pathname === "/api") {
+    if (req.method === "GET") {
+      sendJsonText(res, script.doGet(Object.fromEntries(url.searchParams)));
+      return;
+    }
+    if (req.method === "POST") {
+      let body;
+      try { body = await readBody(req); } catch (e) { sendJsonText(res, JSON.stringify({ ok: false, error: "too_big" })); return; }
+      sendJsonText(res, script.doPost(body));
+      return;
+    }
+  }
+
+  if (TEST_HOOKS && req.method === "POST" && url.pathname.startsWith("/__test/")) {
+    if (url.pathname === "/__test/reset") script.reset();
+    if (url.pathname === "/__test/busy") script.hooks.busy = Number(url.searchParams.get("n")) || 0;
+    sendJsonText(res, JSON.stringify({ ok: true }));
+    return;
+  }
+
   if (req.method === "GET" || req.method === "HEAD") {
     serveStatic(req, res);
     return;
@@ -77,6 +129,7 @@ const server = http.createServer((req, res) => {
 if (require.main === module) {
   server.listen(PORT, () => {
     console.log(`EBS Chapter 6 test server running at http://localhost:${PORT}`);
+    if (!process.env.TEACHER_CODE) console.log("No TEACHER_CODE set, so Teacher Mode will refuse every code.");
   });
 }
 

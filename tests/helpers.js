@@ -43,3 +43,43 @@ async function shot(page, testInfo, name) {
 }
 
 module.exports = { watchErrors, expectNoAmpersand, expectNoSidewaysScroll, shot };
+
+const CODE = () => process.env.TEST_TEACHER_CODE;
+
+// Fresh server data, with the given classes added through the real teacher action.
+async function resetServer(request, classes) {
+  await request.post("/__test/reset");
+  for (const name of classes || []) {
+    const r = await (await request.post("/api", { data: JSON.stringify({ action: "addClass", code: CODE(), name }), headers: { "Content-Type": "text/plain" } })).json();
+    if (!r.ok) throw new Error("addClass failed: " + r.error);
+  }
+}
+
+async function apiPost(request, body) {
+  return (await request.post("/api", { data: JSON.stringify(body), headers: { "Content-Type": "text/plain" } })).json();
+}
+async function apiGet(request, params) {
+  return (await request.get("/api?" + new URLSearchParams(params))).json();
+}
+
+async function login(page, cls, reg) {
+  await page.goto("/");
+  await page.locator("#classInput").selectOption(cls);
+  await page.locator("#regInput").fill(String(reg));
+  await page.locator("#startBtn").click();
+}
+
+// Waits until this page has sent a save that the server accepted.
+async function waitForSave(page, timeout) {
+  await page.waitForResponse(async r => {
+    if (!r.url().endsWith("/api") || r.request().method() !== "POST") return false;
+    try { const body = JSON.parse(r.request().postData()); return body.action === "save" && (await r.json()).ok; } catch (e) { return false; }
+  }, { timeout: timeout || 25000 });
+}
+
+module.exports.CODE = CODE;
+module.exports.resetServer = resetServer;
+module.exports.apiPost = apiPost;
+module.exports.apiGet = apiGet;
+module.exports.login = login;
+module.exports.waitForSave = waitForSave;

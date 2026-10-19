@@ -284,3 +284,226 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
     scroll-behavior:auto !important;
   }
 }
+
+/* ============================================================
+   Slice 2: log-in, home page, pop-ups, Teacher Mode
+   ============================================================ */
+
+.visually-hidden{
+  position:absolute !important;
+  width:1px;height:1px;
+  margin:-1px;padding:0;border:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;
+}
+.muted{color:var(--muted);}
+
+/* ---------- Top bar: student chip ---------- */
+.topbar-chip{
+  display:inline-block;
+  margin:6px 0 0;
+  padding:2px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.16);
+  border:1px solid rgba(255,255,255,0.4);
+  color:#fff;
+  font-size:0.86rem;
+  font-weight:600;
+}
+
+/* ---------- Headings, notes, messages ---------- */
+.card-title{margin:0 0 var(--inner-gap);font-size:1.15rem;}
+.section-title{margin:0 0 var(--inner-gap);font-size:1.2rem;}
+.field + .field{margin-top:16px;}
+.field-note{margin:8px 0 0;font-size:0.92rem;color:var(--muted);}
+.form-error{margin:12px 0 0;font-weight:600;color:var(--bad);}
+.form-error::before{content:"✗ ";}
+.card .btn-row{margin-top:16px;}
+.notice{
+  margin:0;
+  padding:10px 14px;
+  border-left:4px solid var(--good);
+  border-radius:0 10px 10px 0;
+  background:var(--good-bg);
+  color:#14532D;
+  font-weight:600;
+}
+.notice::before{content:"✓ ";}
+.select-input:disabled{background:#F3F4F6;color:#6B7280;cursor:not-allowed;}
+.reg-input{max-width:160px;}
+
+/* ---------- Home page ---------- */
+.home-links{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;}
+.home-links a{display:inline-flex;align-items:center;min-height:44px;font-weight:600;}
+.dot-sep{color:var(--muted);}
+
+.terms-card{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:16px 18px;
+  border:1px solid var(--border);
+  border-left:4px solid var(--brand);
+  border-radius:var(--radius);
+  background:var(--paper);
+  color:var(--ink);
+  text-decoration:none;
+}
+.terms-card:hover{border-color:var(--brand);color:var(--ink);}
+.terms-card strong{color:var(--brand-dark);}
+.terms-icon{font-size:1.8rem;line-height:1;}
+.terms-sub{font-size:0.92rem;color:var(--muted);}
+
+.journey-progress{margin:0 0 var(--inner-gap);}
+.journey-count{margin:0 0 6px;font-weight:600;}
+.progress-track{height:10px;background:#EDE3E6;border-radius:6px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--brand);border-radius:6px;}
+
+.route{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+.station-item{margin:0;}
+.station-card{
+  width:100%;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:var(--paper);
+  color:var(--ink);
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+.station-card:hover{border-color:var(--brand);}
+.station-card .num-badge{
+  flex:0 0 auto;
+  width:36px;height:36px;
+  border-radius:50%;
+  background:var(--brand);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;
+}
+.station-card .info{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.station-name{font-weight:700;font-size:1.04rem;color:var(--brand-dark);}
+.station-desc{color:var(--muted);font-size:0.95rem;}
+.status-pill{
+  align-self:flex-start;
+  margin-top:6px;
+  padding:3px 10px;
+  border-radius:999px;
+  background:#F1ECEE;
+  color:#4B5563;
+  font-size:0.82rem;
+  font-weight:700;
+}
+.status-pill.progress{background:var(--brand-light);color:var(--brand-dark);}
+.status-pill.done{background:var(--good-bg);color:var(--good);}
+.station-card.status-done{border-color:#86C59B;}
+.station-card.status-done .num-badge{background:var(--good);}
+/* Locked: clearly greyed, cannot be opened (tapping only explains why). */
+.station-card.status-locked{background:#F3F1F2;border-style:dashed;cursor:not-allowed;}
+.station-card.status-locked:hover{border-color:var(--border);}
+.station-card.status-locked .num-badge{background:#9CA3AF;font-size:1rem;}
+.station-card.status-locked .station-name,
+.station-card.status-locked .station-desc{color:#5B6370;}
+.status-pill.locked{background:#E5E7EB;color:#374151;}
+.locked-msg{margin:8px 0 0 4px;font-weight:600;color:var(--brand-dark);}
+
+.badge-shelf{
+  list-style:none;margin:0 0 var(--inner-gap);padding:0;
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;
+}
+.shelf-badge{text-align:center;}
+.shelf-img{max-width:120px;margin:0 auto 6px;}
+.shelf-img .content-img,
+.shelf-img .img-placeholder{aspect-ratio:1 / 1;width:100%;}
+.shelf-img .img-placeholder{min-height:0;padding:6px;border-radius:50%;}
+.shelf-img .img-placeholder-label{display:none;}
+.shelf-img .img-placeholder-emoji{font-size:clamp(1.4rem,6vw,2.6rem);}
+.shelf-badge:not(.earned) .shelf-img{filter:grayscale(1);opacity:0.45;}
+.shelf-name{font-size:0.82rem;font-weight:700;line-height:1.25;color:var(--muted);}
+.shelf-badge.earned .shelf-name{color:var(--brand-dark);}
+
+/* ---------- 4 key terms ---------- */
+.term-list{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+.term-card{border-left:4px solid var(--brand);}
+.term-card strong{color:var(--brand-dark);}
+
+/* ---------- Pop-ups (V45 style) ---------- */
+.modal-backdrop{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(17,24,39,0.55);
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  overflow-y:auto;
+}
+.modal{
+  background:#fff;
+  border-radius:16px;
+  padding:22px;
+  max-width:520px;
+  width:100%;
+  max-height:calc(100vh - 32px);
+  overflow-y:auto;
+  box-shadow:0 10px 30px rgba(0,0,0,0.25);
+}
+.modal-title{margin:0 0 10px;font-size:1.2rem;}
+.modal p{margin:0 0 10px;}
+.modal-btns{margin-top:16px;}
+.briefing-list{margin:0;padding-left:1.4em;}
+.briefing-list li{margin-bottom:10px;}
+.briefing-modal .modal-btns .btn{width:100%;}
+
+/* ---------- Offline bar (V37) ---------- */
+.net-banner{
+  position:sticky;top:0;z-index:30;
+  background:#FEF3C7;color:#78350F;
+  border-bottom:2px solid #F59E0B;
+  padding:8px 14px;
+  font-size:0.92rem;font-weight:700;
+  text-align:center;line-height:1.35;
+}
+
+/* ---------- Tabs (Teacher Mode; stations use the same look) ---------- */
+.tabs{display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--border);}
+.tab{
+  min-height:44px;
+  padding:8px 16px;
+  border:1px solid var(--border);
+  border-bottom:none;
+  border-radius:10px 10px 0 0;
+  background:var(--paper);
+  color:var(--brand-dark);
+  font:inherit;font-weight:700;
+  cursor:pointer;
+}
+.tab.current{background:var(--brand);border-color:var(--brand);color:#fff;}
+
+/* ---------- Teacher Mode: classes ---------- */
+.class-list{list-style:none;margin:0 0 var(--inner-gap);padding:0;display:grid;gap:8px;}
+.class-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:8px 8px 8px 16px;
+  background:var(--paper);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+.class-name{font-weight:700;}
+.btn.small{min-height:44px;padding:6px 14px;}
+.add-class{margin-top:var(--inner-gap);}
+
+@media (max-width:480px){
+  .topbar-title{font-size:1.15rem;}
+  .badge-shelf{gap:6px;}
+  .shelf-name{font-size:0.74rem;}
+}
+.login-card .select-input{max-width:420px;}
+@media (max-width:560px){
+  .home-links{flex-direction:column;align-items:flex-start;gap:0;}
+  .home-links .dot-sep{display:none;}
+}
+/* Lists of cards use the full block width; only running text is limited. */
+.page .route > li,
+.page .badge-shelf > li,
+.page .class-list > li{max-width:none;}
