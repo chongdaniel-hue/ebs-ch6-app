@@ -61,13 +61,56 @@ test("images are shown in full and the Foodpanda pair is the same height", async
   if (testInfo.project.name === "laptop") expect(Math.abs(heights[0] - heights[1])).toBeLessThanOrEqual(2);
 });
 
+// Every item in a block starts at the column's left edge and ends at its right edge, except
+// running text (limited to a readable width) and images (centred, never larger than the file).
+async function edgeProblems(page) {
+  return page.evaluate(() => {
+    const out = [];
+    document.querySelectorAll(".page .block").forEach(block => {
+      const b = block.getBoundingClientRect();
+      const style = getComputedStyle(block);
+      const left = b.left + parseFloat(style.paddingLeft), right = b.right - parseFloat(style.paddingRight);
+      [...block.children].filter(k => k.offsetParent !== null && !k.classList.contains("visually-hidden")).forEach(k => {
+        const r = k.getBoundingClientRect();
+        const name = (k.className || k.tagName).toString().slice(0, 40);
+        const isText = (/^(P|UL|OL)$/.test(k.tagName) && !/when-box|tip|say/.test(k.className)) || k.tagName === "BUTTON" || /\bbtn\b/.test(k.className);
+        const isImg = k.tagName === "IMG" || k.classList.contains("img-pair");
+        if (isImg) {
+          if (Math.abs((r.left - left) - (right - r.right)) > 2) out.push(`${name}: not centred`);
+          return;
+        }
+        if (Math.abs(r.left - left) > 1) out.push(`${name}: left edge ${Math.round(r.left - left)}px off`);
+        if (!isText && Math.abs(r.right - right) > 1) out.push(`${name}: right edge ${Math.round(right - r.right)}px short`);
+      });
+    });
+    return out;
+  });
+}
+
+test("blocks line up: same left and right edges on every page", async ({ page, request }) => {
+  await student(page, request, 35);
+  const pages = [["home", "/#home"], ["terms", "/#terms"], ["level1", "/#level1"]];
+  for (const [name, url] of pages) {
+    await page.goto(url);
+    await page.waitForTimeout(300);
+    expect(await edgeProblems(page), name).toEqual([]);
+  }
+  for (const t of [0, 1, 2]) {
+    await page.goto("/#home");
+    await page.goto("/#level2");
+    await page.locator(".step-tab").nth(t).click();
+    await page.waitForTimeout(400);
+    expect(await edgeProblems(page), `level2 tab ${t + 1}`).toEqual([]);
+  }
+});
+
 test("🔊 Listen reads a block of notes, not the questions, and stops on a second tap", async ({ page, request }) => {
   await page.addInitScript(FAKE_SPEECH);
   const errors = watchErrors(page);
   await student(page, request, 33);
 
   await page.goto("/#terms");
-  const termsBtn = page.locator(".terms-block .listen-btn");
+  const termsBtn = page.locator(".head-row .listen-btn");
   await expect(termsBtn).toHaveText("🔊 Listen");
   await termsBtn.click();
   await expect(termsBtn).toHaveText("⏹ Stop");

@@ -582,8 +582,6 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .notes-list{margin:0;padding-left:1.3em;}
 .notes-list li{margin-bottom:8px;}
 .notes-list li:last-child{margin-bottom:0;}
-.comic-img,.notes-img{max-width:760px;}
-.uniqlo-img{max-width:420px;border:1px solid var(--border);}
 .screenshot-img{border:1px solid var(--border);}
 .nav-row .btn{min-width:180px;}
 
@@ -931,9 +929,7 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 
 /* ---------- Images: always shown in full, never cropped ---------- */
 .content-img{object-fit:contain;}
-.uniqlo-img{max-width:480px;height:auto;}
 /* Foodpanda pair: same height side by side; stacked on phones. */
-.img-pair{display:flex;gap:12px;max-width:640px;align-items:flex-start;}
 .img-pair-item{flex:1 1 0;min-width:0;}
 .img-pair-item .img-placeholder{min-height:140px;}
 @media (max-width:560px){
@@ -942,8 +938,6 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 }
 
 /* ---------- 🔊 Listen ---------- */
-.listen-row{display:flex;justify-content:flex-end;}
-.page .part > .listen-row + *,.page .terms-block > .listen-row + *{margin-top:8px;}
 .listen-btn{min-height:44px;padding:6px 14px;font-size:0.95rem;}
 .listen-btn[aria-pressed="true"]{background:var(--brand-light);}
 .terms-block > * + *{margin-top:12px;}
@@ -955,15 +949,49 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .brief-icon{font-size:1.3rem;line-height:1.3;}
 
 /* ---------- Visual check fixes ---------- */
-/* Listen sits beside the block's first heading, not on a line of its own. */
-.part > .listen-row,
-.terms-block > .listen-row{float:right;margin:0 0 8px 12px;}
-.page .part > .listen-row + *{margin-top:0;}
-.page .terms-block > .listen-row + *{margin-top:0;}
-.terms-block::after,.part::after{content:"";display:block;clear:both;}
 /* Definitions: a neutral cool tint, so they never look like the pink wrong-answer box. */
 .definition{background:#F1F5F9;border-color:#CBD5E1;border-left-color:var(--brand);}
 /* Tips: light and friendly, clearly different from the amber 📌 recap card. */
 .tip{background:#FFFEF7;border:1px dashed #E2C77A;}
 .stage-head{display:flex;align-items:flex-start;gap:8px;}
 .stage-head .stage-icon{margin-right:0;line-height:1.2;}
+
+/* ============================================================
+   Visual fixes before slice 4
+   ============================================================ */
+
+/* Heading rows: heading on the left, 🔊 Listen on the right, centred vertically.
+   Everything below the heading uses the full column width. */
+.head-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.head-row > h1,.head-row > h2{margin:0;min-width:0;}
+.page .part > .head-row + *{margin-top:14px;}
+.listen-btn{flex:0 0 auto;}
+
+/* Images: centred in the column, as wide as the card rows but never larger than the file
+   itself, and never cropped. Placeholders use the full column width. */
+.content-img{width:auto;max-width:100%;height:auto;margin-left:auto;margin-right:auto;}
+.page .img-placeholder{width:100%;}
+.uniqlo-img{border:1px solid var(--border);}
+/* Foodpanda pair: centred together, same height. */
+.img-pair{display:flex;gap:12px;max-width:640px;margin-left:auto;margin-right:auto;align-items:flex-start;}
+.img-pair-item .content-img{width:100%;}
+
+/* Service Recovery Path: white circle, purple ring, emoji inside, purple number badge. */
+.path-circle{background:#fff;border:3px solid var(--stage4);box-shadow:0 0 0 4px var(--bg);}
+.path-num{background:var(--stage4);color:#fff;border:2px solid #fff;}
+
+/* Speech bubbles: each on its own line, under the sentence it belongs to. */
+.page p.say{display:block;width:fit-content;max-width:100%;margin:2px 0 4px;}
+.page .approach-card > p + p.say{margin-top:0;}
+
+/* Phones: icon cards become compact horizontal cards (icon left, text right), all the
+   same height within a group. */
+@media (max-width:639px){
+  .icon-cards{grid-auto-rows:1fr;gap:8px;}
+  .icon-card{flex-direction:row;align-items:center;gap:12px;padding:10px 12px;border-top-width:1px;border-left:4px solid var(--brand);}
+  .ic-icon{font-size:1.6rem;flex:0 0 auto;width:1.9rem;text-align:center;}
+  .ic-body{font-size:0.97rem;}
+  .icon-cards.chips .icon-card{padding:10px 12px;}
+}
+/* Tip boxes are boxes: full column width, like every other block. */
+.page p.tip{max-width:none;}

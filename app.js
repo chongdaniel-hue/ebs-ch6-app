@@ -28,9 +28,12 @@
    0.3.1 Visual and Mayer pass: icon cards, 📖 definition boxes, 💡 tips,
         📌 recap heading, welcome card, equal-height Level 1 cards,
         larger path icons, images in full, 🔊 Listen for notes.
+   0.3.2 Visual fixes: Listen in heading rows, every block full width,
+        images centred, white path circles, compact phone cards,
+        bubbles on their own lines, welcome-back text in the card.
    ============================================================ */
 
-const APP_VERSION = "0.3.1";
+const APP_VERSION = "0.3.2";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -111,7 +114,6 @@ const KEYS = {
 
 let student = null;  // {cls, reg}
 let rec = null;      // that student's record
-let homeNotice = ""; // "Welcome back!" line, shown once at the top of the home page
 
 function studentKey(cls, reg) { return cls + "#" + reg; }
 function activeKey() { return student ? studentKey(student.cls, student.reg) : ""; }
@@ -681,7 +683,6 @@ async function startLogin() {
   saveLocal();
   // Send anything this device had that the server did not (and check the connection).
   if (local || serverUnreachable) enqueue(key, Date.now() + jitter(3000), false);
-  homeNotice = returning ? "Welcome back! Your work has been loaded." : "";
   updateNetBanner();
   if (window.location.hash === "#home") render();
   else window.location.hash = "#home";
@@ -713,7 +714,7 @@ function levelStatus(num) {
 function welcomeLine(done) {
   if (done === 0) return "👋 Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!";
   if (done === LEVELS.length) return "🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.";
-  return `👋 Welcome back! You've finished ${done} of 5 levels. Great progress! Carry on with Level ${done + 1} below.`;
+  return `👋 Welcome back! Your work has been loaded. You've finished ${done} of 5 levels. Great progress! Carry on with Level ${done + 1} below.`;
 }
 
 function renderLevelCard(s) {
@@ -748,12 +749,9 @@ function badgeShelfHtml() {
 
 function renderHome() {
   const done = doneCount();
-  const notice = homeNotice;
-  homeNotice = "";
   app.innerHTML = `
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
-      ${notice ? `<div class="block"><p class="notice" role="status">${escapeHtml(notice)}</p></div>` : ""}
       <div class="block">
         <div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done))}</p></div>
         <p class="home-links">
@@ -845,10 +843,12 @@ function renderTerms() {
     ${topBarHtml({ showHome: true, showChip: true })}
     <main class="page">
       <div class="block">
-        <h1 class="page-title">📘 4 key terms</h1>
+        <div class="head-row">
+          <h1 class="page-title">📘 4 key terms</h1>
+          ${listenButtonHtml("termsBlock")}
+        </div>
         <p class="lead">You'll meet these words in Level 2. Read them once now.</p>
-        <section class="terms-block" data-listen aria-label="4 key terms">
-          ${listenButtonHtml()}
+        <section class="terms-block" id="termsBlock" aria-label="4 key terms">
           <ul class="term-list">
             ${KEY_TERMS.map(t => `<li>${definitionHtml(`<p><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.text)}</p>`)}</li>`).join("")}
           </ul>
@@ -1094,7 +1094,8 @@ function tipHtml(text) {
 }
 
 // An example line shown as a speech bubble (the quotation marks stay, so the wording is unchanged).
-function sayHtml(quote) { return `<span class="say">${escapeHtml(quote)}</span>`; }
+// It always sits on its own line, under the sentence it belongs to.
+function sayHtml(quote) { return `<p class="say">${escapeHtml(quote)}</p>`; }
 
 // Two images side by side at the same height (stacked on phones). Each image's share of
 // the row is set from its own shape once it loads, so new files of any shape still line up.
@@ -1112,8 +1113,10 @@ function fitPairImage(img) {
 const canSpeak = typeof window.speechSynthesis !== "undefined" && typeof window.SpeechSynthesisUtterance === "function";
 let speakingBtn = null;
 
-function listenButtonHtml() {
-  return canSpeak ? `<div class="listen-row"><button type="button" class="btn secondary listen-btn" aria-pressed="false">🔊 Listen</button></div>` : "";
+// The button sits in its heading's row. targetId names the block it reads when that block
+// is not the button's own section (the 4 key terms page).
+function listenButtonHtml(targetId) {
+  return canSpeak ? `<button type="button" class="btn secondary listen-btn" aria-pressed="false" ${targetId ? `data-target="${targetId}"` : ""}>🔊 Listen</button>` : "";
 }
 
 function pickVoice() {
@@ -1143,7 +1146,8 @@ function wireListen(el) {
   el.querySelectorAll(".listen-btn").forEach(btn => btn.addEventListener("click", () => {
     if (speakingBtn === btn) { stopSpeaking(); return; }
     stopSpeaking();
-    const block = btn.closest("[data-listen]") || btn.closest("section") || el;
+    const target = btn.getAttribute("data-target");
+    const block = (target && document.getElementById(target)) || btn.closest("section") || el;
     // Short sentences one after another: some browsers stop long speech part-way.
     const sentences = blockSpeechText(block).match(/[^.!?]+[.!?]*["')]*\s*/g) || [];
     const voice = pickVoice();
@@ -1261,9 +1265,10 @@ function recoveryPathHtml(count, animateLast) {
 }
 
 // Part wrappers for notes: the 🔊 Listen button sits at the top of each block of notes.
+// The Listen button goes in the row of the block's first heading: heading left, button right.
 function notesPart(htmlFn, extra) {
   return Object.assign({
-    html: (ctx) => listenButtonHtml() + htmlFn(ctx),
+    html: (ctx) => htmlFn(ctx).replace(/<h2 [\s\S]*?<\/h2>/, h => `<div class="head-row">${h}${listenButtonHtml()}</div>`),
     wire: (el, ctx) => { wireListen(el); if (extra && extra.wireMore) extra.wireMore(el, ctx); }
   }, extra || {});
 }
@@ -1331,18 +1336,25 @@ const L2_TABS = [
           <li class="approach-card">
             <span class="ic-icon" aria-hidden="true">👋</span>
             <h3 class="approach-name">1. Greeting Approach:</h3>
-            <p>Greet the customer in a friendly way as they enter, e.g. ${sayHtml("\"Good morning!\"")} For a regular customer, use their name: ${sayHtml("\"Good morning, Mr Tan!\"")}</p>
+            <p>Greet the customer in a friendly way as they enter, e.g.</p>
+            ${sayHtml("\"Good morning!\"")}
+            <p>For a regular customer, use their name:</p>
+            ${sayHtml("\"Good morning, Mr Tan!\"")}
           </li>
           <li class="approach-card">
             <span class="ic-icon" aria-hidden="true">🙋</span>
             <h3 class="approach-name">2. Service Approach:</h3>
-            <p>Ask a polite question to show you're ready to help, e.g. ${sayHtml("\"How may I assist you?\"")} If a customer comes up to you to ask for something or to pay, serve them as quickly as possible.</p>
-            <p class="approach-combine">You can also combine the greeting and service approaches: ${sayHtml("\"Good morning! How may I assist you?\"")}</p>
+            <p>Ask a polite question to show you're ready to help, e.g.</p>
+            ${sayHtml("\"How may I assist you?\"")}
+            <p>If a customer comes up to you to ask for something or to pay, serve them as quickly as possible.</p>
+            <p class="approach-combine">You can also combine the greeting and service approaches:</p>
+            ${sayHtml("\"Good morning! How may I assist you?\"")}
           </li>
           <li class="approach-card">
             <span class="ic-icon" aria-hidden="true">📱</span>
             <h3 class="approach-name">3. Product Approach:</h3>
-            <p>When a customer is looking closely at a product, ask a question about it to help them go from just being interested to actually buying it, e.g. ${sayHtml("\"This phone has a great camera. Would you like to try it out?\"")}</p>
+            <p>When a customer is looking closely at a product, ask a question about it to help them go from just being interested to actually buying it, e.g.</p>
+            ${sayHtml("\"This phone has a great camera. Would you like to try it out?\"")}
           </li>
         </ul>
         <p>Whether salespeople use the greeting, service or product approach, the purpose is to:</p>

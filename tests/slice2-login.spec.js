@@ -180,7 +180,7 @@ test.describe("saving and loading", () => {
     const page2 = await other.newPage();
     const errors2 = watchErrors(page2);
     await login(page2, "3E1", 7);
-    await expect(page2.locator(".notice")).toHaveText("Welcome back! Your work has been loaded.");
+    await expect(page2.locator(".notice")).toHaveCount(0); // no separate notice: the welcome card covers it
     await expect(page2.locator("#briefing")).toHaveCount(0);
     await checkPage(page2, testInfo, "slice2-home-welcome-back");
     await other.close();
@@ -210,7 +210,7 @@ test.describe("saving and loading", () => {
     await page.selectOption("#classInput", "3E1");
     await page.fill("#regInput", "8");
     await page.click("#startBtn");
-    await expect(page.locator(".notice")).toHaveText("Welcome back! Your work has been loaded.");
+    await expect(page.locator(".welcome-card")).toBeVisible();
   });
 
   test("offline: uses the device copy and shows the yellow bar until the server is back", async ({ page, request }, testInfo) => {
@@ -227,7 +227,7 @@ test.describe("saving and loading", () => {
     await page.selectOption("#classInput", "3E1"); // the class list was cached on this device
     await page.fill("#regInput", "9");
     await page.click("#startBtn");
-    await expect(page.locator(".notice")).toHaveText("Welcome back! Your work has been loaded.");
+    await expect(page.locator(".welcome-card")).toBeVisible();
     await expect(page.locator("#briefing")).toHaveCount(0); // "I'm ready" from this device's copy
     await expect(page.locator("#netBanner")).toHaveText("📡 No internet. Your work is saved on this device and will be sent when the connection is back.");
     await checkPage(page, testInfo, "slice2-offline");

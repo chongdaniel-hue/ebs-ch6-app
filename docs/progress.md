@@ -69,10 +69,10 @@ These fill gaps in the storyboard. Student-facing wording here is approved and m
 - Git is local only (no remote, no push). Commit after each slice, before reporting back. Local commit identity is the neutral "EBS Ch6 team" so no personal email ends up in the public history; the user may change it before the first push.
 
 ### Visual and Mayer pass (agreed 19 October 2026, after slice 3)
-G1 students need strong visual support. Visual treatment may change how text looks, never what it says: storyboard wording stays word for word. Every slice's checks include a visual check of every screenshot at 1280px and 360px (alignment, equal card heights in rows, consistent styles, spacing, no clipped images, appeal for a 15-year-old). The user's updated `CLAUDE.md` with these rules had not reached this folder when this was written; these notes stand in for it until it does.
+G1 students need strong visual support. Visual treatment may change how text looks, never what it says: storyboard wording stays word for word. Every slice's checks include a visual check of every screenshot at 1280px and 360px (alignment, equal card heights in rows, consistent styles, spacing, no clipped images, appeal for a 15-year-old). These rules are now also in `CLAUDE.md` (Visual check; Designing for G1 students).
 - **Home welcome card** (replaces the storyboard's welcome lines, shown in a card at the top of the home page):
   - 0 levels done: "👋 Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!"
-  - 1 to 4 done: "👋 Welcome back! You've finished {n} of 5 levels. Great progress! Carry on with Level {n+1} below."
+  - 1 to 4 done: "👋 Welcome back! Your work has been loaded. You've finished {n} of 5 levels. Great progress! Carry on with Level {n+1} below." (There is no separate "Welcome back! Your work has been loaded." notice any more.)
   - All 5 done: "🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did."
 - **💡 means Tip.** Every tip starts with 💡 in a light tip box. The recap card heading is "📌 Remember this" everywhere (the storyboard's "💡 Remember this" is replaced).
 - **One style per meaning, the same everywhere:** 📖 definition box (neutral cool tint, wine left bar) for textbook definitions; icon cards for lists of points; speech bubbles for examples of what staff say; 📌 amber recap card; 💡 tip box. Headings in the notes carry an icon.
@@ -81,6 +81,8 @@ G1 students need strong visual support. Visual treatment may change how text loo
 - **Images:** always shown in full, never cropped; the Foodpanda pair is the same height side by side (each image's share of the row is set from its own shape when it loads).
 - **🔊 Listen** on each block of notes in Level 2 and on the 4 key terms page (notes only, never questions or answers): browser speech, en-GB or en-SG voice if available (an on-device voice first, so it works offline), rate 0.9; tapping again stops it ("⏹ Stop"); not shown where the browser has no speech; leaving the page stops it.
 - **Before you start:** an icon beside each numbered point (🗺️ 💾 🤖 🔁 👀).
+- **Approved after review:** "You can also combine..." inside the Service Approach card; the ⏰ box; the 🤔 headings; "⏹ Stop".
+- **Layout rules (visual fixes before slice 4):** each 🔊 Listen sits in its heading's row (heading left, button right); everything below a heading uses the full column width, so every block in a page has the same left and right edges (running text keeps the readable width; buttons keep their own size). Images and placeholders are centred, as wide as the card rows but never larger than the file. On phones, grid icon cards become compact horizontal cards (icon left, text right), equal height within a group. Each speech bubble sits on its own line under the sentence it belongs to. Path circles: white with a 3px purple ring, emoji inside, purple number badge. A test checks the edges of every block on every page at both widths.
 
 ## How slice 2 works (for the next session)
 
@@ -103,5 +105,5 @@ G1 students need strong visual support. Visual treatment may change how text loo
 
 ## Open questions
 
-- **R03 (Uniqlo) file is cut off at the bottom** in the file itself (the bottom row of labels is cut mid-line). The app shows the whole file; a re-cropped R03 with a little more at the bottom will appear with no code change. The image also shows "Return & Exchange Conditions", an ampersand inside a real screenshot.
-- The user's updated `CLAUDE.md` (visual checks, Mayer section for G1) is not in this folder yet; re-read it when it arrives.
+- R03 now has a clean crop (from Dan). It still shows "Return & Exchange Conditions", an ampersand inside a real screenshot.
+- `CLAUDE.md` asks for no more than about one screen of reading before the next Continue ↓. Some Level 2 parts (e.g. Tab 1 part 1) are about two phone screens; the Continue points come from the storyboard, so changing them needs the group's decision.

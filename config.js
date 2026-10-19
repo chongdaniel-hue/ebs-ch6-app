@@ -97,7 +97,7 @@ window.APP_CONFIG = {
       file: "assets/img/R03-uniqlo-returns.jpg",
       emoji: "🧾",
       label: "Uniqlo return and exchange conditions",
-      alt: "Uniqlo return and exchange conditions: returns within 30 days; products that cannot be returned or exchanged include used, washed and altered products, items past 30 days, items with no receipt and items with no price tag."
+      alt: "Uniqlo return and exchange conditions: returns within 30 days of purchase; products that cannot be returned or exchanged include used, washed and altered products."
     },
     BADGE1: { file: "assets/img/badge-story-sharer.png", emoji: "📝", label: "Story Sharer", alt: "Story Sharer badge" },
     BADGE2: { file: "assets/img/badge-service-scholar.png", emoji: "📘", label: "Service Scholar", alt: "Service Scholar badge" },

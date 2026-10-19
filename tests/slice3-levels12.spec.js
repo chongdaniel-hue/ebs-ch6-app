@@ -90,7 +90,7 @@ test.describe("Level 1", () => {
 
     expect(page.url()).toMatch(/#home$/);
     await expect(page.locator(".journey-count")).toHaveText("1 of 5 levels done");
-    await expect(page.locator(".welcome-card")).toHaveText("👋 Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
+    await expect(page.locator(".welcome-card")).toHaveText("👋 Welcome back! Your work has been loaded. You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
     await expect(page.locator(".status-pill")).toHaveText(["✅ Story Sharer", "Not started", "🔒 Locked", "🔒 Locked", "🔒 Locked"]);
     await expect(page.locator(".shelf-name").first()).toHaveText("Story Sharer, earned");
 
