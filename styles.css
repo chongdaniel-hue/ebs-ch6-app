@@ -1,0 +1,286 @@
+/* ============================================================
+   EBS Chapter 6: Customer Service — styles
+   Light, minimal, high-contrast theme (colours in CLAUDE.md).
+   ============================================================ */
+
+:root{
+  /* Wine-red theme. Brand light is for small accents only (chips, selected states,
+     current tab tint): cards are white with a thin border, so they never look like
+     the pink wrong-answer box. */
+  --brand:#8B1E3F;          /* white text on it 8.9:1 */
+  --brand-dark:#5C1229;
+  --brand-light:#F9ECEF;
+  --bg:#FAF7F5;
+  --paper:#FFFFFF;
+  --ink:#1F2937;            /* 13.8:1 on --bg */
+  --muted:#4B5563;          /* 7.2:1 on --bg */
+  --border:#E8DADF;         /* card border */
+  --field-border:#8A7880;   /* 4.2:1 on white, so boxes are easy to see */
+  --placeholder-bg:#F9ECEF;
+  --placeholder-border:#C9A0AE;
+  --good:#15803D;
+  --good-bg:#EAFBEF;
+  --bad:#B91C1C;
+  --bad-bg:#FDECEC;
+  --on-brand-soft:#F6DCE3;  /* 7.4:1 on --brand */
+
+  /* The four stages: notes only (stage table, Service Recovery Path), never in questions. */
+  --stage1:#2563EB;
+  --stage2:#EA580C;
+  --stage3:#16A34A;
+  --stage4:#7C3AED;
+
+  --radius:14px;
+  --block-gap:44px;         /* between separate blocks */
+  --inner-gap:14px;         /* inside a block */
+  --page-max:900px;
+  --text-max:680px;         /* about 70 characters per line */
+}
+
+*{box-sizing:border-box;}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;
+  line-height:1.55;
+  -webkit-text-size-adjust:100%;
+}
+
+#app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+img{max-width:100%;}
+
+a{color:var(--brand);}
+a:hover{color:var(--brand-dark);}
+
+:focus-visible{
+  outline:3px solid var(--brand);
+  outline-offset:2px;
+}
+
+.nowrap{white-space:nowrap;}
+
+/* ---------- Sticky top bar ---------- */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:var(--brand);
+  color:#fff;
+  box-shadow:0 2px 6px rgba(60,10,25,0.22);
+}
+.topbar-inner{
+  max-width:var(--page-max);
+  margin:0 auto;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.topbar-titles{min-width:0;}
+.topbar-label{
+  margin:0;
+  font-size:0.78rem;
+  font-weight:700;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  color:var(--on-brand-soft);
+}
+.topbar-title{
+  margin:0;
+  font-size:1.3rem;
+  font-weight:800;
+  line-height:1.2;
+  color:#fff;
+}
+.topbar-sub{
+  margin:2px 0 0;
+  font-size:0.92rem;
+  color:var(--on-brand-soft);
+}
+.topbar-home{
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  padding:0 14px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.14);
+  border:1px solid rgba(255,255,255,0.45);
+  color:#fff;
+  font-weight:700;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.topbar-home:hover{background:rgba(255,255,255,0.24);color:#fff;}
+
+/* ---------- Page and blocks ---------- */
+.page{
+  flex:1;
+  width:100%;
+  max-width:var(--page-max);
+  margin:0 auto;
+  padding:24px 16px var(--block-gap);
+}
+.block + .block{margin-top:var(--block-gap);}
+.block > * + *{margin-top:var(--inner-gap);}
+
+.page-title{
+  margin:0 0 var(--inner-gap);
+  font-size:1.5rem;
+  line-height:1.25;
+  color:var(--brand-dark);
+}
+h2,h3{color:var(--brand-dark);line-height:1.3;}
+
+.lead{font-size:1.06rem;margin:0;}
+
+/* Paragraph text stays at a readable width on laptops; blocks can be wider. */
+.page p,
+.page li,
+.page .lead{max-width:var(--text-max);}
+
+.card{
+  background:var(--paper);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+}
+.card > :first-child{margin-top:0;}
+.card > :last-child{margin-bottom:0;}
+
+/* ---------- Form controls ---------- */
+.field-label{
+  display:block;
+  font-weight:600;
+  margin-bottom:8px;
+}
+.text-input,
+.select-input,
+.textarea-input{
+  width:100%;
+  min-height:44px;
+  padding:10px 12px;
+  border:1px solid var(--field-border);
+  border-radius:10px;
+  background:#fff;
+  color:var(--ink);
+  font:inherit;
+}
+.input-row{
+  display:flex;
+  gap:12px;
+  align-items:stretch;
+}
+.input-row .text-input{flex:1;min-width:0;}
+
+/* ---------- Buttons: one filled primary per group, others outlined ---------- */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:10px 18px;
+  border:2px solid var(--brand);
+  border-radius:10px;
+  background:var(--brand);
+  color:#fff;
+  font:inherit;
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+}
+.btn:hover{background:var(--brand-dark);border-color:var(--brand-dark);color:#fff;}
+.btn.secondary{background:#fff;color:var(--brand);}
+.btn.secondary:hover{background:var(--brand-light);color:var(--brand-dark);}
+.btn.full{width:100%;}
+.btn:disabled,
+.btn[aria-disabled="true"]{
+  background:#E5E7EB;
+  border-color:#CBD2DC;
+  color:#4B5563;
+  cursor:not-allowed;
+}
+.btn-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+/* ---------- Images and placeholder boxes ---------- */
+.content-img{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:var(--radius);
+  background:#fff;
+}
+.img-placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:180px;
+  padding:20px 16px;
+  border:2px dashed var(--placeholder-border);
+  border-radius:var(--radius);
+  background:var(--placeholder-bg);
+  text-align:center;
+}
+.img-placeholder-emoji{font-size:3.2rem;line-height:1;}
+.img-placeholder-label{
+  max-width:46ch;
+  font-size:0.92rem;
+  color:var(--brand-dark);
+}
+.landing-banner img.banner-img{aspect-ratio:5 / 2;object-fit:cover;}
+.landing-banner .img-placeholder{min-height:160px;}
+
+/* ---------- Feedback boxes ----------
+   Wine red is close to the wrong-answer red, so meaning never rests on colour:
+   every feedback box starts with ✓ or ✗ (in the text) and has a 4px left border. */
+.feedback{
+  margin:10px 0 0;
+  padding:10px 14px;
+  border-left:4px solid;
+  border-radius:0 10px 10px 0;
+}
+.feedback.right{background:var(--good-bg);border-left-color:var(--good);color:#14532D;}
+.feedback.wrong{background:var(--bad-bg);border-left-color:var(--bad);color:#7F1D1D;}
+
+/* ---------- Footer ---------- */
+.credits{
+  margin-top:auto;
+  padding:24px 16px 32px;
+  border-top:1px solid var(--border);
+  text-align:center;
+  font-size:0.9rem;
+  color:var(--muted);
+}
+.credits p{margin:4px 0;}
+.teacher-link{
+  display:inline-block;
+  padding:10px 4px;
+  font-weight:600;
+}
+.credits-version{font-size:0.82rem;}
+
+/* ---------- Motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}

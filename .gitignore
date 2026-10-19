@@ -1,0 +1,11 @@
+# Secrets: never commit
+.env*
+
+# Local test data (student answers from testing)
+server/data/
+
+# Dev tooling
+node_modules/
+test-results/
+playwright-report/
+tests/screenshots/

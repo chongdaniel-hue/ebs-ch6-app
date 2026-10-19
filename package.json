@@ -1,0 +1,13 @@
+{
+  "name": "ebs-ch6-customer-service",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EBS Chapter 6: Customer Service self-study revision app. This file is for local testing only; nothing here is published.",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
