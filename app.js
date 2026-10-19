@@ -34,9 +34,13 @@
    0.3.3 Final slice 3 tweaks: "Your work has been loaded." only right
         after logging in; four extra Continue points in Level 2; R03
         capped at about 520px.
+   0.4  Slice 4: Levels 3, 4 and 5. Marked questions with hint, one retry
+        (Check again) and reveal; first and second attempts recorded.
+        Chatbot tabs with tick boxes, About Stylez placeholder, exit
+        ticket with confidence faces, Badges 3 to 5.
    ============================================================ */
 
-const APP_VERSION = "0.3.3";
+const APP_VERSION = "0.4";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -982,7 +986,12 @@ function drawTab(n, t, tab, o) {
   const gateOpen = !part.continueWhen || part.continueWhen(ctx);
   let nav = "";
   if (!last && gateOpen) nav = `<button type="button" class="btn" id="continueBtn">Continue ↓</button>`;
-  else if (last && tab.next) nav = `<button type="button" class="btn" id="nextBtn">${escapeHtml(tab.next)}</button>`;
+  else if (last && tab.next) {
+    // nextState: "show", "disabled" (greyed until a tick box is ticked) or "hidden"
+    // (held back until every wrong item has had its Check again).
+    const state = tab.nextState ? tab.nextState(ctx) : "show";
+    if (state !== "hidden") nav = `<button type="button" class="btn" id="nextBtn" ${state === "disabled" ? "disabled" : ""}>${escapeHtml(tab.next)}</button>`;
+  }
   if (nav) main.insertAdjacentHTML("beforeend", `<div class="block nav-row">${nav}</div>`);
 
   const cont = document.getElementById("continueBtn");
@@ -1054,7 +1063,7 @@ function showBadgePopup(n) {
   showModal({
     id: "badgeModal",
     className: "badge-modal",
-    title: `${s.icon} ${escapeHtml(s.badge)}`,
+    title: `${(CONFIG.IMAGES[s.badgeImg] || {}).emoji || s.icon} ${escapeHtml(s.badge)}`, // the badge's own emoji (e.g. 🔍 for Badge 3)
     bodyHtml: `<div class="badge-pop-img">${imgHtml(s.badgeImg, "badge-img")}</div>
       <p class="badge-pop-text">You earned the ${escapeHtml(s.badge)} badge!</p>`,
     buttons: [{ label: "Back to my route", primary: true, onClick: () => { window.location.hash = "#home"; } }]
@@ -1465,12 +1474,499 @@ function wirePath(el, ctx) {
   });
 }
 
+/* ---------------- Marked questions: hint, one retry, then the answer ----------------
+   Level 3 Q2 and Level 5 Q3 and Q4. Submit records the first attempt (never
+   overwritten). Each wrong item shows its own hint and can be changed once, then
+   "Check again" records the second attempt. Still wrong: the right answer with its
+   reason. Feedback sits directly under its item, with ✓ or ✗ (never colour alone).
+
+   An item: {id, answerKey, attemptKey, type: "select" | "tf" | "mcq", options,
+   correct, right (the "Correct: ..." message), hint (one hint) or hints (by answer),
+   answerLabel (the right answer's name for "The answer is ...")} */
+
+function itemState(item) {
+  const first = rec.first[item.attemptKey];
+  if (!first) return "open";
+  if (first.ok) return "right";
+  const second = rec.second[item.attemptKey];
+  if (!second) return "retry";
+  return second.ok ? "right" : "revealed";
+}
+function itemsResolved(items) { return items.every(it => ["right", "revealed"].includes(itemState(it))); }
+function itemsSubmitted(items) { return items.every(it => !!rec.first[it.attemptKey]); }
+function isCorrect(item, value) { return value === item.correct; }
+
+function itemFeedbackHtml(item) {
+  const state = itemState(item);
+  if (state === "open") return "";
+  if (state === "right") return `<p class="feedback right" role="status">✓ ${escapeHtml(item.right)}</p>`;
+  if (state === "retry") {
+    const a = rec.first[item.attemptKey].a;
+    const hint = item.hints ? item.hints[a] : item.hint;
+    return `<p class="feedback wrong" role="status">✗ ${escapeHtml(hint)}</p>`;
+  }
+  // Still wrong after Check again: the right answer, with the same reason as the correct message.
+  const reason = item.right.replace(/^Correct: /, "");
+  return `<p class="feedback wrong" role="status">✗ The answer is ${escapeHtml(item.answerLabel)}: ${escapeHtml(reason)}</p>`;
+}
+
+function itemEditable(item) {
+  if (isDone(Number(item.answerKey.charAt(1)))) return false;
+  const st = itemState(item);
+  return st === "open" || st === "retry";
+}
+
+// The answer control for an item. Nothing is pre-selected: only the student's own answer shows.
+function itemControlHtml(item) {
+  const v = getAnswer(item.answerKey);
+  const off = !itemEditable(item);
+  if (item.type === "select") {
+    return `<select class="select-input item-select" data-item="${item.id}" ${off ? "disabled" : ""}>
+      <option value="" disabled ${v === undefined ? "selected" : ""}>Choose a stage…</option>
+      ${item.options.map((o, i) => `<option value="${i}" ${v === i ? "selected" : ""}>${escapeHtml(o)}</option>`).join("")}
+    </select>`;
+  }
+  if (item.type === "tf") {
+    return `<div class="tf-pair" role="group" aria-label="True or False">
+      ${[["True", true], ["False", false]].map(([label, val]) => `<button type="button" class="choice-btn tf-btn ${v === val ? "picked" : ""}" data-item="${item.id}" data-value="${val}" aria-pressed="${v === val}" ${off ? "disabled" : ""}>${label}</button>`).join("")}
+    </div>`;
+  }
+  return `<div class="mcq-options" role="group" aria-label="Choose one answer">
+    ${item.options.map(o => `<button type="button" class="choice-btn mcq-btn ${v === o.letter ? "picked" : ""}" data-item="${item.id}" data-value="${o.letter}" aria-pressed="${v === o.letter}" ${off ? "disabled" : ""}>
+      <span class="mcq-letter" aria-hidden="true">${o.letter}</span><span class="mcq-text"><span class="visually-hidden">${o.letter}. </span>${escapeHtml(o.text)}</span></button>`).join("")}
+  </div>`;
+}
+
+// Wires every answer control in el. After a change the tab is redrawn in place.
+function wireItems(el, items, redraw) {
+  const byId = {};
+  items.forEach(it => { byId[it.id] = it; });
+  el.querySelectorAll("select.item-select").forEach(sel => sel.addEventListener("change", () => {
+    const it = byId[sel.getAttribute("data-item")];
+    setAnswer(it.answerKey, Number(sel.value), "soon");
+  }));
+  el.querySelectorAll(".choice-btn").forEach(btn => btn.addEventListener("click", () => {
+    const it = byId[btn.getAttribute("data-item")];
+    const raw = btn.getAttribute("data-value");
+    setAnswer(it.answerKey, it.type === "tf" ? raw === "true" : raw, "soon");
+    redraw(btn);
+  }));
+}
+
+// Redraws the current tab, keeping the page where it was and focus on the same control.
+function redrawInPlace(n, t, focusSelector) {
+  const y = window.scrollY;
+  drawTab(n, t, LEVEL_CONTENT[n].tabs[t], {});
+  window.scrollTo(0, y);
+  if (focusSelector) { const f = document.querySelector(focusSelector); if (f) f.focus({ preventScroll: true }); }
+}
+
+function recordAttempts(items, which) {
+  const now = nowIso();
+  items.forEach(it => {
+    const v = getAnswer(it.answerKey);
+    const rec1 = { a: v === undefined ? null : v, ok: isCorrect(it, v), t: now };
+    if (which === "first" && !rec.first[it.attemptKey]) rec.first[it.attemptKey] = rec1;
+    if (which === "second" && itemState(it) === "retry" && !rec.second[it.attemptKey]) rec.second[it.attemptKey] = rec1;
+  });
+}
+
+function checkAgainHtml(items, id) {
+  return items.some(it => itemState(it) === "retry")
+    ? `<div class="btn-row check-row"><button type="button" class="btn" id="${id}">Check again</button></div>` : "";
+}
+
+// A self-check note after Submit for open-text questions (not marked).
+function checkNoteHtml(text) {
+  return `<p class="check-note" role="note"><span class="check-icon" aria-hidden="true">🔎</span> <span>${escapeHtml(text)}</span></p>`;
+}
+
+// A chatbot tab (Levels 3 and 4): picture beside the intro, a tick box that unlocks Next.
+function tickHtml(key, label, readOnly) {
+  const v = getAnswer(key) === true;
+  return `<label class="tick-row"><input type="checkbox" class="tick-input" data-answer="${key}" ${v ? "checked" : ""} ${readOnly ? "disabled" : ""}> <span>${escapeHtml(label)}</span></label>`;
+}
+function wireTick(el, n, t, key) {
+  const box = el.querySelector(`input.tick-input[data-answer="${key}"]`);
+  if (box) box.addEventListener("change", () => {
+    setAnswer(key, box.checked, "soon");
+    redrawInPlace(n, t, `input.tick-input[data-answer="${key}"]`);
+  });
+}
+function gemButtonHtml(url, label) {
+  return `<div class="btn-row"><a class="btn gem-btn" href="${escapeHtml(url || "#")}" target="_blank" rel="noopener">${escapeHtml(label)}</a></div>`;
+}
+
+/* ---------------- Level 3: Chat with Alex ---------------- */
+
+const STAGE_NAMES = STAGES.map(s => s.name);
+
+const L3_Q2 = [
+  { id: "P", quote: "\"Could you tell me when the screen first stopped working? Then we can arrange a repair or replacement for you.\"", correct: 3,
+    hint: "This officer asks when the screen stopped working and offers a repair. Has something gone wrong for this customer?",
+    right: "Correct: asking questions (Step 5) and offering a solution (Step 6) are part of service recovery." },
+  { id: "Q", quote: "\"Since you play a lot of games, the Nexora Prime's fast processor would suit you best.\"", correct: 1,
+    hint: "The officer matches a phone feature to something the customer does a lot. Which stage is about presenting a suitable product?",
+    right: "Correct: matching a feature to the customer's needs is presenting product information." },
+  { id: "R", quote: "\"So that's the Nexora Core with the 256GB upgrade and the one-year warranty. You can collect it on Friday!\"", correct: 2,
+    hint: "The officer sums up what the customer chose and when to collect it. Is this the start or the end of the interaction?",
+    right: "Correct: summing up the decision and the next steps closes the customer experience positively." },
+  { id: "S", quote: "\"Good afternoon! Is there anything I can help you find today?\"", correct: 0,
+    hint: "This is the first thing the officer says to the customer. Which stage starts the conversation?",
+    right: "Correct: a greeting with an offer of help is approaching customers." }
+].map(it => Object.assign(it, {
+  type: "select", options: STAGE_NAMES, answerKey: `s3.q2.${it.id}`, attemptKey: `s3q2.${it.id}`, answerLabel: STAGE_NAMES[it.correct]
+}));
+
+const L3_TABS = [
+  {
+    label: "Chat",
+    next: "Next: Think back →",
+    nextState: () => (getAnswer("s3.tick") === true || isDone(3) ? "show" : "disabled"),
+    parts: [{
+      html: (ctx) => `
+        <h2 class="visually-hidden">Chat with Alex</h2>
+        <div class="intro-with-pic">
+          <div class="intro-pic">${imgHtml("N04", "avatar-img")}</div>
+          <p>Meet Alex, a customer service officer at Nexora Mobile. You are the customer. During your chat, try to:</p>
+        </div>
+        ${iconCardsHtml([
+          { icon: "📱", html: "Ask about at least one product, and its price" },
+          { icon: "🤔", html: "Ask a follow-up question or disagree with something (for example, say the price is too high)" },
+          { icon: "🛠️", html: "Report a problem with a product, and see how Alex responds" }
+        ], "cols-3")}
+        <details class="tip-details">
+          <summary><span class="tip-icon" aria-hidden="true">💡</span> Not sure what to ask? Try these:</summary>
+          <div class="tip-examples">
+            ${sayHtml("\"How much does the Nexora Core cost?\"")}
+            ${sayHtml("\"Why is the Nexora Prime so expensive?\"")}
+            ${sayHtml("\"My phone's screen stopped working. What can I do?\"")}
+          </div>
+        </details>
+        <p>Watch how Alex starts the chat, presents information, and responds when something has gone wrong.</p>
+        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.alex, "💬 Open Alex (new tab) ↗")}
+        ${tickHtml("s3.tick", "I have finished chatting with Alex.", ctx.readOnly)}`,
+      wire: (el, ctx) => wireTick(el, 3, 0, "s3.tick")
+    }]
+  },
+  {
+    label: "Think back",
+    parts: [{
+      html: (ctx) => {
+        const submitted = itemsSubmitted(L3_Q2);
+        const ro = submitted || ctx.readOnly;
+        const resolved = submitted && itemsResolved(L3_Q2);
+        return `
+          <h2 class="visually-hidden">Think back</h2>
+          <p>Answer these without reopening the chat with Alex.</p>
+          <section class="question card" data-q="q1" aria-labelledby="l3q1">
+            <h3 class="q-title" id="l3q1"><span class="q-num">Q1.</span> Think back to your conversation with Alex. Identify ONE skill or quality he showed.</h3>
+            ${answerBoxHtml("s3.q1a", { label: "Skill or quality:", readOnly: ro, rows: 2 })}
+            ${answerBoxHtml("s3.q1b", { label: "This is important to customers because", readOnly: ro, rows: 3 })}
+            ${submitted ? checkNoteHtml("Check your reason: does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.") : ""}
+          </section>
+          <section class="question card" data-q="q2" aria-labelledby="l3q2">
+            <h3 class="q-title" id="l3q2"><span class="q-num">Q2.</span> Match each line to the stage of providing customer service. Choose a stage for each line.</h3>
+            <ol class="match-list">
+              ${L3_Q2.map(it => `
+                <li class="match-item" data-key="${it.answerKey}">
+                  <div class="match-line"><span class="match-letter">${it.id}.</span> ${sayHtml(it.quote)}</div>
+                  <label class="visually-hidden" for="sel_${it.id}">Stage for line ${it.id}</label>
+                  ${itemControlHtml(it).replace("<select ", `<select id="sel_${it.id}" `)}
+                  ${itemFeedbackHtml(it)}
+                </li>`).join("")}
+            </ol>
+            ${checkAgainHtml(L3_Q2, "checkAgainQ2")}
+          </section>
+          ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL3">Submit</button></div>` : ""}
+          ${resolved ? `${recapHtml("The same four stages happen in every customer interaction, whether it's in a shop or in a chat.")}${finishButtonHtml(3)}` : ""}`;
+      },
+      wire: (el, ctx) => {
+        wireAnswerBoxes(el);
+        wireItems(el, L3_Q2, () => redrawInPlace(3, 1));
+        wireFinish(el, 3);
+        const submit = el.querySelector("#submitL3");
+        if (submit) submit.addEventListener("click", () => {
+          const missing = [];
+          if (isBlank("s3.q1a")) missing.push({ el: el.querySelector('[data-key="s3.q1a"]'), name: "Q1 (skill or quality)" });
+          if (isBlank("s3.q1b")) missing.push({ el: el.querySelector('[data-key="s3.q1b"]'), name: "Q1 (why it is important)" });
+          L3_Q2.forEach(it => { if (getAnswer(it.answerKey) === undefined) missing.push({ el: el.querySelector(`[data-key="${it.answerKey}"]`), name: `Q2 ${it.id}` }); });
+          if (missing.length) { showNotFinished(missing); return; }
+          recordAttempts(L3_Q2, "first");
+          rec.submitted["s3.q"] = nowIso();
+          queueSave("now");
+          redrawInPlace(3, 1);
+          revealFocus(el.ownerDocument.querySelector('[data-q="q1"] .check-note'));
+        });
+        const again = el.querySelector("#checkAgainQ2");
+        if (again) again.addEventListener("click", () => {
+          recordAttempts(L3_Q2, "second");
+          queueSave("now");
+          redrawInPlace(3, 1);
+          const fin = document.querySelector(".recap-card");
+          if (fin) revealFocus(fin);
+        });
+      }
+    }]
+  }
+];
+
+/* ---------------- Level 4: Serve Suzzie at Stylez ---------------- */
+
+const L4_BOXES = [
+  { key: "s4.q1", num: 1, icon: "👍", text: "What is one thing you feel you did well when serving Suzzie?", hint: "I did well at..." },
+  { key: "s4.q2", num: 2, icon: "🔄", text: "What is one thing you would do differently next time?", hint: "Next time, I would..." }
+];
+
+const L4_TABS = [
+  {
+    label: "Roleplay",
+    next: "Next: Reflect →",
+    nextState: () => (getAnswer("s4.tick") === true || isDone(4) ? "show" : "disabled"),
+    parts: [{
+      html: (ctx) => `
+        <h2 class="visually-hidden">Roleplay</h2>
+        <div class="intro-with-pic">
+          <div class="intro-pic">${imgHtml("N05", "avatar-img")}</div>
+          <p>Now switch roles. You are a customer service officer at Stylez, a retail store. The AI plays Suzzie, a customer with a question or a problem.</p>
+        </div>
+        <div class="card placeholder-card" role="note">
+          <h3 class="placeholder-title"><span aria-hidden="true">🏬</span> About Stylez</h3>
+          <p class="placeholder-flag">⚑ PLACEHOLDER: fill in from the Stylez document (what Stylez sells, prices, store policies) so that it matches what Suzzie's Gem knows. Claude Code builds the card with this placeholder text until then.</p>
+        </div>
+        <div class="start-box">
+          <p><strong>You start the conversation.</strong> Try:</p>
+          ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
+        </div>
+        <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.</span></p>
+        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open Suzzie (new tab) ↗")}
+        ${tickHtml("s4.tick", "I have finished serving Suzzie.", ctx.readOnly)}`,
+      wire: (el) => wireTick(el, 4, 0, "s4.tick")
+    }]
+  },
+  {
+    label: "Reflect",
+    parts: [{
+      html: (ctx) => {
+        const submitted = !!rec.submitted.s4;
+        return `
+          <h2 class="visually-hidden">Reflect</h2>
+          <p>Think about your roleplay with Suzzie.</p>
+          <div class="story-cards cols-2-cards">
+            ${L4_BOXES.map(b => answerBoxHtml(b.key, {
+              cls: "story-card", icon: b.icon,
+              labelHtml: `<strong>${b.num}.</strong> ${escapeHtml(b.text)}`, hint: b.hint, readOnly: submitted || ctx.readOnly, rows: 5
+            })).join("")}
+          </div>
+          ${submitted ? `${recapHtml("Look back at the four stages. Which one would you like to practise more?")}${finishButtonHtml(4)}`
+            : `<div class="btn-row"><button type="button" class="btn" id="submitL4">Submit</button></div>`}`;
+      },
+      wire: (el) => {
+        wireAnswerBoxes(el);
+        wireFinish(el, 4);
+        const btn = el.querySelector("#submitL4");
+        if (btn) btn.addEventListener("click", () => {
+          const missing = L4_BOXES.filter(b => isBlank(b.key)).map(b => ({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}` }));
+          if (missing.length) { showNotFinished(missing); return; }
+          rec.submitted.s4 = nowIso();
+          queueSave("now");
+          redrawInPlace(4, 1);
+          revealFocus(document.querySelector(".recap-card"));
+        });
+      }
+    }]
+  }
+];
+
+/* ---------------- Level 5: Check and Exit Ticket ---------------- */
+
+const L5_Q3 = [
+  { id: "i", text: "Customer service ends once the customer has paid.", correct: false,
+    hint: "Look back at what customer service means. Does it stop the moment the customer pays, or continue after the purchase?",
+    right: "Correct: customer service continues even after the customer has made a purchase." },
+  { id: "ii", text: "Good product knowledge helps a customer service officer answer customer questions confidently.", correct: true,
+    hint: "Think about Alex. How did knowing the prices and features help him answer your questions?",
+    right: "Correct: knowing the product lets staff answer accurately instead of guessing." },
+  { id: "iii", text: "Service recovery is complete once the staff member has apologised.", correct: false,
+    hint: "Count the 8 steps of service recovery. Is apologising the last step?",
+    right: "Correct: apologising is only Step 3; the officer still needs to acknowledge feelings, ask questions and offer solutions." },
+  { id: "iv", text: "A service breakdown occurs when customers make a complaint about a product or service.", correct: true,
+    hint: "Look at the definition of service breakdown in Level 2. When does a service breakdown occur?",
+    right: "Correct: that is the textbook definition of service breakdown." }
+].map(it => Object.assign(it, {
+  type: "tf", answerKey: `s5.q3.${it.id}`, attemptKey: `s5q3.${it.id}`, answerLabel: it.correct ? "True" : "False"
+}));
+
+const L5_Q4 = [{
+  id: "q4", type: "mcq", answerKey: "s5.q4", attemptKey: "s5q4", correct: "B", answerLabel: "B",
+  options: [
+    { letter: "A", text: "\"I'm sorry about that. Our chargers usually work fine, so it may be your phone.\"" },
+    { letter: "B", text: "\"I'm sorry you've had to call so many times. Let me personally make sure this gets fixed today.\"" },
+    { letter: "C", text: "\"I'm sorry about that. Please call our hotline again tomorrow, and they will check it for you.\"" },
+    { letter: "D", text: "\"Thank you for telling us about this. I'll pass your feedback on to our team.\"" }
+  ],
+  hints: {
+    A: "The staff member apologised, but then blamed the customer's phone. Which step is about acknowledging feelings and assuring help?",
+    C: "There is an apology, but is a solution offered? Look at Step 6.",
+    D: "Thanking the customer is Step 8, but was the problem solved? Look at Step 6."
+  },
+  right: "Correct: B acknowledges the customer's frustration and offers a solution: making sure the charger is fixed today."
+}];
+
+const L5_MARKED = L5_Q3.concat(L5_Q4);
+
+const CONFIDENCE_ROWS = [
+  "I can explain why quality customer service matters to a business",
+  "I can name the skills and qualities a good customer service employee needs",
+  "I can describe the four stages of providing customer service",
+  "I can explain what service breakdown is, and how to perform service recovery"
+];
+const FACES = [["😟", "Not yet"], ["🙁", "A little"], ["🙂", "Confident"], ["😄", "Very confident"]];
+
+const L5_TABS = [
+  {
+    label: "Check",
+    next: "Next: Exit ticket →",
+    // Held back until Submit and every wrong item has had its Check again.
+    nextState: () => (isDone(5) || (itemsSubmitted(L5_MARKED) && itemsResolved(L5_MARKED)) ? "show" : "hidden"),
+    parts: [{
+      html: (ctx) => {
+        const submitted = itemsSubmitted(L5_MARKED);
+        return `
+          <h2 class="visually-hidden">Check your understanding</h2>
+          <p>Try these without going back to the notes. It is okay to get some wrong!</p>
+          <section class="question card" data-q="q3" aria-labelledby="l5q3">
+            <h3 class="q-title" id="l5q3"><span class="q-num">Q3.</span> True or false? Tap True or False for each.</h3>
+            <ol class="tf-list">
+              ${L5_Q3.map(it => `
+                <li class="tf-item" data-key="${it.answerKey}">
+                  <p class="tf-text"><span class="tf-num">${it.id}.</span> ${escapeHtml(it.text)}</p>
+                  ${itemControlHtml(it)}
+                  ${itemFeedbackHtml(it)}
+                </li>`).join("")}
+            </ol>
+            ${checkAgainHtml(L5_Q3, "checkAgainQ3")}
+          </section>
+          <section class="question card" data-q="q4" aria-labelledby="l5q4">
+            <h3 class="q-title" id="l5q4"><span class="q-num">Q4.</span> A customer at a mobile phone shop says, "This is the third time I've called about the same faulty charger, and nobody has fixed it!" Which response best shows good service recovery? Tap one.</h3>
+            <div class="mcq-item" data-key="s5.q4">
+              ${itemControlHtml(L5_Q4[0])}
+              ${itemFeedbackHtml(L5_Q4[0])}
+            </div>
+            ${checkAgainHtml(L5_Q4, "checkAgainQ4")}
+          </section>
+          <section class="question card" data-q="q5" aria-labelledby="l5q5">
+            <h3 class="q-title" id="l5q5"><span class="q-num">Q5.</span> Explain why quality customer service matters to a business. Give ONE reason.</h3>
+            ${answerBoxHtml("s5.q5", { label: "Quality customer service matters because", readOnly: submitted || ctx.readOnly, rows: 3 })}
+            ${submitted ? checkNoteHtml("Check your answer: did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?") : ""}
+          </section>
+          ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL5">Submit</button></div>` : ""}`;
+      },
+      wire: (el) => {
+        wireAnswerBoxes(el);
+        wireItems(el, L5_MARKED, () => redrawInPlace(5, 0));
+        const submit = el.querySelector("#submitL5");
+        if (submit) submit.addEventListener("click", () => {
+          const missing = [];
+          L5_Q3.forEach(it => { if (getAnswer(it.answerKey) === undefined) missing.push({ el: el.querySelector(`[data-key="${it.answerKey}"]`), name: `Q3 ${it.id}` }); });
+          if (getAnswer("s5.q4") === undefined) missing.push({ el: el.querySelector('[data-key="s5.q4"]'), name: "Q4" });
+          if (isBlank("s5.q5")) missing.push({ el: el.querySelector('[data-key="s5.q5"]'), name: "Q5" });
+          if (missing.length) { showNotFinished(missing); return; }
+          recordAttempts(L5_MARKED, "first");
+          rec.submitted["s5.check"] = nowIso();
+          queueSave("now");
+          redrawInPlace(5, 0);
+          revealFocus(document.querySelector('[data-q="q3"] .feedback'));
+        });
+        [["#checkAgainQ3", L5_Q3], ["#checkAgainQ4", L5_Q4]].forEach(([sel, items]) => {
+          const b = el.querySelector(sel);
+          if (b) b.addEventListener("click", () => {
+            recordAttempts(items, "second");
+            queueSave("now");
+            redrawInPlace(5, 0);
+          });
+        });
+      }
+    }]
+  },
+  {
+    label: "Exit ticket",
+    parts: [{
+      html: (ctx) => {
+        const submitted = !!rec.submitted["s5.exit"];
+        const ro = submitted || ctx.readOnly;
+        return `
+          <h2 class="visually-hidden">Exit ticket</h2>
+          <section class="question card" data-q="q6" aria-labelledby="l5q6">
+            ${answerBoxHtml("s5.q6", { labelHtml: `<span class="q-num">Q6.</span> What is one thing you have learnt about customer service?`, hint: "One thing I learnt is...", readOnly: ro, rows: 3 })}
+          </section>
+          <section class="question card" data-q="q7" aria-labelledby="l5q7">
+            ${answerBoxHtml("s5.q7", { labelHtml: `<span class="q-num">Q7.</span> What is one question you still have about this chapter?`, hint: "I am still not sure about...", readOnly: ro, rows: 3 })}
+          </section>
+          <section class="question card" data-q="q8" aria-labelledby="l5q8">
+            <h3 class="q-title" id="l5q8"><span class="q-num">Q8.</span> How confident are you that you can do each of these? Tap one face for each.</h3>
+            ${CONFIDENCE_ROWS.map((row, r) => {
+              const key = `s5.q8.${r + 1}`;
+              const v = getAnswer(key);
+              return `
+              <div class="face-row" data-key="${key}">
+                <p class="face-statement">${escapeHtml(row)}</p>
+                <div class="face-options" role="group" aria-label="${escapeHtml(row)}">
+                  ${FACES.map(([face, label], i) => `<button type="button" class="face-btn ${v === i ? "picked" : ""}" data-key="${key}" data-value="${i}" aria-pressed="${v === i}" ${ro ? "disabled" : ""}>
+                    <span class="face-emoji" aria-hidden="true">${face}</span><span class="face-label">${label}</span></button>`).join("")}
+                </div>
+              </div>`;
+            }).join("")}
+          </section>
+          ${submitted ? "" : `<div class="btn-row"><button type="button" class="btn" id="submitExit">Submit my exit ticket</button></div>`}`;
+      },
+      wire: (el) => {
+        // The answer boxes sit inside question cards labelled by their own label.
+        el.querySelectorAll('section[data-q="q6"], section[data-q="q7"]').forEach(s => s.removeAttribute("aria-labelledby"));
+        wireAnswerBoxes(el);
+        el.querySelectorAll(".face-btn").forEach(b => b.addEventListener("click", () => {
+          setAnswer(b.getAttribute("data-key"), Number(b.getAttribute("data-value")), "soon");
+          redrawInPlace(5, 1, `.face-btn[data-key="${b.getAttribute("data-key")}"][data-value="${b.getAttribute("data-value")}"]`);
+        }));
+        const submit = el.querySelector("#submitExit");
+        if (submit) submit.addEventListener("click", () => {
+          const missing = [];
+          if (isBlank("s5.q6")) missing.push({ el: el.querySelector('[data-key="s5.q6"]'), name: "Q6" });
+          if (isBlank("s5.q7")) missing.push({ el: el.querySelector('[data-key="s5.q7"]'), name: "Q7" });
+          CONFIDENCE_ROWS.forEach((row, r) => { const key = `s5.q8.${r + 1}`; if (getAnswer(key) === undefined) missing.push({ el: el.querySelector(`.face-row[data-key="${key}"]`), name: `Q8 (row ${r + 1})` }); });
+          if (missing.length) { showNotFinished(missing); return; }
+          rec.submitted["s5.exit"] = nowIso();
+          if (!rec.done[5]) rec.done[5] = nowIso();
+          queueSave("now");
+          redrawInPlace(5, 1);
+          showChampionPopup();
+        });
+      }
+    }]
+  }
+];
+
+// Level 5 completion pop-up with Badge 5.
+function showChampionPopup() {
+  showModal({
+    id: "badgeModal",
+    className: "badge-modal",
+    title: "🎉 You've finished Chapter 6!",
+    bodyHtml: `<div class="badge-pop-img">${imgHtml("BADGE5", "badge-img")}</div>
+      <p class="badge-pop-text">🏆 Chapter 6 Champion</p>`,
+    buttons: [
+      { label: "📊 See my learning report", primary: true, onClick: () => { window.location.hash = "#report"; } },
+      { label: "Back to my route", onClick: () => { window.location.hash = "#home"; } }
+    ]
+  });
+}
+
 const LEVEL_CONTENT = {
   1: { tabs: [{ label: "Your stories", parts: [L1_PART] }] },
   2: { tabs: L2_TABS },
-  3: { tabs: [{ label: "Chat", parts: [{ html: () => `<h2 class="visually-hidden">Level 3</h2>` }] }] },
-  4: { tabs: [{ label: "Roleplay", parts: [{ html: () => `<h2 class="visually-hidden">Level 4</h2>` }] }] },
-  5: { tabs: [{ label: "Check", parts: [{ html: () => `<h2 class="visually-hidden">Level 5</h2>` }] }] }
+  3: { tabs: L3_TABS },
+  4: { tabs: L4_TABS },
+  5: { tabs: L5_TABS }
 };
 
 /* ---------------- Teacher Mode ----------------

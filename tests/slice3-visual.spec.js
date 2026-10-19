@@ -102,6 +102,15 @@ test("blocks line up: same left and right edges on every page", async ({ page, r
     await page.waitForTimeout(400);
     expect(await edgeProblems(page), `level2 tab ${t + 1}`).toEqual([]);
   }
+  for (const n of [3, 4, 5]) {
+    for (const t of [0, 1]) {
+      await page.goto("/#home");
+      await page.goto(`/#level${n}`);
+      await page.locator(".step-tab").nth(t).click();
+      await page.waitForTimeout(300);
+      expect(await edgeProblems(page), `level${n} tab ${t + 1}`).toEqual([]);
+    }
+  }
 });
 
 test("🔊 Listen reads a block of notes, not the questions, and stops on a second tap", async ({ page, request }) => {

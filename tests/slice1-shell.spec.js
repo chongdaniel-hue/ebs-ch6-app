@@ -15,7 +15,7 @@ test("landing page shell", async ({ page }, testInfo) => {
   await expect(ph).toContainText("🏬");
   await expect(ph).toHaveAttribute("role", "img");
   await expect(page.locator(".credits")).toContainText("A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)");
-  await expect(page.locator(".credits")).toContainText("Version 0.3.3");
+  await expect(page.locator(".credits")).toContainText("Version 0.4");
   await expect(page.locator(".credits a.teacher-link")).toHaveText("Teacher Mode");
   // Zoom allowed.
   const vp = await page.locator('meta[name="viewport"]').getAttribute("content");

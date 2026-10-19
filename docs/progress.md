@@ -8,8 +8,8 @@ Read this with `CLAUDE.md` and `docs/storyboard.md` when starting a fresh sessio
 |---|---|---|
 | 1 | Clean-up and shell: removals, blue theme, header, footer, `config.js`, image map with placeholder boxes, viewport fix | Done (commit "Slice 1") |
 | 2 | Back end and login: `apps-script/Code.gs`, local stand-in `server/server.js`, setup guides, Teacher Mode sign-in and Classes tab, landing, Before you start, home, 4 key terms, Switch student, saving and loading, offline | Done (commits "Slice 2", "Slice 2 fixes") |
-| 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Built, awaiting review (commits "Slice 3", "Slice 3 visual and Mayer pass") |
-| 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Not started |
+| 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Done (commits "Slice 3" to "Slice 3 final tweaks") |
+| 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Built, awaiting review (commit "Slice 4") |
 | 5 | Learning report and the rest of Teacher Mode | Not started |
 | 6 | Full check, GitHub Pages workflow, summary | Not started |
 
@@ -109,6 +109,16 @@ G1 students need strong visual support. Visual treatment may change how text loo
 - **Shared pieces**: `answerBoxHtml` / `wireAnswerBoxes`, `recapHtml` (💡 card, amber), `finishButtonHtml` / `finishLevel` / `showBadgePopup` (Badges 1 to 4), `showNotFinished(missing, onSubmitAnyway)` (V45 submit guard: red outline with "✗ Not done yet", items listed by name; pass `onSubmitAnyway` only for Level 1).
 - **Service Recovery Path**: `RECOVERY_STEPS`; `reached["s2.path"]` counts stops shown. The first visit to Tab 3 shows Step 1 only; any later arrival at the tab (coming back, reload) shows all 8. Continue ↓, the "Handled well" line and C04 appear only once all 8 are shown.
 - Choices made where the storyboard is silent (please check): a level counts as "In progress" once opened (after "I'm ready"); after Level 1 Submit, the instruction line "Type at least one sentence in each box, then tap Submit." is replaced by the recap card; hidden screen-reader text for the mood faces reads "Customer feels angry / upset / calmer / reassured / happy"; the badge pop-up title is the badge emoji and name (e.g. "📝 Story Sharer").
+
+## How slice 4 works (for the next session)
+
+- **Marked questions** (`itemState`, `itemFeedbackHtml`, `itemControlHtml`, `wireItems`, `recordAttempts` in `app.js`): an item is `{id, type: "select" | "tf" | "mcq", answerKey, attemptKey, correct, answerLabel, right, hint | hints}`. States: open, then after Submit right / retry; after Check again right / revealed. Submit records `first`, Check again records `second` (both never overwritten; each carries `ok`). Right answers lock; wrong ones stay editable once. Revealed text is "The answer is {answerLabel}: {reason}", the reason being the "Correct: ..." message without "Correct: ".
+- **Level 3**: Chat tab (Next greyed until "I have finished chatting with Alex." is ticked, `answers["s3.tick"]`), Think back tab (Q1 two boxes, Q2 P to S dropdowns; Check again under Q2; recap and Finish only once every item is resolved).
+- **Level 4**: Roleplay tab (About Stylez placeholder card with the storyboard's ⚑ text, Next greyed until ticked), Reflect tab (two required boxes; recap and Finish after Submit).
+- **Level 5**: Check tab (Q3 True/False, Q4 A to D, Q5 box; Check again under Q3 and under Q4 separately; "Next: Exit ticket →" held back until every item is resolved), Exit ticket tab (Q6, Q7, Q8 four rows of faces; "Submit my exit ticket" finishes the level and opens the "🎉 You've finished Chapter 6!" pop-up with Badge 5). There is no recap card in Level 5 (the storyboard has none).
+- **Badge pop-ups** use each badge's own emoji from the image map (🔍 Service Spotter, ⭐ Service Star), not the level's.
+- **Tabs**: `tab.nextState(ctx)` returns "show", "disabled" (greyed) or "hidden" (held back).
+- Choices made where the storyboard is silent (please check): "Not finished yet" names the missing items "Q1 (skill or quality)", "Q1 (why it is important)", "Q2 P", "Q3 i", "Q4", "Q5", "Q6", "Q7", "Q8 (row 1)" and so on; the Q1 and Q5 self-check notes after Submit are shown in a neutral 🔎 note box (they are not marked); the "Not sure what to ask?" tip is a 💡 box that opens on tap, its three examples shown as speech bubbles; Alex's three "try to" points are icon cards (📱 🤔 🛠️); the "four stages" line in Level 4 sits in a 🗺️ box; Level 4 Reflect uses two equal cards (👍 🔄) like Level 1; picked answers are shown in wine (never green or red, which mean right or wrong).
 
 ## Open questions
 
