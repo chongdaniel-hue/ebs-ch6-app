@@ -9,7 +9,7 @@ Read this with `CLAUDE.md` and `docs/storyboard.md` when starting a fresh sessio
 | 1 | Clean-up and shell: removals, blue theme, header, footer, `config.js`, image map with placeholder boxes, viewport fix | Done (commit "Slice 1") |
 | 2 | Back end and login: `apps-script/Code.gs`, local stand-in `server/server.js`, setup guides, Teacher Mode sign-in and Classes tab, landing, Before you start, home, 4 key terms, Switch student, saving and loading, offline | Done (commits "Slice 2", "Slice 2 fixes") |
 | 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Done (commits "Slice 3" to "Slice 3 final tweaks") |
-| 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Built, awaiting review (commit "Slice 4") |
+| 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Done (commits "Slice 4", "Slice 4 fixes") |
 | 5 | Learning report and the rest of Teacher Mode | Not started |
 | 6 | Full check, GitHub Pages workflow, summary | Not started |
 
@@ -90,6 +90,16 @@ G1 students need strong visual support. Visual treatment may change how text loo
 - **R03 (Uniqlo):** at most about 520px wide on laptops, centred.
 - **Approved after review:** "You can also combine..." inside the Service Approach card; the ⏰ box; the 🤔 headings; "⏹ Stop".
 - **Layout rules (visual fixes before slice 4):** each 🔊 Listen sits in its heading's row (heading left, button right); everything below a heading uses the full column width, so every block in a page has the same left and right edges (running text keeps the readable width; buttons keep their own size). Images and placeholders are centred, as wide as the card rows but never larger than the file. On phones, grid icon cards become compact horizontal cards (icon left, text right), equal height within a group. Each speech bubble sits on its own line under the sentence it belongs to. Path circles: white with a 3px purple ring, emoji inside, purple number badge. A test checks the edges of every block on every page at both widths.
+
+### Slice 4 fixes (agreed 20 October 2026)
+- **One "Check again" per tab**, at the bottom of the tab, checking every item still waiting (Level 3 Think back; Level 5 Check covers Q3 and Q4 together).
+- **Revealed answers shown on the options:** the right option is outlined in green with a "✓ Correct answer" tag (MCQ card, True/False button); for a dropdown, "✓ Correct answer: {stage}" sits beside the student's answer. The student's wrong pick is marked ✗ (screen readers hear "your answer, not correct"). The reveal text stays.
+- **Changed wrong answer before Check again:** its old hint fades (screen readers hear "Earlier hint") and "👆 Tap Check again to see if you're right." shows in its place.
+- **Under a greyed-out Next** (Levels 3 and 4): "Tick the box above when you've finished."
+- **Summary card** (ported from V45's missedHtml) above the 📌 card in Level 3 once Q2 is settled, and at the bottom of Level 5 Check once Q3 and Q4 are settled: all right first time "🎉 Great work!" / "You got everything right on the first try."; otherwise "💪 Let's learn from these" / "Good effort! Here {is one thing / are N things} to look at again:" with the approved "Look at these again" lines for the items wrong on the first try (Q3 iii and Q4 share one line).
+- **Level header:** the level's card description shows under the title as a subtitle.
+- **Tabs:** ✓ replaces the number on finished tabs (moved on with Next, or level finished).
+- **Locked dropdown answers** show as a read-only box that wraps, so a long stage name is never cut off on a phone.
 
 ## How slice 2 works (for the next session)
 

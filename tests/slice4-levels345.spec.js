@@ -36,6 +36,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await studentAt(page, request, 41, 3);
     await page.click("#levelCard3");
     await expect(page.locator("h1.page-title")).toHaveText("💬 Level 3: Chat with Alex");
+    await expect(page.locator(".level-sub")).toHaveText("Be the customer. Chat with Nexora's customer service officer.");
     await expect(page.locator(".step-label")).toHaveText(["Chat", "Think back (locked)"]);
 
     // Tab 1: Chat.
@@ -61,13 +62,16 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(tick).not.toBeChecked();
     await expect(page.locator("#nextBtn")).toHaveText("Next: Think back →");
     await expect(page.locator("#nextBtn")).toBeDisabled();
+    await expect(page.locator(".next-note")).toHaveText("Tick the box above when you've finished.");
     await checkPage(page, testInfo, "slice4-level3-chat");
     await tick.check();
     await expect(page.locator("#nextBtn")).toBeEnabled();
+    await expect(page.locator(".next-note")).toHaveCount(0);
     await page.click("#nextBtn");
 
-    // Tab 2: Think back. Nothing pre-selected.
+    // Tab 2: Think back. Nothing pre-selected. The Chat tab now shows ✓.
     await expect(page.locator(".step-tab").nth(1)).toHaveAttribute("aria-current", "step");
+    await expect(page.locator(".step-num")).toHaveText(["✓", "2"]);
     await expect(page.locator("#part0 > p").first()).toHaveText("Answer these without reopening the chat with Alex.");
     await expect(page.locator("#l3q1")).toHaveText("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed.");
     await expect(page.locator('[data-q="q1"] .field-label')).toHaveText(["Skill or quality:", "This is important to customers because"]);
@@ -110,20 +114,44 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(fb("Q")).toHaveClass(/wrong/);
     await expect(fb("R")).toHaveText("✗ The officer sums up what the customer chose and when to collect it. Is this the start or the end of the interaction?");
     await expect(fb("S")).toHaveText("✓ Correct: a greeting with an offer of help is approaching customers.");
-    await expect(page.locator("#sel_P")).toBeDisabled();  // right answers lock
+    await expect(page.locator("#sel_P")).toHaveAttribute("aria-disabled", "true");  // right answers lock
     await expect(page.locator("#sel_Q")).toBeEnabled();   // wrong answers can be changed once
-    await expect(page.locator("#checkAgainQ2")).toHaveText("Check again");
+    await expect(page.locator("#checkAgainBtn")).toHaveCount(1);
+    await expect(page.locator("#checkAgainBtn")).toHaveText("Check again");
     await expect(page.locator("#finishBtn")).toHaveCount(0); // held back until Check again
     await expect(page.locator(".recap-card")).toHaveCount(0);
     await checkPage(page, testInfo, "slice4-level3-feedback");
 
+    // Changing a wrong answer: the old hint fades and a prompt shows in its place.
     await page.selectOption("#sel_Q", STAGE.present);
+    const itemQ = page.locator('.match-item[data-key="s3.q2.Q"]');
+    await expect(itemQ.locator(".check-prompt")).toHaveText("👆 Tap Check again to see if you're right.");
+    await expect(itemQ.locator(".feedback.faded")).toHaveText("Earlier hint: ✗ The officer matches a phone feature to something the customer does a lot. Which stage is about presenting a suitable product?");
+    await expect(page.locator('.match-item[data-key="s3.q2.R"] .check-prompt')).toHaveCount(0); // R not changed yet
     await page.selectOption("#sel_R", STAGE.present);
-    await page.click("#checkAgainQ2");
+    await checkPage(page, testInfo, "slice4-level3-changed");
+    await page.click("#checkAgainBtn");
     await expect(fb("Q")).toHaveText("✓ Correct: matching a feature to the customer's needs is presenting product information.");
     await expect(fb("R")).toHaveText("✗ The answer is Closing the customer experience positively: summing up the decision and the next steps closes the customer experience positively.");
-    await expect(page.locator("#checkAgainQ2")).toHaveCount(0);
-    await expect(page.locator("#sel_R")).toBeDisabled();
+    await expect(page.locator("#checkAgainBtn")).toHaveCount(0);
+    await expect(page.locator("#sel_R")).toHaveAttribute("aria-disabled", "true");
+    // The revealed answer is shown beside the dropdown; the wrong pick is marked ✗.
+    const itemR = page.locator('.match-item[data-key="s3.q2.R"]');
+    await expect(itemR.locator(".right-tag")).toHaveText("✓ Correct answer: Closing the customer experience positively");
+    await expect(itemR.locator(".wrong-tag")).toHaveText("✗");
+    await expect(itemQ.locator(".right-tag, .wrong-tag")).toHaveCount(0); // right on the second try: no reveal
+    // Summary card above the recap: the items wrong on the first try.
+    const card = page.locator(".missed-card");
+    await expect(card.locator("h3")).toHaveText("💪 Let's learn from these");
+    await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
+    await expect(card.locator("li")).toHaveText([
+      "Presenting product information (Level 2, The Four Stages)",
+      "Closing the customer experience positively (Level 2, The Four Stages)"
+    ]);
+    expect(await page.evaluate(() => {
+      const c = document.querySelector(".missed-card"), r = document.querySelector(".recap-card");
+      return !!(c.compareDocumentPosition(r) & Node.DOCUMENT_POSITION_FOLLOWING);
+    })).toBe(true);
     await expect(page.locator(".recap-card p")).toHaveText("The same four stages happen in every customer interaction, whether it's in a shop or in a chat.");
     await expect(page.locator("#finishBtn")).toHaveText("Finish Level 3");
     await checkPage(page, testInfo, "slice4-level3-resolved");
@@ -156,7 +184,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/gem/03f888f88087");
     await expect(page.locator(".tick-input")).toBeDisabled();
     await page.locator(".step-tab").nth(1).click();
-    await expect(page.locator("#sel_Q")).toBeDisabled();
+    await expect(page.locator("#sel_Q")).toHaveAttribute("aria-disabled", "true");
     await expect(fb("R")).toContainText("The answer is Closing the customer experience positively");
     await expect(page.locator("#finishBtn")).toHaveCount(0);
     expect(errors).toEqual([]);
@@ -263,15 +291,38 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(page.locator("#nextBtn")).toHaveCount(0); // held back until Check again
     await checkPage(page, testInfo, "slice4-level5-feedback");
 
-    // Q3: i fixed, iii still wrong (revealed). Q4: D, still wrong (revealed).
+    // One Check again for the whole tab, at the bottom.
+    await expect(page.locator("#checkAgainBtn")).toHaveCount(1);
+    expect(await page.evaluate(() => {
+      const b = document.getElementById("checkAgainBtn"), q5 = document.querySelector('[data-q="q5"]');
+      return !!(q5.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    })).toBe(true);
+    // Q3: i fixed, iii left (still wrong). Q4: changed to D (still wrong). One tap checks them all.
     await tf("i", "False").click();
-    await page.click("#checkAgainQ3");
+    await expect(page.locator('[data-key="s5.q3.i"] .check-prompt')).toHaveText("👆 Tap Check again to see if you're right.");
+    await page.locator(".mcq-btn", { hasText: "pass your feedback on" }).click();
+    await page.click("#checkAgainBtn");
     await expect(fb("s5.q3.i")).toHaveText("✓ Correct: customer service continues even after the customer has made a purchase.");
     await expect(fb("s5.q3.iii")).toHaveText("✗ The answer is False: apologising is only Step 3; the officer still needs to acknowledge feelings, ask questions and offer solutions.");
-    await expect(page.locator("#nextBtn")).toHaveCount(0); // Q4 still waiting
-    await page.locator(".mcq-btn", { hasText: "pass your feedback on" }).click();
-    await page.click("#checkAgainQ4");
     await expect(fb("s5.q4")).toHaveText("✗ The answer is B: B acknowledges the customer's frustration and offers a solution: making sure the charger is fixed today.");
+    await expect(page.locator("#checkAgainBtn")).toHaveCount(0);
+    // Revealed answers: the right option outlined with "✓ Correct answer", the student's pick ✗.
+    const iii = page.locator('.tf-item[data-key="s5.q3.iii"]');
+    await expect(iii.locator(".tf-btn.correct-answer")).toHaveText("False");
+    await expect(iii.locator(".right-tag")).toHaveText("✓ Correct answer");
+    await expect(iii.locator(".tf-btn.wrong-pick")).toContainText("True");
+    await expect(iii.locator(".tf-btn.wrong-pick .wrong-tag")).toHaveText("✗");
+    await expect(page.locator(".mcq-btn.correct-answer .mcq-letter")).toHaveText("B");
+    await expect(page.locator(".mcq-btn.correct-answer .right-tag")).toHaveText("✓ Correct answer");
+    await expect(page.locator(".mcq-btn.wrong-pick .mcq-letter")).toHaveText("D");
+    // Summary card: i, iii and Q4 were wrong on the first try (iii and Q4 share a line).
+    const card = page.locator(".missed-card");
+    await expect(card.locator("h3")).toHaveText("💪 Let's learn from these");
+    await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
+    await expect(card.locator("li")).toHaveText([
+      "What customer service is (Level 2, Quality Customer Service)",
+      "The 8 steps of service recovery (Level 2, Breakdown and Recovery)"
+    ]);
     await expect(page.locator("#nextBtn")).toHaveText("Next: Exit ticket →");
     await checkPage(page, testInfo, "slice4-level5-resolved");
     await page.click("#nextBtn");
@@ -340,7 +391,8 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await page.click("#submitL5");
     await expect(page.locator(".feedback.right")).toHaveCount(5);
     await expect(page.locator(".feedback.wrong")).toHaveCount(0);
-    await expect(page.locator("#checkAgainQ3, #checkAgainQ4")).toHaveCount(0);
+    await expect(page.locator("#checkAgainBtn")).toHaveCount(0);
+    await expect(page.locator(".missed-card.all-good")).toHaveText("🎉 Great work!You got everything right on the first try.");
     await expect(page.locator("#nextBtn")).toBeVisible();
     await expect(page.locator(".tf-btn").first()).toBeDisabled();
   });

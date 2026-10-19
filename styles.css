@@ -1174,3 +1174,78 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 }
 /* A locked answer stays easy to read (full-strength text), so students can see their own answer. */
 .item-select:disabled{color:var(--ink);background:#F7F4F5;border-style:dashed;}
+
+/* ============================================================
+   Slice 4 fixes
+   ============================================================ */
+
+/* Level header subtitle (the level's card description, as in the LJ). */
+.page-title + .level-sub{margin:4px 0 0;color:var(--muted);font-size:1rem;}
+
+/* Finished tabs show ✓ (like V45's step dots). */
+.step-tab.finished:not(.current) .step-num{background:var(--good-bg);color:var(--good);font-weight:800;}
+
+/* The note under a greyed-out Next. */
+.next-note{margin:8px 0 0;color:var(--muted);font-size:0.95rem;}
+.nav-row{display:block;}
+
+/* A changed wrong answer: prompt in place of the hint, old hint faded. */
+.check-prompt{
+  margin:10px 0 0;
+  padding:10px 14px;
+  border:1px dashed var(--brand);
+  border-radius:10px;
+  background:#fff;
+  color:var(--brand-dark);
+  font-weight:700;
+}
+.page p.check-prompt{max-width:none;}
+.feedback.faded{opacity:0.45;margin-top:6px;}
+
+/* Revealed answers: the right option outlined in green with "✓ Correct answer", the
+   student's pick marked ✗. Meaning never rests on colour alone. */
+.answer-tag{
+  display:inline-flex;align-items:center;
+  padding:2px 10px;
+  border-radius:999px;
+  font-size:0.85rem;
+  font-weight:800;
+  line-height:1.4;
+  white-space:normal;
+}
+.right-tag{background:var(--good-bg);color:var(--good);border:2px solid var(--good);}
+.wrong-tag{margin-left:8px;background:#fff;color:var(--bad);border:2px solid var(--bad);min-width:26px;justify-content:center;padding:0 6px;}
+.choice-btn.correct-answer{outline:3px solid var(--good);outline-offset:2px;}
+.choice-btn.correct-answer:not(.picked){border-color:var(--good);}
+.tf-cell{display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
+.tf-cell .tf-btn{width:100%;}
+.mcq-tag{display:block;margin-top:6px;}
+.mcq-btn.correct-answer .mcq-letter{background:var(--good-bg);color:var(--good);}
+.select-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;}
+.select-row .wrong-tag{margin-left:0;}
+.select-row .item-select{flex:1 1 220px;max-width:420px;}
+
+/* Summary card after feedback (V45 missedHtml). Never the wrong-answer pink. */
+.missed-card{border-left:6px solid var(--brand);}
+.missed-card.all-good{border-left-color:var(--good);background:var(--good-bg);}
+.missed-title{margin:0 0 6px;font-size:1.1rem;color:var(--brand-dark);}
+.missed-card.all-good .missed-title{color:var(--good);}
+.page .missed-card p{margin:0;max-width:none;}
+.missed-list{margin:8px 0 0;padding-left:1.3em;}
+.missed-list li{margin-bottom:6px;font-weight:600;}
+.answer-tag{white-space:nowrap;}
+.select-row .right-tag{white-space:normal;}
+@media (max-width:560px){
+  .item-select{font-size:0.95rem;padding-right:28px;}
+  .select-row .item-select{flex:1 1 calc(100% - 44px);max-width:none;}
+}
+@media (max-width:560px){
+  .question.card{padding:14px 12px;}
+  .match-item,.tf-item{padding:10px;}
+  .item-select{font-size:0.9rem;padding-left:10px;}
+}
+/* A locked dropdown answer: read-only, wraps so a long stage name is never cut off. */
+.locked-answer{display:flex;align-items:center;max-width:420px;min-height:44px;height:auto;background:#F7F4F5;border-style:dashed;color:var(--ink);white-space:normal;}
+.select-row .locked-answer{flex:1 1 220px;}
+@media (max-width:560px){ .select-row .locked-answer{flex:1 1 calc(100% - 44px);max-width:none;} }
+.select-row .right-tag{border-radius:10px;}

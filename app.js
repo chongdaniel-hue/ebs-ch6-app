@@ -38,9 +38,13 @@
         (Check again) and reveal; first and second attempts recorded.
         Chatbot tabs with tick boxes, About Stylez placeholder, exit
         ticket with confidence faces, Badges 3 to 5.
+   0.4.1 Slice 4 fixes: one Check again per tab; revealed answers shown on
+        the options; changed answers prompt "Tap Check again"; tick note
+        under a greyed Next; summary card (V45 missedHtml); level
+        subtitles; ✓ on finished tabs.
    ============================================================ */
 
-const APP_VERSION = "0.4";
+const APP_VERSION = "0.4.1";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -925,11 +929,13 @@ function tabBarHtml(n, current) {
       <ol class="step-tabs-list" style="--tab-count:${content.tabs.length}">
         ${content.tabs.map((t, i) => {
           const open = isTabUnlocked(n, i);
-          const cls = i === current ? "current" : open ? "" : "locked";
+          // Finished: the student has moved on with Next, or finished the level.
+          const finished = isDone(n) || tabsUnlocked(n) > i;
+          const cls = (i === current ? "current" : open ? "" : "locked") + (finished ? " finished" : "");
           return `<li><button type="button" class="step-tab ${cls}" data-tab="${i}"
             ${i === current ? `aria-current="step"` : ""} ${open ? "" : `aria-disabled="true"`}>
-            <span class="step-num" aria-hidden="true">${open ? i + 1 : "🔒"}</span>
-            <span class="step-label">${escapeHtml(t.label)}${open ? "" : `<span class="visually-hidden"> (locked)</span>`}</span>
+            <span class="step-num" aria-hidden="true">${finished ? "✓" : open ? i + 1 : "🔒"}</span>
+            <span class="step-label">${escapeHtml(t.label)}${open ? "" : `<span class="visually-hidden"> (locked)</span>`}${finished ? `<span class="visually-hidden"> (finished)</span>` : ""}</span>
           </button></li>`;
         }).join("")}
       </ol>
@@ -947,6 +953,7 @@ function renderLevel(n) {
     ${topBarHtml({ showHome: true, showChip: true })}
     <div class="level-head"><div class="level-head-inner">
       <h1 class="page-title">${s.icon} Level ${n}: ${escapeHtml(s.title)}</h1>
+      <p class="level-sub">${escapeHtml(s.desc)}</p>
     </div></div>
     ${tabBarHtml(n, t)}
     <main class="page level-page" id="levelMain"></main>
@@ -990,7 +997,8 @@ function drawTab(n, t, tab, o) {
     // nextState: "show", "disabled" (greyed until a tick box is ticked) or "hidden"
     // (held back until every wrong item has had its Check again).
     const state = tab.nextState ? tab.nextState(ctx) : "show";
-    if (state !== "hidden") nav = `<button type="button" class="btn" id="nextBtn" ${state === "disabled" ? "disabled" : ""}>${escapeHtml(tab.next)}</button>`;
+    if (state !== "hidden") nav = `<button type="button" class="btn" id="nextBtn" ${state === "disabled" ? `disabled aria-describedby="nextNote"` : ""}>${escapeHtml(tab.next)}</button>`
+      + (state === "disabled" && tab.nextDisabledNote ? `<p class="next-note" id="nextNote">${escapeHtml(tab.nextDisabledNote)}</p>` : "");
   }
   if (nav) main.insertAdjacentHTML("beforeend", `<div class="block nav-row">${nav}</div>`);
 
@@ -1503,6 +1511,10 @@ function itemFeedbackHtml(item) {
   if (state === "retry") {
     const a = rec.first[item.attemptKey].a;
     const hint = item.hints ? item.hints[a] : item.hint;
+    if (getAnswer(item.answerKey) !== a) {
+      return `<p class="check-prompt" role="status"><span aria-hidden="true">👆</span> Tap Check again to see if you're right.</p>
+        <p class="feedback wrong faded"><span class="visually-hidden">Earlier hint: </span>✗ ${escapeHtml(hint)}</p>`;
+    }
     return `<p class="feedback wrong" role="status">✗ ${escapeHtml(hint)}</p>`;
   }
   // Still wrong after Check again: the right answer, with the same reason as the correct message.
@@ -1517,23 +1529,43 @@ function itemEditable(item) {
 }
 
 // The answer control for an item. Nothing is pre-selected: only the student's own answer shows.
+const CORRECT_TAG = `<span class="answer-tag right-tag">✓ Correct answer</span>`;
+const WRONG_MARK = `<span class="answer-tag wrong-tag" aria-hidden="true">✗</span><span class="visually-hidden"> (your answer, not correct)</span>`;
+
 function itemControlHtml(item) {
   const v = getAnswer(item.answerKey);
   const off = !itemEditable(item);
+  const revealed = itemState(item) === "revealed";
+  // When the answer is revealed: is this option the right one, or the student's wrong pick?
+  const marks = (val) => {
+    if (!revealed) return { cls: "", tag: "" };
+    if (val === item.correct) return { cls: "correct-answer", tag: CORRECT_TAG };
+    if (val === v) return { cls: "wrong-pick", tag: WRONG_MARK };
+    return { cls: "", tag: "" };
+  };
   if (item.type === "select") {
-    return `<select class="select-input item-select" data-item="${item.id}" ${off ? "disabled" : ""}>
+    // Locked: the answer as a read-only box that wraps, so a long stage name is never cut off
+    // on a phone (a disabled dropdown cannot be opened to read it).
+    if (off && v !== undefined) {
+      const box = `<div class="select-input locked-answer ${revealed ? "wrong-pick" : ""}" id="sel_${item.id}" data-item="${item.id}" aria-disabled="true"><span class="visually-hidden">Your answer: </span>${escapeHtml(item.options[v])}</div>`;
+      if (!revealed) return box;
+      return `<div class="select-row">${WRONG_MARK}${box}<span class="answer-tag right-tag">✓ Correct answer: ${escapeHtml(item.answerLabel)}</span></div>`;
+    }
+    const select = `<select class="select-input item-select ${revealed ? "wrong-pick" : ""}" data-item="${item.id}" ${off ? "disabled" : ""}>
       <option value="" disabled ${v === undefined ? "selected" : ""}>Choose a stage…</option>
       ${item.options.map((o, i) => `<option value="${i}" ${v === i ? "selected" : ""}>${escapeHtml(o)}</option>`).join("")}
     </select>`;
+    if (!revealed) return select;
+    return `<div class="select-row">${WRONG_MARK}${select}<span class="answer-tag right-tag">✓ Correct answer: ${escapeHtml(item.answerLabel)}</span></div>`;
   }
   if (item.type === "tf") {
     return `<div class="tf-pair" role="group" aria-label="True or False">
-      ${[["True", true], ["False", false]].map(([label, val]) => `<button type="button" class="choice-btn tf-btn ${v === val ? "picked" : ""}" data-item="${item.id}" data-value="${val}" aria-pressed="${v === val}" ${off ? "disabled" : ""}>${label}</button>`).join("")}
+      ${[["True", true], ["False", false]].map(([label, val]) => { const m = marks(val); return `<div class="tf-cell"><button type="button" class="choice-btn tf-btn ${v === val ? "picked" : ""} ${m.cls}" data-item="${item.id}" data-value="${val}" aria-pressed="${v === val}" ${off ? "disabled" : ""}>${label}${m.cls === "wrong-pick" ? m.tag : ""}</button>${m.cls === "correct-answer" ? m.tag : ""}</div>`; }).join("")}
     </div>`;
   }
   return `<div class="mcq-options" role="group" aria-label="Choose one answer">
-    ${item.options.map(o => `<button type="button" class="choice-btn mcq-btn ${v === o.letter ? "picked" : ""}" data-item="${item.id}" data-value="${o.letter}" aria-pressed="${v === o.letter}" ${off ? "disabled" : ""}>
-      <span class="mcq-letter" aria-hidden="true">${o.letter}</span><span class="mcq-text"><span class="visually-hidden">${o.letter}. </span>${escapeHtml(o.text)}</span></button>`).join("")}
+    ${item.options.map(o => { const m = marks(o.letter); return `<button type="button" class="choice-btn mcq-btn ${v === o.letter ? "picked" : ""} ${m.cls}" data-item="${item.id}" data-value="${o.letter}" aria-pressed="${v === o.letter}" ${off ? "disabled" : ""}>
+      <span class="mcq-letter" aria-hidden="true">${o.letter}</span><span class="mcq-text"><span class="visually-hidden">${o.letter}. </span>${escapeHtml(o.text)}${m.tag ? `<span class="mcq-tag">${m.tag}</span>` : ""}</span></button>`; }).join("")}
   </div>`;
 }
 
@@ -1544,6 +1576,7 @@ function wireItems(el, items, redraw) {
   el.querySelectorAll("select.item-select").forEach(sel => sel.addEventListener("change", () => {
     const it = byId[sel.getAttribute("data-item")];
     setAnswer(it.answerKey, Number(sel.value), "soon");
+    redraw(sel);
   }));
   el.querySelectorAll(".choice-btn").forEach(btn => btn.addEventListener("click", () => {
     const it = byId[btn.getAttribute("data-item")];
@@ -1571,9 +1604,23 @@ function recordAttempts(items, which) {
   });
 }
 
-function checkAgainHtml(items, id) {
+// One Check again per tab, at the bottom: it checks every item still waiting.
+function checkAgainHtml(items) {
   return items.some(it => itemState(it) === "retry")
-    ? `<div class="btn-row check-row"><button type="button" class="btn" id="${id}">Check again</button></div>` : "";
+    ? `<div class="btn-row check-row"><button type="button" class="btn" id="checkAgainBtn">Check again</button></div>` : "";
+}
+
+// 5. After the marked items are settled (V45's missedHtml): all right first time, or the
+// approved "Look at these again" lines for items wrong on the first try (no repeats).
+function summaryCardHtml(items) {
+  const lines = [];
+  items.forEach(it => { const f = rec.first[it.attemptKey]; if (f && !f.ok && !lines.includes(it.lookAgain)) lines.push(it.lookAgain); });
+  if (!lines.length) {
+    return `<div class="card missed-card all-good" role="status"><h3 class="missed-title">🎉 Great work!</h3><p>You got everything right on the first try.</p></div>`;
+  }
+  return `<div class="card missed-card" role="status"><h3 class="missed-title">💪 Let's learn from these</h3>
+    <p class="missed-intro">Good effort! Here ${lines.length === 1 ? "is one thing" : `are ${lines.length} things`} to look at again:</p>
+    <ul class="missed-list">${lines.map(t => `<li>${escapeHtml(t)}</li>`).join("")}</ul></div>`;
 }
 
 // A self-check note after Submit for open-text questions (not marked).
@@ -1601,6 +1648,20 @@ function gemButtonHtml(url, label) {
 
 const STAGE_NAMES = STAGES.map(s => s.name);
 
+// "Look at these again" (agreed wording): the topic and where to find it, for each marked item.
+// Used by the summary card after feedback and by the learning report.
+const LOOK_AGAIN = {
+  "s3q2.P": "Performing service recovery (Level 2, Breakdown and Recovery)",
+  "s3q2.Q": "Presenting product information (Level 2, The Four Stages)",
+  "s3q2.R": "Closing the customer experience positively (Level 2, The Four Stages)",
+  "s3q2.S": "Approaching customers (Level 2, The Four Stages)",
+  "s5q3.i": "What customer service is (Level 2, Quality Customer Service)",
+  "s5q3.ii": "Good product knowledge (Level 2, Quality Customer Service)",
+  "s5q3.iii": "The 8 steps of service recovery (Level 2, Breakdown and Recovery)",
+  "s5q3.iv": "Service breakdown (Level 2, Breakdown and Recovery)",
+  "s5q4": "The 8 steps of service recovery (Level 2, Breakdown and Recovery)"
+};
+
 const L3_Q2 = [
   { id: "P", quote: "\"Could you tell me when the screen first stopped working? Then we can arrange a repair or replacement for you.\"", correct: 3,
     hint: "This officer asks when the screen stopped working and offers a repair. Has something gone wrong for this customer?",
@@ -1615,13 +1676,15 @@ const L3_Q2 = [
     hint: "This is the first thing the officer says to the customer. Which stage starts the conversation?",
     right: "Correct: a greeting with an offer of help is approaching customers." }
 ].map(it => Object.assign(it, {
-  type: "select", options: STAGE_NAMES, answerKey: `s3.q2.${it.id}`, attemptKey: `s3q2.${it.id}`, answerLabel: STAGE_NAMES[it.correct]
+  type: "select", options: STAGE_NAMES, answerKey: `s3.q2.${it.id}`, attemptKey: `s3q2.${it.id}`, answerLabel: STAGE_NAMES[it.correct],
+  lookAgain: LOOK_AGAIN[`s3q2.${it.id}`]
 }));
 
 const L3_TABS = [
   {
     label: "Chat",
     next: "Next: Think back →",
+    nextDisabledNote: "Tick the box above when you've finished.",
     nextState: () => (getAnswer("s3.tick") === true || isDone(3) ? "show" : "disabled"),
     parts: [{
       html: (ctx) => `
@@ -1676,14 +1739,14 @@ const L3_TABS = [
                   ${itemFeedbackHtml(it)}
                 </li>`).join("")}
             </ol>
-            ${checkAgainHtml(L3_Q2, "checkAgainQ2")}
           </section>
+          ${checkAgainHtml(L3_Q2)}
           ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL3">Submit</button></div>` : ""}
-          ${resolved ? `${recapHtml("The same four stages happen in every customer interaction, whether it's in a shop or in a chat.")}${finishButtonHtml(3)}` : ""}`;
+          ${resolved ? `${summaryCardHtml(L3_Q2)}${recapHtml("The same four stages happen in every customer interaction, whether it's in a shop or in a chat.")}${finishButtonHtml(3)}` : ""}`;
       },
       wire: (el, ctx) => {
         wireAnswerBoxes(el);
-        wireItems(el, L3_Q2, () => redrawInPlace(3, 1));
+        wireItems(el, L3_Q2, (ctl) => redrawInPlace(3, 1, ctl.id ? `#${ctl.id}` : null));
         wireFinish(el, 3);
         const submit = el.querySelector("#submitL3");
         if (submit) submit.addEventListener("click", () => {
@@ -1698,12 +1761,12 @@ const L3_TABS = [
           redrawInPlace(3, 1);
           revealFocus(el.ownerDocument.querySelector('[data-q="q1"] .check-note'));
         });
-        const again = el.querySelector("#checkAgainQ2");
+        const again = el.querySelector("#checkAgainBtn");
         if (again) again.addEventListener("click", () => {
           recordAttempts(L3_Q2, "second");
           queueSave("now");
           redrawInPlace(3, 1);
-          const fin = document.querySelector(".recap-card");
+          const fin = document.querySelector(".missed-card");
           if (fin) revealFocus(fin);
         });
       }
@@ -1722,6 +1785,7 @@ const L4_TABS = [
   {
     label: "Roleplay",
     next: "Next: Reflect →",
+    nextDisabledNote: "Tick the box above when you've finished.",
     nextState: () => (getAnswer("s4.tick") === true || isDone(4) ? "show" : "disabled"),
     parts: [{
       html: (ctx) => `
@@ -1794,11 +1858,12 @@ const L5_Q3 = [
     hint: "Look at the definition of service breakdown in Level 2. When does a service breakdown occur?",
     right: "Correct: that is the textbook definition of service breakdown." }
 ].map(it => Object.assign(it, {
-  type: "tf", answerKey: `s5.q3.${it.id}`, attemptKey: `s5q3.${it.id}`, answerLabel: it.correct ? "True" : "False"
+  type: "tf", answerKey: `s5.q3.${it.id}`, attemptKey: `s5q3.${it.id}`, answerLabel: it.correct ? "True" : "False",
+  lookAgain: LOOK_AGAIN[`s5q3.${it.id}`]
 }));
 
 const L5_Q4 = [{
-  id: "q4", type: "mcq", answerKey: "s5.q4", attemptKey: "s5q4", correct: "B", answerLabel: "B",
+  id: "q4", type: "mcq", answerKey: "s5.q4", attemptKey: "s5q4", correct: "B", answerLabel: "B", lookAgain: LOOK_AGAIN.s5q4,
   options: [
     { letter: "A", text: "\"I'm sorry about that. Our chargers usually work fine, so it may be your phone.\"" },
     { letter: "B", text: "\"I'm sorry you've had to call so many times. Let me personally make sure this gets fixed today.\"" },
@@ -1845,7 +1910,6 @@ const L5_TABS = [
                   ${itemFeedbackHtml(it)}
                 </li>`).join("")}
             </ol>
-            ${checkAgainHtml(L5_Q3, "checkAgainQ3")}
           </section>
           <section class="question card" data-q="q4" aria-labelledby="l5q4">
             <h3 class="q-title" id="l5q4"><span class="q-num">Q4.</span> A customer at a mobile phone shop says, "This is the third time I've called about the same faulty charger, and nobody has fixed it!" Which response best shows good service recovery? Tap one.</h3>
@@ -1853,14 +1917,15 @@ const L5_TABS = [
               ${itemControlHtml(L5_Q4[0])}
               ${itemFeedbackHtml(L5_Q4[0])}
             </div>
-            ${checkAgainHtml(L5_Q4, "checkAgainQ4")}
           </section>
           <section class="question card" data-q="q5" aria-labelledby="l5q5">
             <h3 class="q-title" id="l5q5"><span class="q-num">Q5.</span> Explain why quality customer service matters to a business. Give ONE reason.</h3>
             ${answerBoxHtml("s5.q5", { label: "Quality customer service matters because", readOnly: submitted || ctx.readOnly, rows: 3 })}
             ${submitted ? checkNoteHtml("Check your answer: did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?") : ""}
           </section>
-          ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL5">Submit</button></div>` : ""}`;
+          ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL5">Submit</button></div>` : ""}
+          ${checkAgainHtml(L5_MARKED)}
+          ${submitted && itemsResolved(L5_MARKED) ? summaryCardHtml(L5_MARKED) : ""}`;
       },
       wire: (el) => {
         wireAnswerBoxes(el);
@@ -1878,13 +1943,13 @@ const L5_TABS = [
           redrawInPlace(5, 0);
           revealFocus(document.querySelector('[data-q="q3"] .feedback'));
         });
-        [["#checkAgainQ3", L5_Q3], ["#checkAgainQ4", L5_Q4]].forEach(([sel, items]) => {
-          const b = el.querySelector(sel);
-          if (b) b.addEventListener("click", () => {
-            recordAttempts(items, "second");
-            queueSave("now");
-            redrawInPlace(5, 0);
-          });
+        const again = el.querySelector("#checkAgainBtn");
+        if (again) again.addEventListener("click", () => {
+          recordAttempts(L5_MARKED, "second");
+          queueSave("now");
+          redrawInPlace(5, 0);
+          const card = document.querySelector(".missed-card");
+          if (card) revealFocus(card);
         });
       }
     }]
