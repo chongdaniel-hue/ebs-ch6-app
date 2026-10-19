@@ -21,7 +21,7 @@ async function student(page, request, reg) {
   // Open every level and part on this device so all notes can be checked.
   await page.evaluate(() => {
     localStorage.setItem("ch6_unlock_all", "true");
-    rec.reached["s2.tabs"] = 2; ["s2.t0", "s2.t1", "s2.t2"].forEach(k => { rec.reached[k] = 3; }); rec.reached["s2.path"] = 8;
+    rec.reached["s2.tabs"] = 2; ["s2.t0", "s2.t1", "s2.t2"].forEach(k => { rec.reached[k] = 5; }); rec.reached["s2.path"] = 8;
     saveLocal();
   });
 }
@@ -127,13 +127,13 @@ test("🔊 Listen reads a block of notes, not the questions, and stops on a seco
   // Level 2: one Listen per block of notes; the optional question box is not read.
   await page.goto("/#level2");
   await page.locator(".step-tab").nth(2).click();
-  await expect(page.locator(".part .listen-btn")).toHaveCount(3);
+  await expect(page.locator(".part .listen-btn")).toHaveCount(5);
   await page.evaluate(() => { window.__spoken = []; });
-  await page.locator("#part1 .listen-btn").click();
+  await page.locator("#part2 .listen-btn").click();
   const part1 = (await page.evaluate(() => window.__spoken)).join(" ");
   expect(part1).toContain("A customer complained to a food delivery app");
   expect(part1).not.toContain("Was this good service recovery");
-  await page.locator("#part1 .listen-btn").click();
+  await page.locator("#part2 .listen-btn").click();
 
   // Level 1 is questions only: no Listen button.
   await page.goto("/#level1");

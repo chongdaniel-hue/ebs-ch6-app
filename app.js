@@ -31,9 +31,12 @@
    0.3.2 Visual fixes: Listen in heading rows, every block full width,
         images centred, white path circles, compact phone cards,
         bubbles on their own lines, welcome-back text in the card.
+   0.3.3 Final slice 3 tweaks: "Your work has been loaded." only right
+        after logging in; four extra Continue points in Level 2; R03
+        capped at about 520px.
    ============================================================ */
 
-const APP_VERSION = "0.3.2";
+const APP_VERSION = "0.3.3";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -684,6 +687,7 @@ async function startLogin() {
   // Send anything this device had that the server did not (and check the connection).
   if (local || serverUnreachable) enqueue(key, Date.now() + jitter(3000), false);
   updateNetBanner();
+  justLoggedIn = true;
   if (window.location.hash === "#home") render();
   else window.location.hash = "#home";
 }
@@ -711,10 +715,12 @@ function levelStatus(num) {
 /* ---------------- 0.3 Home page ---------------- */
 
 // Agreed with the group (see docs/progress.md), replacing the storyboard's shorter lines.
-function welcomeLine(done) {
+// justLoggedIn: the first home page after logging in, when "Your work has been loaded." is shown.
+let justLoggedIn = false;
+function welcomeLine(done, loaded) {
   if (done === 0) return "👋 Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!";
   if (done === LEVELS.length) return "🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.";
-  return `👋 Welcome back! Your work has been loaded. You've finished ${done} of 5 levels. Great progress! Carry on with Level ${done + 1} below.`;
+  return `👋 Welcome back! ${loaded ? "Your work has been loaded. " : ""}You've finished ${done} of 5 levels. Great progress! Carry on with Level ${done + 1} below.`;
 }
 
 function renderLevelCard(s) {
@@ -749,11 +755,13 @@ function badgeShelfHtml() {
 
 function renderHome() {
   const done = doneCount();
+  const loaded = justLoggedIn;
+  justLoggedIn = false;
   app.innerHTML = `
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
       <div class="block">
-        <div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done))}</p></div>
+        <div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p></div>
         <p class="home-links">
           <a href="#" id="howLink">📋 How this works</a>
           <span class="dot-sep" aria-hidden="true">·</span>
@@ -926,6 +934,7 @@ function tabBarHtml(n, current) {
 
 // Draws the level page: arriving at a level, switching tab, or after Next or Submit.
 function renderLevel(n) {
+  pathShownNow = 0; // arriving at a level: the path works out again how much to show
   const s = lvl(n);
   const content = LEVEL_CONTENT[n];
   const t = currentTab(n);
@@ -961,7 +970,12 @@ function drawTab(n, t, tab, o) {
   const ctx = { n, t, readOnly: isDone(n), fresh: !!o.fresh };
   main.innerHTML = tab.parts.slice(0, shown).map((part, i) =>
     `<section class="block part" id="part${i}" aria-labelledby="part${i}Title">${part.html(ctx)}</section>`).join("");
-  tab.parts.slice(0, shown).forEach((part, i) => { if (part.wire) part.wire(document.getElementById(`part${i}`), ctx); });
+  tab.parts.slice(0, shown).forEach((part, i) => {
+    const sec = document.getElementById(`part${i}`);
+    const title = sec.querySelector(":scope > h2, :scope > .head-row > h2, :scope > .head-row > p, :scope > p, :scope > h3");
+    if (title) title.id = `part${i}Title`;
+    if (part.wire) part.wire(sec, ctx);
+  });
 
   const last = shown === tab.parts.length;
   const part = tab.parts[shown - 1];
@@ -1179,7 +1193,7 @@ const L1_PART = {
   html: (ctx) => {
     const submitted = !!rec.submitted.s1;
     return `
-      <h2 class="visually-hidden" id="part0Title">Your stories</h2>
+      <h2 class="visually-hidden">Your stories</h2>
       <p>Think about your own experiences as a customer. There are no right or wrong answers.</p>
       ${tipHtml("Tip: don't name real people. Your teacher will read your answers.")}
       <div class="story-cards">
@@ -1268,7 +1282,7 @@ function recoveryPathHtml(count, animateLast) {
 // The Listen button goes in the row of the block's first heading: heading left, button right.
 function notesPart(htmlFn, extra) {
   return Object.assign({
-    html: (ctx) => htmlFn(ctx).replace(/<h2 [\s\S]*?<\/h2>/, h => `<div class="head-row">${h}${listenButtonHtml()}</div>`),
+    html: (ctx) => htmlFn(ctx).replace(/<h2 [\s\S]*?<\/h2>|<p>[\s\S]*?<\/p>/, h => `<div class="head-row">${h}${listenButtonHtml()}</div>`),
     wire: (el, ctx) => { wireListen(el); if (extra && extra.wireMore) extra.wireMore(el, ctx); }
   }, extra || {});
 }
@@ -1279,11 +1293,13 @@ const L2_TABS = [
     next: "Next: The Four Stages →",
     parts: [
       notesPart(() => `
-        <h2 class="section-title" id="part0Title">${hIcon("🤝")}What is customer service?</h2>
+        <h2 class="section-title">${hIcon("🤝")}What is customer service?</h2>
         ${definitionHtml(`<p><strong>Customer service</strong> refers to what businesses do for their customers so that they are happy and satisfied.</p>`)}
         <p>It takes place the moment a customer enters a shop, a restaurant or an attraction, and continues even after the customer has made a purchase and left the venue.</p>
         <h2 class="section-title">${hIcon("⭐")}What is quality customer service?</h2>
         ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to exceed their expectations.</p>`)}
+`),
+      notesPart(() => `
         <h2 class="section-title">${hIcon("❓")}Why does quality customer service matter?</h2>
         <p>If a business provides quality customer service:</p>
         ${iconCardsHtml([
@@ -1293,7 +1309,7 @@ const L2_TABS = [
         ], "cols-3")}
         ${imgHtml("C01", "comic-img")}`),
       notesPart(() => `
-        <h2 class="section-title" id="part1Title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
+        <h2 class="section-title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
         <p>Some skills and qualities customer service employees need:</p>
         ${iconCardsHtml([
           { icon: "😊", html: "<strong>Approachable:</strong> friendly and easy to talk to, so customers feel comfortable asking for help" },
@@ -1304,7 +1320,7 @@ const L2_TABS = [
           { icon: "👋", html: "<strong>Able to close the customer experience positively:</strong> ending on a good note, e.g. thanking the customer and inviting them back" }
         ], "cols-3 grid-6")}`),
       notesPart(() => `
-        <h2 class="section-title" id="part2Title">${hIcon("📱")}Good product knowledge</h2>
+        <h2 class="section-title">${hIcon("📱")}Good product knowledge</h2>
         <p>Staff need good product knowledge to answer questions accurately, not guess. This includes:</p>
         ${iconCardsHtml([
           { icon: "📋", html: "Product features and specifications (e.g. screen size, battery life)" },
@@ -1321,7 +1337,7 @@ const L2_TABS = [
     next: "Next: Breakdown and Recovery →",
     parts: [
       notesPart(() => `
-        <h2 class="section-title" id="part0Title">${hIcon("🗺️")}The four stages of providing customer service</h2>
+        <h2 class="section-title">${hIcon("🗺️")}The four stages of providing customer service</h2>
         <table class="stage-table">
           <thead class="visually-hidden"><tr><th scope="col">Stage</th><th scope="col">What to do</th></tr></thead>
           <tbody>
@@ -1330,7 +1346,7 @@ const L2_TABS = [
         </table>
         ${imgHtml("C02", "comic-img")}`),
       notesPart(() => `
-        <h2 class="section-title" id="part1Title">${hIcon("👋")}Approaching customers: 3 approaches</h2>
+        <h2 class="section-title">${hIcon("👋")}Approaching customers: 3 approaches</h2>
         <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> as soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by making eye contact, smiling and greeting them politely.</span></p>
         <ul class="approach-cards">
           <li class="approach-card">
@@ -1357,6 +1373,8 @@ const L2_TABS = [
             ${sayHtml("\"This phone has a great camera. Would you like to try it out?\"")}
           </li>
         </ul>
+`),
+      notesPart(() => `
         <p>Whether salespeople use the greeting, service or product approach, the purpose is to:</p>
         ${iconCardsHtml([
           { icon: "😊", html: "make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and" },
@@ -1364,21 +1382,22 @@ const L2_TABS = [
         ], "cols-2")}
         ${imgHtml("C03", "comic-img")}`),
       notesPart(() => `
-        <h2 class="section-title" id="part2Title">${hIcon("🎯")}Presenting product information: suitability</h2>
+        <h2 class="section-title">${hIcon("🎯")}Presenting product information: suitability</h2>
         <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>`)
     ]
   },
   {
     label: "Breakdown and Recovery",
     parts: [
+      notesPart(() => `
+          <h2 class="section-title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
+          ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`)}
+          ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`)}`),
       notesPart((ctx) => {
-        // First time on this tab: Step 1 only. Coming back later: all 8 at once.
+        // First time on the path: Step 1 only. Coming back later: all 8 at once.
         if (ctx.fresh || !pathShownNow) pathShownNow = pathShown() >= 1 ? 8 : 1;
         if (pathShown() < pathShownNow) { raiseReached("s2.path", pathShownNow); saveLocal(); }
         return `
-          <h2 class="section-title" id="part0Title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
-          ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`)}
-          ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`)}
           <p>To perform service recovery, follow these 8 steps:</p>
           <p>Follow Nexora's staff member as he handles a customer whose new phone screen has cracked.</p>
           <h3 class="path-title">${hIcon("🛤️")}The Service Recovery Path</h3>
@@ -1390,7 +1409,7 @@ const L2_TABS = [
         wireMore: (el, ctx) => wirePath(el, ctx)
       }),
       notesPart((ctx) => `
-        <h2 class="section-title" id="part1Title">${hIcon("📉")}Real-life example: poor service recovery</h2>
+        <h2 class="section-title">${hIcon("📉")}Real-life example: poor service recovery</h2>
         <p>A customer complained to a food delivery app that their orders from one restaurant had been cancelled 4 times. The replies? "oh" and "so sad", followed by a $3.30 voucher "to say we're sorry".</p>
         ${imgPairHtml(["R01", "R02"])}
         <div class="card think-card">
@@ -1398,7 +1417,7 @@ const L2_TABS = [
           ${answerBoxHtml("s2.think1", { label: "Was this good service recovery? Which of the 8 steps above were missing?", hint: "I think this was / was not good service recovery because... The steps that were missing were...", readOnly: ctx.readOnly })}
         </div>`, { wireMore: (el) => wireAnswerBoxes(el) }),
       notesPart((ctx) => `
-        <h2 class="section-title" id="part2Title">${hIcon("↩️")}Handling returns of unsatisfactory products</h2>
+        <h2 class="section-title">${hIcon("↩️")}Handling returns of unsatisfactory products</h2>
         <p>If a customer returns a product they are unhappy with, the business can offer:</p>
         ${iconCardsHtml([
           { icon: "🔁", html: "<strong>Replacement:</strong> Replace it with the same product." },
@@ -1406,6 +1425,8 @@ const L2_TABS = [
           { icon: "💵", html: "<strong>Refund:</strong> Give a refund." }
         ], "cols-3")}
         ${imgHtml("N03", "comic-img")}
+`),
+      notesPart((ctx) => `
         <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt.</p>
         ${imgHtml("R03", "uniqlo-img")}
         <div class="card think-card">
@@ -1447,9 +1468,9 @@ function wirePath(el, ctx) {
 const LEVEL_CONTENT = {
   1: { tabs: [{ label: "Your stories", parts: [L1_PART] }] },
   2: { tabs: L2_TABS },
-  3: { tabs: [{ label: "Chat", parts: [{ html: () => `<h2 class="visually-hidden" id="part0Title">Level 3</h2>` }] }] },
-  4: { tabs: [{ label: "Roleplay", parts: [{ html: () => `<h2 class="visually-hidden" id="part0Title">Level 4</h2>` }] }] },
-  5: { tabs: [{ label: "Check", parts: [{ html: () => `<h2 class="visually-hidden" id="part0Title">Level 5</h2>` }] }] }
+  3: { tabs: [{ label: "Chat", parts: [{ html: () => `<h2 class="visually-hidden">Level 3</h2>` }] }] },
+  4: { tabs: [{ label: "Roleplay", parts: [{ html: () => `<h2 class="visually-hidden">Level 4</h2>` }] }] },
+  5: { tabs: [{ label: "Check", parts: [{ html: () => `<h2 class="visually-hidden">Level 5</h2>` }] }] }
 };
 
 /* ---------------- Teacher Mode ----------------

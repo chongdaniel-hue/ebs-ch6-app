@@ -90,7 +90,7 @@ test.describe("Level 1", () => {
 
     expect(page.url()).toMatch(/#home$/);
     await expect(page.locator(".journey-count")).toHaveText("1 of 5 levels done");
-    await expect(page.locator(".welcome-card")).toHaveText("👋 Welcome back! Your work has been loaded. You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
+    await expect(page.locator(".welcome-card")).toHaveText("👋 Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
     await expect(page.locator(".status-pill")).toHaveText(["✅ Story Sharer", "Not started", "🔒 Locked", "🔒 Locked", "🔒 Locked"]);
     await expect(page.locator(".shelf-name").first()).toHaveText("Story Sharer, earned");
 
@@ -134,25 +134,28 @@ test.describe("Level 2", () => {
     await tabs.nth(1).click({ force: true });
     await expect(tabs.nth(0)).toHaveAttribute("aria-current", "step");
 
-    // Tab 1, part 1.
-    await expect(page.locator("#part0 h2")).toHaveText(["🤝 What is customer service?", "⭐ What is quality customer service?", "❓ Why does quality customer service matter?"]);
+    // Tab 1, part 1: what customer service and quality customer service are.
+    await expect(page.locator("#part0 h2")).toHaveText(["🤝 What is customer service?", "⭐ What is quality customer service?"]);
     await expect(page.locator("#part0 .def-body")).toHaveText([
       "Customer service refers to what businesses do for their customers so that they are happy and satisfied.",
       "Quality customer service means doing more for customers to exceed their expectations."
     ]);
     await expect(page.locator("#part0 > p", { hasText: "It takes place" })).toHaveText("It takes place the moment a customer enters a shop, a restaurant or an attraction, and continues even after the customer has made a purchase and left the venue.");
-    await expect(page.locator("#part0 .icon-card .ic-body")).toHaveText([
+    await expect(page.locator("#part1")).toHaveCount(0);
+    await expect(page.locator("#nextBtn")).toHaveCount(0); // Next only after every Continue
+    await checkPage(page, testInfo, "slice3-level2-tab1");
+    // Part 2 (new Continue point): why it matters.
+    await page.click("#continueBtn");
+    await expect(page.locator("#part1 h2")).toHaveText("❓ Why does quality customer service matter?");
+    await expect(page.locator("#part1 .icon-card .ic-body")).toHaveText([
       "customers will have a positive experience and they will choose to return repeatedly;",
       "customers will recommend the business to their relatives and friends; and",
       "customer loyalty is created, ensuring the continuity of the business."
     ]);
-    await expect(page.locator('#part0 img[data-img="C01"]')).toBeVisible();
-    await expect(page.locator("#part1")).toHaveCount(0);
-    await expect(page.locator("#nextBtn")).toHaveCount(0); // Next only after every Continue
-    await checkPage(page, testInfo, "slice3-level2-tab1");
+    await expect(page.locator('#part1 img[data-img="C01"]')).toBeVisible();
     await page.click("#continueBtn");
-    await expect(page.locator("#part1 h2")).toHaveText("🧑‍💼 Skills and qualities of a good customer service employee");
-    await expect(page.locator("#part1 .icon-card .ic-body")).toHaveText([
+    await expect(page.locator("#part2 h2")).toHaveText("🧑‍💼 Skills and qualities of a good customer service employee");
+    await expect(page.locator("#part2 .icon-card .ic-body")).toHaveText([
       "Approachable: friendly and easy to talk to, so customers feel comfortable asking for help",
       "Customer-focused: paying attention to what each customer needs and putting those needs first",
       "Clear communication skills: explaining things simply",
@@ -161,15 +164,15 @@ test.describe("Level 2", () => {
       "Able to close the customer experience positively: ending on a good note, e.g. thanking the customer and inviting them back"
     ]);
     await page.click("#continueBtn");
-    await expect(page.locator("#part2 h2")).toHaveText("📱 Good product knowledge");
-    await expect(page.locator('#part2 .img-placeholder[data-img="N02"]')).toBeVisible();
+    await expect(page.locator("#part3 h2")).toHaveText("📱 Good product knowledge");
+    await expect(page.locator('#part3 .img-placeholder[data-img="N02"]')).toBeVisible();
     await expect(page.locator("#continueBtn")).toHaveCount(0);
     await expect(page.locator("#nextBtn")).toHaveText("Next: The Four Stages →");
     await checkPage(page, testInfo, "slice3-level2-tab1-end");
 
     // Reload: the parts already opened stay open.
     await page.reload();
-    await expect(page.locator("#part2")).toBeVisible();
+    await expect(page.locator("#part3")).toBeVisible();
     await page.click("#nextBtn");
 
     // Tab 2.
@@ -179,13 +182,25 @@ test.describe("Level 2", () => {
     await checkPage(page, testInfo, "slice3-level2-tab2");
     await page.click("#continueBtn");
     await expect(page.locator("#part1 h2")).toHaveText("👋 Approaching customers: 3 approaches");
+    await expect(page.locator("#part1 .approach-name")).toHaveText(["1. Greeting Approach:", "2. Service Approach:", "3. Product Approach:"]);
+    // Part 3 (new Continue point): the purpose of approaching, with the comic.
     await page.click("#continueBtn");
-    await expect(page.locator("#part2 h2")).toHaveText("🎯 Presenting product information: suitability");
+    await expect(page.locator("#part2 .head-row p")).toHaveText("Whether salespeople use the greeting, service or product approach, the purpose is to:");
+    await expect(page.locator("#part2 .icon-card")).toHaveCount(2);
+    await expect(page.locator('#part2 img[data-img="C03"]')).toBeVisible();
+    await page.click("#continueBtn");
+    await expect(page.locator("#part3 h2")).toHaveText("🎯 Presenting product information: suitability");
     await checkPage(page, testInfo, "slice3-level2-tab2-end");
     await page.click("#nextBtn"); // "Next: Breakdown and Recovery →"
 
-    // Tab 3: the Service Recovery Path starts with Step 1 only.
+    // Tab 3, part 1: the two definitions.
     await expect(tabs.nth(2)).toHaveAttribute("aria-current", "step");
+    await expect(page.locator("#part0 h2")).toHaveText("⚠️ Service breakdown and service recovery");
+    await expect(page.locator("#part0 .definition")).toHaveCount(2);
+    await expect(page.locator(".path-stop")).toHaveCount(0);
+    // Part 2 (new Continue point): the Service Recovery Path starts with Step 1 only.
+    await page.click("#continueBtn");
+    await expect(page.locator("#part1 .head-row p")).toHaveText("To perform service recovery, follow these 8 steps:");
     await expect(page.locator(".path-stop")).toHaveCount(1);
     await expect(page.locator(".path-label")).toHaveText(["Step 1: Listen"]);
     await expect(page.locator("#pathStop1 .path-bubble")).toHaveText("The staff member: (Puts his own phone away and faces the customer.)");
@@ -202,20 +217,23 @@ test.describe("Level 2", () => {
     await expect(page.locator(".path-label")).toHaveText(PATH_LABELS.map((l, i) => `Step ${i + 1}: ${l}`));
     await expect(page.locator("#showStepBtn")).toHaveCount(0);
     await expect(page.locator(".after-path")).toHaveText("Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.");
-    await expect(page.locator('#part0 img[data-img="C04"]')).toBeVisible();
+    await expect(page.locator('#part1 img[data-img="C04"]')).toBeVisible();
     await expect(page.locator("#continueBtn")).toBeVisible();
     await checkPage(page, testInfo, "slice3-path-all");
 
     await page.click("#continueBtn");
-    await expect(page.locator("#part1 h2")).toHaveText("📉 Real-life example: poor service recovery");
-    await expect(page.locator('#part1 img[data-img="R01"]')).toBeVisible();
-    await expect(page.locator('#part1 img[data-img="R02"]')).toBeVisible();
-    await expect(page.locator("#part1 .think-title")).toHaveText("🤔 Think about it (optional)");
+    await expect(page.locator("#part2 h2")).toHaveText("📉 Real-life example: poor service recovery");
+    await expect(page.locator('#part2 img[data-img="R01"]')).toBeVisible();
+    await expect(page.locator('#part2 img[data-img="R02"]')).toBeVisible();
+    await expect(page.locator("#part2 .think-title")).toHaveText("🤔 Think about it (optional)");
     await page.fill('textarea[data-answer="s2.think1"]', "Not good: no apology or solution.");
     await page.click("#continueBtn");
-    await expect(page.locator("#part2 h2")).toHaveText("↩️ Handling returns of unsatisfactory products");
-    await expect(page.locator('#part2 .img-placeholder[data-img="N03"]')).toBeVisible();
-    await expect(page.locator('#part2 img[data-img="R03"]')).toBeVisible();
+    await expect(page.locator("#part3 h2")).toHaveText("↩️ Handling returns of unsatisfactory products");
+    await expect(page.locator('#part3 .img-placeholder[data-img="N03"]')).toBeVisible();
+    // Part 5 (new Continue point): the returns rules, Uniqlo, the second optional box, recap.
+    await page.click("#continueBtn");
+    await expect(page.locator("#part4 .head-row p")).toHaveText("Many businesses also set clear rules for returns, such as a time limit and needing the receipt.");
+    await expect(page.locator('#part4 img[data-img="R03"]')).toBeVisible();
     // The optional box is left empty: Finish still works.
     await expect(page.locator(".recap-card .recap-title")).toHaveText("📌 Remember this");
     await expect(page.locator(".recap-card p")).toHaveText("The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery.");
@@ -242,10 +260,10 @@ test.describe("Level 2", () => {
     await finishLevel1(page);
     await page.goto("/#level2");
     for (let t = 0; t < 2; t++) {
-      await page.click("#continueBtn");
-      await page.click("#continueBtn");
+      for (let c = 0; c < 3; c++) await page.click("#continueBtn");
       await page.click("#nextBtn");
     }
+    await page.click("#continueBtn");
     await page.click("#showStepBtn");
     await expect(page.locator(".path-stop")).toHaveCount(2);
     // Leave and come back: all 8 at once, and Continue is there.
@@ -262,10 +280,14 @@ test.describe("Level 2", () => {
     const page2 = await other.newPage();
     await login(page2, "3E1", 24);
     await expect(page2.locator(".status-pill")).toHaveText(["✅ Story Sharer", "In progress", "🔒 Locked", "🔒 Locked", "🔒 Locked"]);
+    await expect(page2.locator(".welcome-card")).toHaveText("👋 Welcome back! Your work has been loaded. You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
     await page2.click("#levelCard2");
     await expect(page2.locator(".step-tab").nth(2)).toHaveAttribute("aria-current", "step");
     await expect(page2.locator(".path-stop")).toHaveCount(8);
     await expect(page2.locator(".step-tab.locked")).toHaveCount(0);
+    // "Your work has been loaded." only on the first home page after logging in.
+    await page2.click("#homeBtn");
+    await expect(page2.locator(".welcome-card")).toHaveText("👋 Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
     await other.close();
   });
 
@@ -277,6 +299,7 @@ test.describe("Level 2", () => {
     await page.evaluate(() => { localStorage.setItem("ch6_unlock_all", "true"); });
     await page.reload();
     await page.locator(".step-tab").nth(2).click();
+    await page.click("#continueBtn"); // the path is the second part of Tab 3
     const stop = page.locator(".path-stop").first();
     const duration = await stop.evaluate(el => getComputedStyle(el).animationDuration);
     expect(parseFloat(duration)).toBeLessThan(0.01);
