@@ -2,7 +2,7 @@
    EBS Chapter 6 — local test server
    Zero dependencies: plain Node http server.
 
-   Serves the app exactly as GitHub Pages will: only index.html,
+   Serves the app exactly as Vercel publishes it: only index.html,
    app.js, styles.css, config.js and assets/ are reachable. Docs,
    tests, this folder and hidden files are never served.
 
@@ -42,7 +42,7 @@ const MIME = {
   ".svg": "image/svg+xml"
 };
 
-// The same files the GitHub Pages workflow publishes.
+// The same files Vercel publishes (see .vercelignore).
 const PUBLIC_FILES = ["index.html", "app.js", "styles.css", "config.js"];
 function isPublic(rel) {
   const parts = rel.split("/");

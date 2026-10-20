@@ -11,7 +11,7 @@ Read this with `CLAUDE.md` and `docs/storyboard.md` when starting a fresh sessio
 | 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Done (commits "Slice 3" to "Slice 3 final tweaks") |
 | 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Done (commits "Slice 4", "Slice 4 fixes") |
 | 5 | Learning report and the rest of Teacher Mode | Done (commits "Slice 5", "Slice 5 fixes") |
-| 6 | Full check, GitHub Pages workflow, summary | Built, awaiting review (commit "Slice 6") |
+| 6 | Full check, publishing set-up, summary | Done (commits "Slice 6", "Connect to live Apps Script", "Publish through Vercel") |
 | Next | Live set-up and test: the group follows `docs/apps-script-setup.md` and `docs/github-setup.md`, then we test the live version together | Not started |
 
 ## Decisions agreed with the user (19 October 2026)
@@ -142,7 +142,7 @@ G1 students need strong visual support. Visual treatment may change how text loo
 ## How slice 6 works (for the next session)
 
 - **Full check** (`tests/slice6-full-check.spec.js`): walks every student and Teacher Mode screen at 1280px and 360px and fails on text contrast below 4.5:1 (3:1 for large text, worked out from the colours actually shown, including opacity), placeholder hints below 4.5:1, images without alt text, controls or buttons without a name, tap targets under 44px, more or fewer than one h1, duplicate ids, a missing page language, ampersands, sideways scrolling and console errors. Screenshots of every screen go to `tests/screenshots/final-*.png`; the text of every screen to `test-results/screen-text-*.txt` for the wording check.
-- **GitHub Pages**: `.github/workflows/pages.yml` copies only `index.html`, `app.js`, `styles.css`, `config.js` and `assets/` into the published site on every push to `main` (or by hand from the Actions tab). All paths are relative, so the app works under `https://<user>.github.io/<repo>/` (checked by serving the published files from a sub-folder).
+- **Publishing (changed 20 October 2026)**: the project is in a **private** GitHub repository (`chongdaniel-hue/ebs-ch6-app`) and **Vercel** publishes it; the GitHub Pages workflow was removed. `.vercelignore` ignores everything and lets back in only `index.html`, `app.js`, `styles.css`, `config.js`, `assets/` and `vercel.json`, so docs, tests, the server and the Apps Script code are never uploaded. `vercel.json` turns off framework detection, install and build. All paths are relative, so the app works from the root of a vercel.app address (and from a sub-folder). Steps in `docs/github-setup.md`. Commits from 20 October use the repo-only identity `chongdaniel-hue` with a GitHub no-reply email; earlier commits stay under "EBS Ch6 team".
 - **Code.gs** adds 100 rows when a tab is full before writing (a new Google Sheet tab has 1,000 rows and writing past the last row fails). The local stand-in now enforces the row limit, and a test saves 12 students into a 5-row tab.
 - Run everything with `npx playwright test` (about 3 to 4 minutes). On this Windows machine the Playwright test process very occasionally crashes ("worker process exited unexpectedly"); a rerun passes.
 
@@ -157,4 +157,4 @@ G1 students need strong visual support. Visual treatment may change how text loo
 7. **Segmenting**: some Level 2 parts are still longer than one phone screen because splitting them would break a list or separate a picture or question from its words (listed above under the segmenting decision).
 8. **Storyboard documents**: `docs/storyboard.md` and `.docx` do not include the decisions in this file (welcome lines, 📌 Remember this, summary card wording, and so on). This file counts as part of the storyboard, but the teachers' .docx may need updating if they read only that.
 9. **Privacy**: the storyboard asks the group to confirm with their tutor that storing class and register number in a Google Sheet is acceptable.
-10. **Git identity**: commits so far are under the neutral "EBS Ch6 team"; `docs/github-setup.md` explains how to commit under a private GitHub address before pushing future changes.
+10. **Hosting wording in the group's files**: `CLAUDE.md`, `docs/storyboard.md` (Section B) and `BUILD-PROMPT.md` still describe GitHub Pages, a public repository and "No Vercel". The plan is now a private repository published through Vercel (static files only; the back end is still Apps Script). Ask the group whether to update them.

@@ -1,0 +1,10 @@
+# Vercel uploads ONLY the app. Everything is ignored first, then the app files are let back in.
+# Docs, tests, the Apps Script code, the local server, package files and notes are never
+# uploaded, so they can never be served on the live site.
+/*
+!/index.html
+!/app.js
+!/styles.css
+!/config.js
+!/assets
+!/vercel.json
