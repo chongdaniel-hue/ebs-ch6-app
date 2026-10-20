@@ -135,7 +135,7 @@ Google allows a script like this to run about 30 requests at the same moment. Th
 
 ## For developers: testing on your own computer
 
-`server/server.js` runs this same `Code.gs` on your computer, with a stand-in for the Google Sheet, so the whole app can be tested without Google. Keep `SERVER: "local"` in `config.js`, then run:
+`server/server.js` runs this same `Code.gs` on your computer, with a stand-in for the Google Sheet, so the whole app can be tested without Google. The local server always talks to its own stand-in, whatever `config.js` says, so testing on your computer never touches the real Sheet. Run:
 
 ```bash
 npm install

@@ -80,3 +80,18 @@ test("server only serves the app files", async ({ request }) => {
     expect((await request.get(p)).status(), p).toBe(404);
   }
 });
+
+test("config.js is live for students, but the local server keeps tests local", async ({ page, request }, testInfo) => {
+  test.skip(testInfo.project.name !== "laptop", "run once");
+  const onDisk = require("fs").readFileSync(require("path").join(__dirname, "..", "config.js"), "utf8");
+  expect(onDisk).toMatch(/SERVER:\s*"live"/);
+  expect(onDisk).toMatch(/LIVE_URL:\s*"https:\/\/script\.google\.com\/macros\/s\/[^"]+\/exec"/);
+  const served = await (await request.get("/config.js")).text();
+  expect(served).toMatch(/SERVER:\s*"local"/);
+  const sentTo = [];
+  page.on("request", r => sentTo.push(r.url()));
+  await page.goto("/");
+  await page.waitForTimeout(500);
+  expect(sentTo.filter(u => /script\.google\.com/.test(u))).toEqual([]);
+  expect(sentTo.some(u => /localhost:8788\/api\?action=classes/.test(u))).toBe(true);
+});

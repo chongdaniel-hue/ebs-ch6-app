@@ -6,12 +6,13 @@
 window.APP_CONFIG = {
 
   /* ---------- 1. Which server does the app talk to? ----------
-     "local" : the test server on this computer (npm start), for testing only.
-     "live"  : the Google Apps Script web app. Use this for students.
-     Before publishing, set SERVER to "live" and paste the web app URL below
-     (see docs/apps-script-setup.md, step "Copy the web app URL"). */
-  SERVER: "local",
-  LIVE_URL: "PASTE_YOUR_WEB_APP_URL_HERE",
+     "live"  : the Google Apps Script web app (the Google Sheet). Use this for students.
+     "local" : the test server on this computer, for testing only.
+     The local test server (server/server.js) always switches this to "local" when it
+     hands out this file, so testing on a computer never touches the real Sheet.
+     The web app URL comes from docs/apps-script-setup.md, Step 5. */
+  SERVER: "live",
+  LIVE_URL: "https://script.google.com/macros/s/AKfycbxCZmPHoguRUk-_uFO-7bWp7yTJUfeL_YjKartA6u22h7ks7CV4TzKn9E63DL1wuaad/exec",
   LOCAL_URL: "api",
 
   /* ---------- 2. Chatbot links (open in a new tab) ---------- */

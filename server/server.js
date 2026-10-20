@@ -67,6 +67,11 @@ function serveStatic(req, res) {
       res.end("Not found");
       return;
     }
+    // config.js says SERVER: "live" for students. Here the app must talk to this local
+    // stand-in instead, so testing never reads or writes the real Google Sheet.
+    if (rel === "config.js") {
+      content = Buffer.from(content.toString("utf8").replace(/SERVER:\s*"live"/, 'SERVER: "local"'), "utf8");
+    }
     res.writeHead(200, {
       "Content-Type": MIME[path.extname(filePath).toLowerCase()] || "application/octet-stream",
       "Cache-Control": "no-store"
