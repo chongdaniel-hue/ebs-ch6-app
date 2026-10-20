@@ -49,9 +49,11 @@
         welcome card; Q4 labelled in the teacher's report.
    0.6  Slice 6: full check (contrast fixes for hints and the faded hint),
         GitHub Pages workflow; Code.gs adds rows when the Sheet is full.
+   0.6.1 Level 2 cards: capital first letters; skill and returns names on
+        their own line above the description.
    ============================================================ */
 
-const APP_VERSION = "0.6";
+const APP_VERSION = "0.6.1";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -1127,6 +1129,11 @@ function iconCardsHtml(items, cls) {
     `<li class="icon-card"><span class="ic-icon" aria-hidden="true">${it.icon}</span><div class="ic-body">${it.html}</div></li>`).join("")}</ul>`;
 }
 
+// A card with a name on its own line (bold) and its description below.
+function namedCardHtml(name, desc) {
+  return `<strong class="ic-name">${escapeHtml(name)}</strong> <span class="ic-desc">${escapeHtml(desc)}</span>`;
+}
+
 // 💡 always means Tip.
 function tipHtml(text) {
   return `<p class="tip"><span class="tip-icon" aria-hidden="true">💡</span> ${escapeHtml(text)}</p>`;
@@ -1328,21 +1335,21 @@ const L2_TABS = [
         <h2 class="section-title">${hIcon("❓")}Why does quality customer service matter?</h2>
         <p>If a business provides quality customer service:</p>
         ${iconCardsHtml([
-          { icon: "🔁", html: "customers will have a positive experience and they will choose to <strong>return repeatedly</strong>;" },
-          { icon: "🗣️", html: "customers will <strong>recommend</strong> the business to their relatives and friends; and" },
-          { icon: "🤝", html: "<strong>customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>." }
+          { icon: "🔁", html: "Customers will have a positive experience and they will choose to <strong>return repeatedly</strong>;" },
+          { icon: "🗣️", html: "Customers will <strong>recommend</strong> the business to their relatives and friends; and" },
+          { icon: "🤝", html: "<strong>Customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>." }
         ], "cols-3")}
         ${imgHtml("C01", "comic-img")}`),
       notesPart(() => `
         <h2 class="section-title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
         <p>Some skills and qualities customer service employees need:</p>
         ${iconCardsHtml([
-          { icon: "😊", html: "<strong>Approachable:</strong> friendly and easy to talk to, so customers feel comfortable asking for help" },
-          { icon: "🎯", html: "<strong>Customer-focused:</strong> paying attention to what each customer needs and putting those needs first" },
-          { icon: "💬", html: "<strong>Clear communication skills:</strong> explaining things simply" },
-          { icon: "🧠", html: "<strong>Knowledgeable:</strong> knowing the products well, so you can answer questions accurately" },
-          { icon: "🛠️", html: "<strong>Problem-solving skills:</strong> providing solutions, not just apologising" },
-          { icon: "👋", html: "<strong>Able to close the customer experience positively:</strong> ending on a good note, e.g. thanking the customer and inviting them back" }
+          { icon: "😊", html: namedCardHtml("Approachable", "Friendly and easy to talk to, so customers feel comfortable asking for help") },
+          { icon: "🎯", html: namedCardHtml("Customer-focused", "Paying attention to what each customer needs and putting those needs first") },
+          { icon: "💬", html: namedCardHtml("Clear communication skills", "Explaining things simply") },
+          { icon: "🧠", html: namedCardHtml("Knowledgeable", "Knowing the products well, so you can answer questions accurately") },
+          { icon: "🛠️", html: namedCardHtml("Problem-solving skills", "Providing solutions, not just apologising") },
+          { icon: "👋", html: namedCardHtml("Able to close the customer experience positively", "Ending on a good note, e.g. thanking the customer and inviting them back") }
         ], "cols-3 grid-6")}`),
       notesPart(() => `
         <h2 class="section-title">${hIcon("📱")}Good product knowledge</h2>
@@ -1402,8 +1409,8 @@ const L2_TABS = [
       notesPart(() => `
         <p>Whether salespeople use the greeting, service or product approach, the purpose is to:</p>
         ${iconCardsHtml([
-          { icon: "😊", html: "make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and" },
-          { icon: "🔁", html: "ensure customers return to the business again in the future." }
+          { icon: "😊", html: "Make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and" },
+          { icon: "🔁", html: "Ensure customers return to the business again in the future." }
         ], "cols-2")}
         ${imgHtml("C03", "comic-img")}`),
       notesPart(() => `
@@ -1445,9 +1452,9 @@ const L2_TABS = [
         <h2 class="section-title">${hIcon("↩️")}Handling returns of unsatisfactory products</h2>
         <p>If a customer returns a product they are unhappy with, the business can offer:</p>
         ${iconCardsHtml([
-          { icon: "🔁", html: "<strong>Replacement:</strong> Replace it with the same product." },
-          { icon: "🔄", html: "<strong>Exchange:</strong> Offer to exchange it with a different product." },
-          { icon: "💵", html: "<strong>Refund:</strong> Give a refund." }
+          { icon: "🔁", html: namedCardHtml("Replacement", "Replace it with the same product.") },
+          { icon: "🔄", html: namedCardHtml("Exchange", "Offer to exchange it with a different product.") },
+          { icon: "💵", html: namedCardHtml("Refund", "Give a refund.") }
         ], "cols-3")}
         ${imgHtml("N03", "comic-img")}
 `),

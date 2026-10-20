@@ -144,6 +144,19 @@ test("🔊 Listen reads a block of notes, not the questions, and stops on a seco
   expect(part1).not.toContain("Was this good service recovery");
   await page.locator("#part2 .listen-btn").click();
 
+  // Cards: the words read aloud are the words shown, name and description kept apart.
+  await page.locator(".step-tab").nth(0).click();
+  await page.evaluate(() => { window.__spoken = []; });
+  await page.locator("#part1 .listen-btn").click();
+  const why = (await page.evaluate(() => window.__spoken)).join(" ");
+  expect(why).toContain("Customers will have a positive experience and they will choose to return repeatedly;");
+  await page.locator("#part1 .listen-btn").click();
+  await page.evaluate(() => { window.__spoken = []; });
+  await page.locator("#part2 .listen-btn").click();
+  const skills = (await page.evaluate(() => window.__spoken)).join(" ");
+  expect(skills).toContain("Approachable Friendly and easy to talk to, so customers feel comfortable asking for help");
+  await page.locator("#part2 .listen-btn").click();
+
   // Level 1 is questions only: no Listen button.
   await page.goto("/#level1");
   await expect(page.locator(".listen-btn")).toHaveCount(0);

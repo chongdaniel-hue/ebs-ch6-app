@@ -148,21 +148,28 @@ test.describe("Level 2", () => {
     await page.click("#continueBtn");
     await expect(page.locator("#part1 h2")).toHaveText("❓ Why does quality customer service matter?");
     await expect(page.locator("#part1 .icon-card .ic-body")).toHaveText([
-      "customers will have a positive experience and they will choose to return repeatedly;",
-      "customers will recommend the business to their relatives and friends; and",
-      "customer loyalty is created, ensuring the continuity of the business."
+      "Customers will have a positive experience and they will choose to return repeatedly;",
+      "Customers will recommend the business to their relatives and friends; and",
+      "Customer loyalty is created, ensuring the continuity of the business."
     ]);
     await expect(page.locator('#part1 img[data-img="C01"]')).toBeVisible();
     await page.click("#continueBtn");
     await expect(page.locator("#part2 h2")).toHaveText("🧑‍💼 Skills and qualities of a good customer service employee");
-    await expect(page.locator("#part2 .icon-card .ic-body")).toHaveText([
-      "Approachable: friendly and easy to talk to, so customers feel comfortable asking for help",
-      "Customer-focused: paying attention to what each customer needs and putting those needs first",
-      "Clear communication skills: explaining things simply",
-      "Knowledgeable: knowing the products well, so you can answer questions accurately",
-      "Problem-solving skills: providing solutions, not just apologising",
-      "Able to close the customer experience positively: ending on a good note, e.g. thanking the customer and inviting them back"
+    // Skill names on their own line (bold, no colon), descriptions below with a capital letter.
+    await expect(page.locator("#part2 .icon-card .ic-name")).toHaveText([
+      "Approachable", "Customer-focused", "Clear communication skills", "Knowledgeable", "Problem-solving skills",
+      "Able to close the customer experience positively"
     ]);
+    await expect(page.locator("#part2 .icon-card .ic-desc")).toHaveText([
+      "Friendly and easy to talk to, so customers feel comfortable asking for help",
+      "Paying attention to what each customer needs and putting those needs first",
+      "Explaining things simply",
+      "Knowing the products well, so you can answer questions accurately",
+      "Providing solutions, not just apologising",
+      "Ending on a good note, e.g. thanking the customer and inviting them back"
+    ]);
+    expect(await page.locator("#part2 .ic-name").first().evaluate(el => getComputedStyle(el).display)).toBe("block");
+    expect(await page.locator("#part2 .ic-name").first().evaluate(el => Number(getComputedStyle(el).fontWeight))).toBeGreaterThanOrEqual(700);
     await page.click("#continueBtn");
     await expect(page.locator("#part3 h2")).toHaveText("📱 Good product knowledge");
     await expect(page.locator('#part3 .img-placeholder[data-img="N02"]')).toBeVisible();
@@ -186,7 +193,10 @@ test.describe("Level 2", () => {
     // Part 3 (new Continue point): the purpose of approaching, with the comic.
     await page.click("#continueBtn");
     await expect(page.locator("#part2 .head-row p")).toHaveText("Whether salespeople use the greeting, service or product approach, the purpose is to:");
-    await expect(page.locator("#part2 .icon-card")).toHaveCount(2);
+    await expect(page.locator("#part2 .icon-card .ic-body")).toHaveText([
+      "Make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and",
+      "Ensure customers return to the business again in the future."
+    ]);
     await expect(page.locator('#part2 img[data-img="C03"]')).toBeVisible();
     await page.click("#continueBtn");
     await expect(page.locator("#part3 h2")).toHaveText("🎯 Presenting product information: suitability");
@@ -230,6 +240,8 @@ test.describe("Level 2", () => {
     await page.click("#continueBtn");
     await expect(page.locator("#part3 h2")).toHaveText("↩️ Handling returns of unsatisfactory products");
     await expect(page.locator('#part3 .img-placeholder[data-img="N03"]')).toBeVisible();
+    await expect(page.locator("#part3 .ic-name")).toHaveText(["Replacement", "Exchange", "Refund"]);
+    await expect(page.locator("#part3 .ic-desc")).toHaveText(["Replace it with the same product.", "Offer to exchange it with a different product.", "Give a refund."]);
     // Part 5 (new Continue point): the returns rules, Uniqlo, the second optional box, recap.
     await page.click("#continueBtn");
     await expect(page.locator("#part4 .head-row p")).toHaveText("Many businesses also set clear rules for returns, such as a time limit and needing the receipt.");

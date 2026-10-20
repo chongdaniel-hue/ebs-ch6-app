@@ -1356,3 +1356,7 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .welcome-card .welcome-btn{margin-top:14px;}
 /* Hints inside answer boxes: readable everywhere (at least 4.5:1, also on locked boxes). */
 .textarea-input::placeholder,.text-input::placeholder{color:#5B6370;opacity:1;}
+
+/* Cards with a name: the name on its own line in bold, the description below. */
+.ic-name{display:block;color:var(--brand-dark);font-size:1.02rem;margin-bottom:2px;}
+.ic-desc{display:block;}

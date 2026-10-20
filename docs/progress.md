@@ -102,6 +102,11 @@ G1 students need strong visual support. Visual treatment may change how text loo
 - **Tabs:** ✓ replaces the number on finished tabs (moved on with Next, or level finished).
 - **Locked dropdown answers** show as a read-only box that wraps, so a long stage name is never cut off on a phone.
 
+### Level 2 card text tidy (agreed 20 October 2026)
+Display only: the words and punctuation stay exactly as in the storyboard.
+- **Capital first letters** on icon cards that started lowercase, with the same words, punctuation and bold: "Customers will have a positive experience and they will choose to **return repeatedly**;", "Customers will **recommend** the business to their relatives and friends; and", "**Customer loyalty** is created, ensuring the **continuity of the business**.", "Make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and", "Ensure customers return to the business again in the future." (No other card or chip started lowercase.)
+- **Name on its own line**: cards in the "Name: description" format show the name in bold on its own line with no colon, and the description below with a capital first letter: the six skills and qualities (e.g. **Approachable** / Friendly and easy to talk to, so customers feel comfortable asking for help) and the three returns cards (**Replacement** / Replace it with the same product., **Exchange** / Offer to exchange it with a different product., **Refund** / Give a refund.). 🔊 Listen reads the same words, the name then the description. Card heights stay equal in each row at both widths.
+
 ## How slice 2 works (for the next session)
 
 - **Record shape** (one per student, `ch6_rec_<class>#<reg>` on the device, Record column in the Sheet): `v, cls, reg, updatedAt, baseClearedAt, agreed, done{level:time}, submitted{key:time}, reached{key:number}, first{item:{a,ok,t}}, second{item:{a,ok,t}}, answers{key:{v,t}}, ui{key:{v,t}}`.
