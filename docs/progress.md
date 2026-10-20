@@ -1,6 +1,6 @@
 # Build progress
 
-Read this with `CLAUDE.md`, `docs/storyboard.md` and `docs/HANDOVER.md` when starting a fresh session. The untouched V45 app is in `../V45` for reference when porting code.
+Read this with `CLAUDE.md`, `docs/storyboard.md` (including Section H, "Changes agreed during the build") and `docs/HANDOVER.md` when starting a fresh session, with any AI tool. `AGENTS.md` (read first by ChatGPT Codex and other agents) points to `CLAUDE.md` and repeats the key rules. The untouched V45 app is in `../V45` for reference when porting code.
 
 ## Slices
 
@@ -12,7 +12,8 @@ Read this with `CLAUDE.md`, `docs/storyboard.md` and `docs/HANDOVER.md` when sta
 | 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Done (commits "Slice 4", "Slice 4 fixes") |
 | 5 | Learning report and the rest of Teacher Mode | Done (commits "Slice 5", "Slice 5 fixes") |
 | 6 | Full check, publishing set-up, summary | Done (commits "Slice 6", "Connect to live Apps Script", "Publish through Vercel") |
-| Next | Live set-up and test: the group follows `docs/apps-script-setup.md` and `docs/github-setup.md`, then we test the live version together | Not started |
+| After 6 | Level 2 card text tidy; storyboard "as built" with Section H; handover for groupmates (`docs/HANDOVER.md`, `AGENTS.md` for Codex) | Done (commits up to "Handover for Codex") |
+| Next | Live test: import into Vercel if not yet done (`docs/github-setup.md`), add the classes in Teacher Mode, then test the live version on a phone and a laptop | Not started |
 
 ## Decisions agreed with the user (19 October 2026)
 
@@ -51,7 +52,7 @@ These fill gaps in the storyboard. Student-facing wording here is approved and m
    - Q3 iv: "Service breakdown (Level 2, Breakdown and Recovery)"
    - Nothing wrong: "Nothing to look at again. You got everything right on the first try! 🎉"
 10. Offline bar: V45 wording with "phone" changed to "device", e.g. "📡 No internet. Your work is saved on this device and will be sent when the connection is back."
-11. "Welcome back! Your work has been loaded." is a short notice at the top of the home page. The locked-card message is a line under the tapped card.
+11. *(Superseded: there is no separate notice any more; "Your work has been loaded." is part of the welcome card, right after logging in only. See the visual and Mayer pass below.)* "Welcome back! Your work has been loaded." is a short notice at the top of the home page. The locked-card message is a line under the tapped card.
 
 ### Teacher Mode and data
 12. A removed class stays choosable in Results, marked "(removed)".
@@ -160,6 +161,7 @@ Display only: the words and punctuation stay exactly as in the storyboard.
 5. **Live test still to do**: the Apps Script is deployed, `config.js` points at it and the repository is pushed. Still to do: import into Vercel (`docs/github-setup.md`), then test together on a phone and a laptop: log in, save, second device, offline and back, Teacher Mode results, Clear this student's work, CSV. Things only the live set-up can confirm: Google's redirect on every request, the "save on closing the page" beacon reaching Apps Script, and how quickly a class of 40 saving together is handled.
 6. **The R03 picture** shows "Return & Exchange Conditions": an ampersand inside a real Uniqlo screenshot, not text the app writes.
 7. **Segmenting**: some Level 2 parts are still longer than one phone screen because splitting them would break a list or separate a picture or question from its words (listed above under the segmenting decision).
-8. **Storyboard documents**: `docs/storyboard.md` and `.docx` do not include the decisions in this file (welcome lines, 📌 Remember this, summary card wording, and so on) or the move from GitHub Pages to Vercel. Dan is updating them; do not edit them for him.
+8. **Storyboard documents**: done. The "as built" `docs/storyboard.md` and `.docx` list the build decisions in Section H (Dan's commits "Storyboard: as built"). When something changes, update both the storyboard (Dan keeps the .docx) and the decisions above.
 9. **Privacy**: the storyboard asks the group to confirm with their tutor that storing class and register number in a Google Sheet is acceptable.
-10. **Vercel and groupmates' pushes**: on Vercel's free Hobby plan, deployments of a private repository may be blocked when the commit author is not the Vercel account owner. Check with the first groupmate push; if blocked, Dan redeploys from the dashboard or the group moves to a Vercel team. (`CLAUDE.md` and `BUILD-PROMPT.md` now describe the private repository plus Vercel; `docs/HANDOVER.md` is the guide for groupmates.)
+10. **Vercel and groupmates' pushes**: the Vercel project is on Dan's free Hobby account and the repository is private, so a deployment of a commit by someone else may show as **Blocked**. Agreed rule: the groupmate tells Dan, and Dan redeploys it from the Vercel dashboard (Deployments, ⋯, Redeploy). Steps in `docs/HANDOVER.md`.
+11. **Groupmates and AI tools**: a groupmate will continue with ChatGPT (Codex) connected to the GitHub repository. `AGENTS.md` makes Codex follow `CLAUDE.md`; `docs/HANDOVER.md` covers running the tests, pulling before starting and pushing small changes often.
