@@ -8,11 +8,12 @@ A self-study revision app for Secondary 3 and 4 students (G1 and G2, mixed abili
 
 It is a fork of the group's EBS Learning Journey app (V45): the same vanilla JavaScript single-page app (`index.html`, `app.js`, `styles.css`), hash router, station structure, autosave and offline queue. Keep that front-end architecture. Do not add a framework, a build step or new dependencies unless the user agrees.
 
-Hosting and back end (different from V45, which used Vercel):
-- **Front end:** static files hosted on **GitHub Pages**, published by a GitHub Actions workflow that uploads only the app files (`index.html`, `app.js`, `styles.css`, `config.js`, `assets/`), so docs and tooling are not served.
-- **Back end:** a **Google Apps Script web app** attached to a **Google Sheet**. The script's source lives in this repo at `apps-script/Code.gs` (the teachers paste it into the Apps Script editor; setup steps in `docs/apps-script-setup.md`). The web app URL goes in `config.js`.
-- **Local testing:** `server/server.js` serves the app and imitates the Apps Script API exactly (same actions, same request and response shapes), storing data in `server/data/`, so everything can be tested with Playwright without Google. A setting in `config.js` switches between the local server and the live web app URL.
-- No Vercel, no `api/` folder, no `@vercel/blob`.
+Hosting and back end (different from V45, which ran its own back end on Vercel):
+- **Code:** a **private** GitHub repository, `chongdaniel-hue/ebs-ch6-app`, branch `main`.
+- **Front end:** **Vercel** publishes the static app files only, with no build step: `.vercelignore` ignores everything and lets back in only `index.html`, `app.js`, `styles.css`, `config.js`, `assets/` and `vercel.json`, so docs, tests, the server and the Apps Script code are never uploaded. `vercel.json` turns off framework detection, install and build. Every push to `main` redeploys. Keep `.vercelignore` a whitelist: anything new that must be served has to be added there on purpose. Steps in `docs/github-setup.md`.
+- **Back end:** a **Google Apps Script web app** attached to a **Google Sheet**. The script's source lives in this repo at `apps-script/Code.gs` (pasted into the Apps Script editor; setup and redeploy steps in `docs/apps-script-setup.md`). The web app URL goes in `config.js` with `SERVER: "live"`.
+- **Local testing:** `server/server.js` serves the same files Vercel publishes and runs `apps-script/Code.gs` itself with stand-ins for the Google services (same actions, same request and response shapes), storing data in `server/data/`, so everything can be tested with Playwright without Google. When it serves `config.js` it switches `SERVER` to `"local"`, so local testing never touches the real Sheet.
+- Vercel serves static files only: no serverless functions, no `api/` folder, no `@vercel/blob`.
 
 ## Source of truth
 
@@ -59,7 +60,7 @@ Hosting and back end (different from V45, which used Vercel):
 - Students are identified by class plus register number only. No names, no emails.
 - Student work is stored only in the Google Sheet, which stays private to its owner (never shared or published). The browser reads and writes it only through the Apps Script web app.
 - The teacher code lives only in the Apps Script project's Script Properties (`TEACHER_CODE`) and is checked inside the script. Never write a code, secret or student data into the repo, `config.js`, `app.js`, `Code.gs` or logs.
-- The GitHub repo is public (GitHub Pages on a free account needs a public repo), so treat everything committed as public. `server/data/` is in `.gitignore`.
+- The GitHub repo is private, but still never commit a code, secret or student data: collaborators can read everything, and history is hard to clean. `server/data/` is in `.gitignore`. Commit under a GitHub no-reply email, never a personal one.
 - Never print, copy or commit `.env.local` or any `.env*` file.
 
 ## How to work

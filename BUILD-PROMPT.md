@@ -1,4 +1,8 @@
-# Build prompt for Claude Code
+# Build prompt for Claude Code (original brief, now complete)
+
+> **Status (20 October 2026): complete.** This is the original build brief, kept as a record. All six slices were built and reviewed; see `docs/progress.md` for what was built, every decision agreed along the way, and what is still open. For carrying on with the project, read `docs/HANDOVER.md` and `CLAUDE.md`, not this file.
+>
+> **Hosting changed after this brief was written.** The brief below asks for a public repository published on GitHub Pages with no Vercel. The project now lives in a **private GitHub repository** (`chongdaniel-hue/ebs-ch6-app`) and **Vercel** publishes the static app files only (`index.html`, `app.js`, `styles.css`, `config.js`, `assets/`), with no build step and no serverless functions. The back end is still the Google Apps Script web app and Google Sheet. The GitHub Pages workflow was removed; setup steps are in `docs/github-setup.md`.
 
 Paste everything below the line into Claude Code, opened in the new project folder (the copy of V45 with this handoff pack added).
 
@@ -49,7 +53,7 @@ Then search the whole repo for "VivoCity", "Orchid", "OPSS", "NIE26", "Sean", "W
 
 ## Hosting and back end
 
-The app is hosted on **GitHub Pages**, and the server is a **Google Apps Script web app attached to a Google Sheet**. No Vercel. Propose the exact design before coding; it must meet these requirements.
+*(Superseded: the front end is now published by Vercel from a private repository; see the status note at the top.)* The app is hosted on **GitHub Pages**, and the server is a **Google Apps Script web app attached to a Google Sheet**. No Vercel. Propose the exact design before coding; it must meet these requirements.
 
 **Google Sheet and Apps Script**
 - Write the script in `apps-script/Code.gs`, plus `apps-script/appsscript.json` if needed. Write `docs/apps-script-setup.md`: plain step-by-step instructions for a teacher with no coding background, covering:
@@ -80,7 +84,7 @@ The app is hosted on **GitHub Pages**, and the server is a **Google Apps Script 
   - A failed save goes into the existing offline queue and is retried with increasing waits.
   - Tell me if you think the timings should change.
 
-**GitHub Pages**
+**GitHub Pages** *(superseded by Vercel: `.vercelignore`, `vercel.json` and `docs/github-setup.md`)*
 - Add a GitHub Actions workflow (`.github/workflows/pages.yml`) that publishes only the app files (`index.html`, `app.js`, `styles.css`, `config.js`, `assets/`) to GitHub Pages on every push to `main`. Use relative paths throughout so the app works under `https://<username>.github.io/<repo-name>/`.
 - Update `.gitignore` for `server/data/`, `.env*` and `node_modules/`.
 - Write `docs/github-setup.md`: plain steps for creating the repo, pushing, and turning on Pages with "GitHub Actions" as the source.
