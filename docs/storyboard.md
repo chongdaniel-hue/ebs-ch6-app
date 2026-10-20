@@ -2,7 +2,7 @@
 
 Self-study revision app
 
-Screen-by-screen storyboard (final for build, 19 October 2026)
+Screen-by-screen storyboard (as built, 20 October 2026)
 
 # A. How to read this storyboard
 
@@ -18,22 +18,22 @@ This storyboard is the single source of truth for the app. It moves the content 
 
 # B. What carries over from the LJ app, and what changes
 
-| **Part of the LJ app (V45)**                                                                                                                                                 | **In the Chapter 6 app**                                                                                                                                                                                                               |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| App shell: one-page app, hash routes, autosave on the device, offline answer queue, Vercel back end saving to Blob storage                                                   | App shell kept. Hosting moves to GitHub Pages, and the server becomes a Google Sheet run by Google Apps Script (no Vercel). Each student's progress is also saved there, so they can carry on from any device (Section D, screen 0.1). |
-| Header with school crest and school name                                                                                                                                     | Crest and school name removed: the app is for any school. Header shows the app title only.                                                                                                                                             |
-| Team login (choose team, key in access code)                                                                                                                                 | Student login: choose class from a dropdown (classes added by teachers in Teacher Mode), then key in register number. No access code for students.                                                                                     |
-| "Before you start" pop-up that must be agreed to                                                                                                                             | Kept, rewritten as 5 points on how the module works.                                                                                                                                                                                   |
-| "Words you'll use today" page                                                                                                                                                | Kept as "4 key terms" (pre-training before Level 2).                                                                                                                                                                                   |
-| Route of 5 station cards, any order                                                                                                                                          | Kept, but levels now unlock in order (each opens when the one before is finished), because the flow depends on it. Teacher Mode can unlock all levels on a device.                                                                     |
-| Station page: step dots, reading, warm-up, main task, scenario; Submit, then 💡 recap and missed items                                                                       | Kept: step tabs (sticky), Submit, then recap. New: after Submit, each wrong answer shows a hint written for that question, with one retry before the answer is revealed. The first attempt is what is recorded.                        |
-| Station badges and team badges                                                                                                                                               | Five new level badges (prompts in Section F). Team badges removed.                                                                                                                                                                     |
-| Learning report, Email our teachers, post-survey, Help button (calls or WhatsApps teachers), photo tasks, foot-traffic timer, VivoCity unit links, guide characters on pages | Learning report kept. Email, post-survey, Help button, photo tasks, timer and unit links removed. Guide characters removed (Mayer's image principle: the speaker's image does not add learning).                                       |
-| Teacher Access (results, CSV, team report) and Reset                                                                                                                         | Kept as Teacher Mode, adding a Classes tab where teachers key in class names.                                                                                                                                                          |
-| Credits footer with the anime-style team picture                                                                                                                             | Picture removed. Text: "A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)".                                                                                                                                             |
-| Teal colour scheme                                                                                                                                                           | Wine red (Section C).                                                                                                                                                                                                                  |
-| The five parts are called stations                                                                                                                                           | Called levels (Level 1 to Level 5), because the whole app is already called a module.                                                                                                                                                  |
-| Pinch-to-zoom blocked (maximum-scale=1.0)                                                                                                                                    | Zoom allowed, for accessibility.                                                                                                                                                                                                       |
+| **Part of the LJ app (V45)**                                                                                                                                                 | **In the Chapter 6 app**                                                                                                                                                                                                                                                                                                     |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| App shell: one-page app, hash routes, autosave on the device, offline answer queue, Vercel back end saving to Blob storage                                                   | App shell kept. The code is in a private GitHub repository and Vercel publishes only the app files; the server becomes a Google Sheet run by Google Apps Script (no Vercel serverless functions or Blob storage). Each student's progress is also saved there, so they can carry on from any device (Section D, screen 0.1). |
+| Header with school crest and school name                                                                                                                                     | Crest and school name removed: the app is for any school. Header shows the app title only.                                                                                                                                                                                                                                   |
+| Team login (choose team, key in access code)                                                                                                                                 | Student login: choose class from a dropdown (classes added by teachers in Teacher Mode), then key in register number. No access code for students.                                                                                                                                                                           |
+| "Before you start" pop-up that must be agreed to                                                                                                                             | Kept, rewritten as 5 points on how the module works.                                                                                                                                                                                                                                                                         |
+| "Words you'll use today" page                                                                                                                                                | Kept as "4 key terms" (pre-training before Level 2).                                                                                                                                                                                                                                                                         |
+| Route of 5 station cards, any order                                                                                                                                          | Kept, but levels now unlock in order (each opens when the one before is finished), because the flow depends on it. Teacher Mode can unlock all levels on a device.                                                                                                                                                           |
+| Station page: step dots, reading, warm-up, main task, scenario; Submit, then 💡 recap and missed items                                                                       | Kept: step tabs (sticky), Submit, then recap. New: after Submit, each wrong answer shows a hint written for that question, with one retry before the answer is revealed. The first attempt is what is recorded.                                                                                                              |
+| Station badges and team badges                                                                                                                                               | Five new level badges (prompts in Section F). Team badges removed.                                                                                                                                                                                                                                                           |
+| Learning report, Email our teachers, post-survey, Help button (calls or WhatsApps teachers), photo tasks, foot-traffic timer, VivoCity unit links, guide characters on pages | Learning report kept. Email, post-survey, Help button, photo tasks, timer and unit links removed. Guide characters removed (Mayer's image principle: the speaker's image does not add learning).                                                                                                                             |
+| Teacher Access (results, CSV, team report) and Reset                                                                                                                         | Kept as Teacher Mode, adding a Classes tab where teachers key in class names.                                                                                                                                                                                                                                                |
+| Credits footer with the anime-style team picture                                                                                                                             | Picture removed. Text: "A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)".                                                                                                                                                                                                                                   |
+| Teal colour scheme                                                                                                                                                           | Wine red (Section C).                                                                                                                                                                                                                                                                                                        |
+| The five parts are called stations                                                                                                                                           | Called levels (Level 1 to Level 5), because the whole app is already called a module.                                                                                                                                                                                                                                        |
+| Pinch-to-zoom blocked (maximum-scale=1.0)                                                                                                                                    | Zoom allowed, for accessibility.                                                                                                                                                                                                                                                                                             |
 
 # C. Look, layout and Mayer's principles
 
@@ -236,10 +236,11 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="even">
 <td><strong>Welcome line</strong></td>
-<td><ul>
-<li><p>0 done: "Welcome! Start with Level 1."</p></li>
-<li><p>1 to 4 done: "Welcome back! You've finished {n} of 5 levels. Keep going!"</p></li>
-<li><p>5 done: "You've finished all 5 levels. Well done! Have a look at your learning report."</p></li>
+<td><p>Shown in a welcome card at the top of the home page:</p>
+<ul>
+<li><p>0 done: "👋 Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!"</p></li>
+<li><p>1 to 4 done: "👋 Welcome back! Your work has been loaded. You've finished {n} of 5 levels. Great progress! Carry on with Level {n+1} below." ("Your work has been loaded." only on the first home page after logging in.)</p></li>
+<li><p>5 done: "🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did." with the 📊 My learning report button inside the card.</p></li>
 </ul></td>
 </tr>
 <tr class="odd">
@@ -328,7 +329,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <li><p>After Submit (not scored), the recap card:</p></li>
 </ul>
 <blockquote>
-<p>💡 <strong>Remember this</strong>: Keep your stories in mind. In Level 2, see whether your ideas match what businesses call quality customer service.</p>
+<p>📌 <strong>Remember this</strong>: Keep your stories in mind. In Level 2, see whether your ideas match what businesses call quality customer service.</p>
 <p>[Finish Level 1]</p>
 </blockquote></td>
 </tr>
@@ -613,7 +614,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="even">
 <td><strong>Complete</strong></td>
-<td>Recap: "💡 <strong>Remember this</strong>: The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery." Badge pop-up: <strong>[Badge 2] 📘 Service Scholar</strong>. Level 3 unlocks.</td>
+<td>Recap: "📌 <strong>Remember this</strong>: The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery." Badge pop-up: <strong>[Badge 2] 📘 Service Scholar</strong>. Level 3 unlocks.</td>
 </tr>
 <tr class="odd">
 <td><strong>Alt text</strong></td>
@@ -743,7 +744,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="odd">
 <td><strong>Complete</strong></td>
-<td>Recap: "💡 <strong>Remember this</strong>: The same four stages happen in every customer interaction, whether it's in a shop or in a chat." Badge pop-up <strong>[Badge 3] 🔍 Service Spotter</strong>. Level 4 unlocks.</td>
+<td>Recap: "📌 <strong>Remember this</strong>: The same four stages happen in every customer interaction, whether it's in a shop or in a chat." Badge pop-up <strong>[Badge 3] 🔍 Service Spotter</strong>. Level 4 unlocks.</td>
 </tr>
 <tr class="even">
 <td><strong>Teacher only</strong></td>
@@ -820,7 +821,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="even">
 <td><strong>Feedback</strong></td>
-<td>Not scored; both boxes required ("Not finished yet" if empty). Recap: "💡 <strong>Remember this</strong>: Look back at the four stages. Which one would you like to practise more?"</td>
+<td>Not scored; both boxes required ("Not finished yet" if empty). Recap: "📌 <strong>Remember this</strong>: Look back at the four stages. Which one would you like to practise more?"</td>
 </tr>
 <tr class="odd">
 <td><strong>Complete</strong></td>
@@ -1190,10 +1191,66 @@ Generate the five badges as one consistent set. Paste the **style block** first 
 
 - Every hint refers to its own question and asks a guiding question rather than giving the answer.
 
-### Still to do before the build
+### Still to do before students use it
 
-- **Stylez card.** Fill in from the Stylez document so it matches Suzzie's Gem (placeholder for now), and check Suzzie's look before generating N05.
+- **Pictures:** generate N01 to N05 and the five badges from Section F and save them in assets/img/ with the file names listed; they replace the placeholders automatically.
 
-### Next step
+- **About Stylez card:** fill it in from the Stylez document so it matches Suzzie's Gem, and check Suzzie's look before generating N05.
 
-Once your group has edited and approved this storyboard, I'll write the Claude Code build prompt and a CLAUDE.md with the house rules. The prompt will tell Claude Code to fork V45 (keeping its shell), strip all LJ content and student data, build one level first for review, and then the rest.
+- **Level 4 opening line:** delete it if Suzzie's Gem starts the chat itself.
+
+- **Privacy:** confirm with the tutor that storing class and register number in the Google Sheet is acceptable.
+
+- **Teacher code:** kept in Script Properties only. Consider a code that cannot be guessed from the app.
+
+# H. Changes agreed during the build
+
+These decisions were made while the app was built (19 to 20 October 2026). They are part of this storyboard and override anything earlier in it. Student-facing wording below is final.
+
+### Look and Mayer's principles (for G1 students)
+
+- **Theme:** wine red (brand \#8B1E3F, dark \#5C1229, light \#F9ECEF, background \#FAF7F5, white cards with a thin \#E8DADF border). Every feedback box has ✓ or ✗ and a coloured left border, so meaning never relies on colour.
+
+- **One style per meaning:** 📖 definition box for textbook definitions; icon cards for lists of points; speech bubbles for what staff say; 💡 tip box; 📌 amber "Remember this" recap card. Every notes heading carries an icon.
+
+- **Level 1:** three equal cards in a row (😊 GOOD, 😞 BAD, 🤔 what makes it good or bad) with the boxes lined up; stacked on phones.
+
+- **Level 2:** the three reasons (🔁 🗣️ 🤝), six skills, five product-knowledge points, two purposes of approaching and the three returns (🔁 🔄 💵) are icon cards; the three approaches are cards with their examples as speech bubbles; stage icons 👋 📱 ✅ 🛠️ beside the stage colours; Service Recovery Path circles are white with a purple ring and number badge.
+
+- **Segmenting:** extra Continue ↓ points in Level 2: before "Why does quality customer service matter?", before "Whether salespeople use the greeting, service or product approach...", before "To perform service recovery, follow these 8 steps:" and before "Many businesses also set clear rules for returns...".
+
+- **🔊 Listen:** each block of notes in Level 2 and the 4 key terms page has a Listen button (browser speech, notes only, never questions or answers; tap again to stop).
+
+- **Level header:** each level shows its card description under the title; finished tabs show ✓.
+
+- **Images:** always shown in full and centred; the Foodpanda pair is the same height. R03 was re-cropped to the first row of icons because the original screenshot was cut off.
+
+- **Before you start:** an icon beside each point (🗺️ 💾 🤖 🔁 👀).
+
+### Feedback on marked questions
+
+- **One Check again per tab,** at the bottom, checking every item still waiting. Finish Level 3 and "Next: Exit ticket →" appear only once every item is settled.
+
+- **Revealed answer:** "✗ The answer is {answer}: {reason}"; the correct option is outlined in green with "✓ Correct answer" and the student's wrong pick is marked ✗.
+
+- **Changed answer before Check again:** the old hint fades and "👆 Tap Check again to see if you're right." shows instead.
+
+- **Summary card** (from the LJ app), above the 📌 card in Level 3 and at the end of Level 5 Check: "🎉 Great work! You got everything right on the first try." or "💪 Let's learn from these. Good effort! Here are N things to look at again:" followed by the Look at these again lines.
+
+- **Look at these again lines** (summary card and learning report): P "Performing service recovery (Level 2, Breakdown and Recovery)"; Q "Presenting product information (Level 2, The Four Stages)"; R "Closing the customer experience positively (Level 2, The Four Stages)"; S "Approaching customers (Level 2, The Four Stages)"; Q3 i "What customer service is (Level 2, Quality Customer Service)"; Q3 ii "Good product knowledge (Level 2, Quality Customer Service)"; Q3 iii and Q4 "The 8 steps of service recovery (Level 2, Breakdown and Recovery)"; Q3 iv "Service breakdown (Level 2, Breakdown and Recovery)"; nothing wrong "Nothing to look at again. You got everything right on the first try! 🎉".
+
+- **Required questions:** only Level 1 offers Submit anyway; every other required question must be filled in. "Not finished yet" lists missing items by name.
+
+- **Greyed-out Next** (Levels 3 and 4): "Tick the box above when you've finished." underneath.
+
+- **Badge pop-ups 2 to 4:** "You earned the {badge name} badge!" \[Back to my route\].
+
+- **Offline bar:** "📡 No internet. Your work is saved on this device and will be sent when the connection is back."
+
+### Data, Teacher Mode and hosting
+
+- **Saving:** each answer box is merged separately (the newest wins), first attempts are never overwritten, and saves are spaced out so a class of 40 stays within Google's limits.
+
+- **Teacher Mode:** Classes, Results (class summary, students table, full report, CSV in Singapore time, Clear this student's work) and This device (Unlock all levels, Reset this device). The teacher code is not case sensitive and is locked out for 10 minutes after 10 wrong tries.
+
+- **Hosting:** private GitHub repository chongdaniel-hue/ebs-ch6-app, published by Vercel (only index.html, app.js, styles.css, config.js, vercel.json and assets/ are public). The Google Sheet "EBS Chapter 6 student work" and its Apps Script are owned by Dan's MOE account. Setup and handover steps: docs/apps-script-setup.md, docs/github-setup.md and docs/HANDOVER.md in the repository.
