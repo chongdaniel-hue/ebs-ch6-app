@@ -47,8 +47,11 @@ test.describe("6.1 My learning report", () => {
     await resetServer(request, ["3E1"]);
     expect((await apiPost(request, { action: "save", record: finishedRecord(5, { wrong: ["s3q2.R", "s5q3.iii", "s5q4", "s5q3.i"] }) })).ok).toBe(true);
     await login(page, "3E1", 5);
-    await expect(page.locator(".welcome-card")).toHaveText("🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
-    await page.click("a.btn:has-text('My learning report')");
+    await expect(page.locator(".welcome-text")).toHaveText("🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
+    await expect(page.locator(".welcome-card a.btn")).toHaveText("📊 My learning report");
+    // Dates are in Singapore time: 1:30am on 20 Oct in Singapore is still 19 Oct in UTC.
+    expect(await page.evaluate(() => shortDate("2026-10-19T17:30:00.000Z"))).toBe("20 Oct 2026");
+    await page.click(".welcome-card a.btn");
     await expect(page.locator("h1.page-title")).toHaveText("📊 My learning report");
     await expect(page.locator(".level-sub")).toHaveText("Class 3E1, Register No. 5");
     await expect(page.locator(".report-level-name")).toHaveText([
@@ -140,9 +143,10 @@ test.describe("T.3 Results", () => {
     await expect(rows.nth(2).locator("td")).toHaveText(["No. 3", "2", "–", "–", "🙂 😄 🙁 😟"]);
     await checkPage(page, testInfo, "slice5-results");
 
-    // CSV for the chosen class.
+    // CSV for the chosen class, named with the Singapore date (1:30am on 20 Oct in Singapore).
+    await page.clock.setFixedTime(new Date("2026-10-19T17:30:00.000Z"));
     const [download] = await Promise.all([page.waitForEvent("download"), page.click("#downloadCsv")]);
-    expect(download.suggestedFilename()).toMatch(/^EBS-Ch6-3E1-results-\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(download.suggestedFilename()).toBe("EBS-Ch6-3E1-results-2026-10-20.csv");
     const csv = fs.readFileSync(await download.path(), "utf8");
     const lines = csv.replace(/^﻿/, "").split("\r\n");
     expect(lines).toHaveLength(4);
@@ -159,6 +163,7 @@ test.describe("T.3 Results", () => {
     const q2Row = page.locator(".student-report table").first().locator("tbody tr").nth(2);
     await expect(q2Row.locator("td")).toHaveText(["Performing service recovery (wrong)", "Closing the customer experience positively (right)"]);
     await expect(page.locator(".qa", { hasText: "Was this good service recovery" }).locator(".qa-a")).toHaveText("No, no solution was offered.");
+    await expect(page.locator(".student-report table").nth(1).locator("tbody tr").last().locator("th")).toHaveText("Q4. Best service recovery response");
     await expect(page.locator(".qa", { hasText: "Name ONE item Uniqlo" }).locator(".qa-a")).toHaveText("(blank)");
     await checkPage(page, testInfo, "slice5-student-report");
 

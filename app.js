@@ -45,9 +45,11 @@
    0.5  Slice 5: learning report; Teacher Mode Results (class summary,
         students table, full report, CSV, Clear this student's work) and
         This device (unlock all levels, Reset this device).
+   0.5.1 Singapore time for dates and the CSV name; report button in the
+        welcome card; Q4 labelled in the teacher's report.
    ============================================================ */
 
-const APP_VERSION = "0.5";
+const APP_VERSION = "0.5.1";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -773,7 +775,8 @@ function renderHome() {
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
       <div class="block">
-        <div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p></div>
+        <div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p>
+          ${done === LEVELS.length ? `<div class="btn-row welcome-btn"><a href="#report" class="btn">📊 My learning report</a></div>` : ""}</div>
         <p class="home-links">
           <a href="#" id="howLink">📋 How this works</a>
           <span class="dot-sep" aria-hidden="true">·</span>
@@ -797,7 +800,6 @@ function renderHome() {
       <section class="block" aria-labelledby="badgesTitle">
         <h2 class="section-title" id="badgesTitle">🏅 Your badges</h2>
         ${badgeShelfHtml()}
-        ${done === LEVELS.length ? `<div class="btn-row"><a href="#report" class="btn">📊 My learning report</a></div>` : ""}
       </section>
     </main>
     ${footerHtml()}
@@ -2060,10 +2062,18 @@ function recLookAgain(r) {
   });
   return lines;
 }
+// Today's date in Singapore time as yyyy-mm-dd (for file names).
+function sgDateStamp(date) {
+  const p = {};
+  new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Singapore", year: "numeric", month: "2-digit", day: "2-digit" })
+    .formatToParts(date || new Date()).forEach(x => { p[x.type] = x.value; });
+  return `${p.year}-${p.month}-${p.day}`;
+}
+// Dates students and teachers see are in Singapore time.
 function shortDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
-  return isNaN(d) ? "" : d.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" });
+  return isNaN(d) ? "" : d.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Singapore" });
 }
 // How an attempt reads in Teacher Mode and the CSV, e.g. "Presenting product information (wrong)".
 function attemptText(item, att) {
@@ -2395,7 +2405,7 @@ function qa(label, value) {
 function attemptsTable(items, firstCol) {
   return `<div class="table-wrap"><table class="results-table">
     <thead><tr><th scope="col">${firstCol}</th><th scope="col">First try</th><th scope="col">Second try</th></tr></thead>
-    <tbody>${items.map(it => `<tr><th scope="row">${escapeHtml(it.type === "select" ? `${it.id}. ${it.quote}` : it.type === "tf" ? `${it.id}. ${it.text}` : "Q4")}</th>
+    <tbody>${items.map(it => `<tr><th scope="row">${escapeHtml(it.type === "select" ? `${it.id}. ${it.quote}` : it.type === "tf" ? `${it.id}. ${it.text}` : "Q4. Best service recovery response")}</th>
       <td>${escapeHtml(attemptText(it, it._r.first && it._r.first[it.attemptKey]) || "–")}</td>
       <td>${escapeHtml(attemptText(it, it._r.second && it._r.second[it.attemptKey]) || "–")}</td></tr>`).join("")}</tbody>
   </table></div>`;
@@ -2495,7 +2505,7 @@ function downloadClassCsv(res) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `EBS-Ch6-${String(res.cls).replace(/[^A-Za-z0-9_-]/g, "_")}-results-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `EBS-Ch6-${String(res.cls).replace(/[^A-Za-z0-9_-]/g, "_")}-results-${sgDateStamp()}.csv`;
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);

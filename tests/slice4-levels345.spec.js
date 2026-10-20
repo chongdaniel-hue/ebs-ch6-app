@@ -361,8 +361,9 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await saved;
     await modal.locator("button", { hasText: "Back to my route" }).click();
     await expect(page.locator(".journey-count")).toHaveText("5 of 5 levels done");
-    await expect(page.locator(".welcome-card")).toHaveText("🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
-    await expect(page.locator("a.btn", { hasText: "📊 My learning report" })).toBeVisible();
+    await expect(page.locator(".welcome-text")).toHaveText("🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
+    await expect(page.locator(".welcome-card a.btn")).toHaveText("📊 My learning report"); // inside the welcome card
+    await expect(page.locator("a.btn", { hasText: "My learning report" })).toHaveCount(1);
 
     // Readable columns in the Sheet: Q3 and Q4 first try (2 of 5 right) and confidence.
     const sheet = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), "ebs-ch6-playwright-data", "sheets.json"), "utf8"));

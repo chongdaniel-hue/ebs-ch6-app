@@ -90,7 +90,7 @@ test.describe("Level 1", () => {
 
     expect(page.url()).toMatch(/#home$/);
     await expect(page.locator(".journey-count")).toHaveText("1 of 5 levels done");
-    await expect(page.locator(".welcome-card")).toHaveText("👋 Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
+    await expect(page.locator(".welcome-text")).toHaveText("👋 Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
     await expect(page.locator(".status-pill")).toHaveText(["✅ Story Sharer", "Not started", "🔒 Locked", "🔒 Locked", "🔒 Locked"]);
     await expect(page.locator(".shelf-name").first()).toHaveText("Story Sharer, earned");
 
@@ -280,14 +280,14 @@ test.describe("Level 2", () => {
     const page2 = await other.newPage();
     await login(page2, "3E1", 24);
     await expect(page2.locator(".status-pill")).toHaveText(["✅ Story Sharer", "In progress", "🔒 Locked", "🔒 Locked", "🔒 Locked"]);
-    await expect(page2.locator(".welcome-card")).toHaveText("👋 Welcome back! Your work has been loaded. You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
+    await expect(page2.locator(".welcome-text")).toHaveText("👋 Welcome back! Your work has been loaded. You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
     await page2.click("#levelCard2");
     await expect(page2.locator(".step-tab").nth(2)).toHaveAttribute("aria-current", "step");
     await expect(page2.locator(".path-stop")).toHaveCount(8);
     await expect(page2.locator(".step-tab.locked")).toHaveCount(0);
     // "Your work has been loaded." only on the first home page after logging in.
     await page2.click("#homeBtn");
-    await expect(page2.locator(".welcome-card")).toHaveText("👋 Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
+    await expect(page2.locator(".welcome-text")).toHaveText("👋 Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
     await other.close();
   });
 
