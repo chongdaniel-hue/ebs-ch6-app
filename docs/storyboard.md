@@ -1219,6 +1219,8 @@ These decisions were made while the app was built (19 to 20 October 2026). They 
 
 - **Segmenting:** extra Continue ↓ points in Level 2: before "Why does quality customer service matter?", before "Whether salespeople use the greeting, service or product approach...", before "To perform service recovery, follow these 8 steps:" and before "Many businesses also set clear rules for returns...".
 
+- **Card text (Level 2):** cards that continued a sentence now start with a capital letter (the three reasons and the two purposes of approaching; words and punctuation unchanged). Skills and qualities cards and the Replacement, Exchange and Refund cards show the name in bold on its own line with no colon, and the description below it starting with a capital letter.
+
 - **🔊 Listen:** each block of notes in Level 2 and the 4 key terms page has a Listen button (browser speech, notes only, never questions or answers; tap again to stop).
 
 - **Level header:** each level shows its card description under the title; finished tabs show ✓.
