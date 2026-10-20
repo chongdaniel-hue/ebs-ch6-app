@@ -84,7 +84,7 @@ test.describe("Level 1", () => {
     const badge = page.locator("#badgeModal");
     await expect(badge.locator("h2")).toHaveText("📝 Story Sharer");
     await expect(badge.locator(".badge-pop-text")).toHaveText("You earned the Story Sharer badge!");
-    await expect(badge.locator(".img-placeholder")).toBeVisible(); // badge picture not added yet
+    await expect(badge.locator('img[data-img="BADGE1"]')).toBeVisible();
     await checkPage(page, testInfo, "slice3-badge1");
     await badge.locator("button", { hasText: "Back to my route" }).click();
 
@@ -172,7 +172,7 @@ test.describe("Level 2", () => {
     expect(await page.locator("#part2 .ic-name").first().evaluate(el => Number(getComputedStyle(el).fontWeight))).toBeGreaterThanOrEqual(700);
     await page.click("#continueBtn");
     await expect(page.locator("#part3 h2")).toHaveText("📱 Good product knowledge");
-    await expect(page.locator('#part3 .img-placeholder[data-img="N02"]')).toBeVisible();
+    await expect(page.locator('#part3 img[data-img="N02"]')).toBeVisible();
     await expect(page.locator("#continueBtn")).toHaveCount(0);
     await expect(page.locator("#nextBtn")).toHaveText("Next: The Four Stages →");
     await checkPage(page, testInfo, "slice3-level2-tab1-end");
@@ -239,7 +239,7 @@ test.describe("Level 2", () => {
     await page.fill('textarea[data-answer="s2.think1"]', "Not good: no apology or solution.");
     await page.click("#continueBtn");
     await expect(page.locator("#part3 h2")).toHaveText("↩️ Handling returns of unsatisfactory products");
-    await expect(page.locator('#part3 .img-placeholder[data-img="N03"]')).toBeVisible();
+    await expect(page.locator('#part3 img[data-img="N03"]')).toBeVisible();
     await expect(page.locator("#part3 .ic-name")).toHaveText(["Replacement", "Exchange", "Refund"]);
     await expect(page.locator("#part3 .ic-desc")).toHaveText(["Replace it with the same product.", "Offer to exchange it with a different product.", "Give a refund."]);
     // Part 5 (new Continue point): the returns rules, Uniqlo, the second optional box, recap.

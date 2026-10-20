@@ -19,6 +19,14 @@ Read this with `CLAUDE.md`, `docs/storyboard.md` (including Section H, "Changes 
 
 These fill gaps in the storyboard. Student-facing wording here is approved and must be used exactly.
 
+### Illustration assets (20 October 2026, version 0.6.2)
+- The user asked for a more fun, image-rich platform and approved generating the storyboard's missing illustrations and badges using the existing Nexora comics as the style reference.
+- Added N01 (landing banner), N02 (product knowledge), N03 (returns comic), N04 (Alex), N05 (Suzzie), and the five named badge PNGs under `assets/img/`. Original comics are retained. The existing image map displays the new artwork without changing student wording or learning flow.
+- No separate Stylez reference was available; the user approved following the comic style for Suzzie's portrait. The About Stylez content remains a placeholder pending the actual store information.
+- The landing banner preserves its natural proportions so the illustration is shown in full. Updated image checks require all mapped artwork to load and explicitly test the accessible fallback for an unavailable image.
+- The user confirmed Vercel deployment and live testing have already happened; the earlier "not started" live-test notes below are historical. This image update still needs its own deployment before it appears live.
+- Validation: 82 Playwright checks passed at 1280px and 360px, with two duplicate phone checks intentionally skipped. Used the cloud environment's installed Chromium through its external Playwright configuration. Reviewed screenshots for alignment, spacing, consistent image treatment, full illustrations, and unclipped badge ribbons; existing automated contrast, tap-target, scrolling, saving, and progression checks passed. Artwork labels match the approved prompts. About Stylez remains the existing open content item.
+
 ### Back end
 - Design as proposed: GET `?action=classes`, GET `?action=load&class=&reg=`; POST (`text/plain` JSON) `save`, `teacherCheck`, `addClass`, `removeClass`, `results`, `clearStudent`. Teacher results go by POST so the code never appears in a URL.
 - Every reply is HTTP 200 JSON; failures are `{ok:false, error:"..."}` (`bad_code`, `no_class`, `bad_reg`, `too_big`, `busy`, `cleared`, `locked_out`, ...). The local server copies this exactly.
@@ -154,7 +162,7 @@ Display only: the words and punctuation stay exactly as in the storyboard.
 
 ## Open questions and things still to do
 
-1. **Pictures not yet added** (placeholders show until the files are dropped into `assets/img/`): N01 landing banner, N02 product knowledge, N03 returns comic, N04 Alex, N05 Suzzie, and the five badges (`badge-story-sharer.png`, `badge-service-scholar.png`, `badge-service-spotter.png`, `badge-service-star.png`, `badge-chapter-6-champion.png`).
+1. **Pictures added in 0.6.2:** N01 landing banner, N02 product knowledge, N03 returns comic, N04 Alex, N05 Suzzie, and all five achievement badges. See the illustration-assets decision above.
 2. **About Stylez card** still shows the storyboard's ⚑ placeholder text. Fill it in from the Stylez document so it matches Suzzie's Gem, and check Suzzie's look before making N05.
 3. **Level 4 opening line** ("Try: Hi, welcome to Stylez! How may I assist you?") is kept; delete it if Suzzie's Gem starts the chat itself.
 4. **Teacher code**: the group's code is the subject's name, which appears all over the app, so it is the first thing anyone would try. The lock-out (10 wrong codes in 10 minutes) slows guessing but does not stop a lucky first guess. Consider a code that cannot be guessed from the app. It only needs changing in Script Properties.

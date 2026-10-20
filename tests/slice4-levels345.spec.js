@@ -41,7 +41,7 @@ test.describe("Level 3: Chat with Alex", () => {
 
     // Tab 1: Chat.
     await expect(page.locator(".intro-with-pic p")).toHaveText("Meet Alex, a customer service officer at Nexora Mobile. You are the customer. During your chat, try to:");
-    await expect(page.locator('.intro-pic .img-placeholder[data-img="N04"]')).toBeVisible();
+    await expect(page.locator('.intro-pic img[data-img="N04"]')).toBeVisible();
     await expect(page.locator(".icon-card .ic-body")).toHaveText([
       "Ask about at least one product, and its price",
       "Ask a follow-up question or disagree with something (for example, say the price is too high)",
@@ -198,7 +198,7 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await page.click("#levelCard4");
     await expect(page.locator("h1.page-title")).toHaveText("🛍️ Level 4: Serve Suzzie at Stylez");
     await expect(page.locator(".intro-with-pic p")).toHaveText("Now switch roles. You are a customer service officer at Stylez, a retail store. The AI plays Suzzie, a customer with a question or a problem.");
-    await expect(page.locator('.intro-pic .img-placeholder[data-img="N05"]')).toBeVisible();
+    await expect(page.locator('.intro-pic img[data-img="N05"]')).toBeVisible();
     await expect(page.locator(".placeholder-title")).toHaveText("🏬 About Stylez");
     await expect(page.locator(".placeholder-flag")).toHaveText("⚑ PLACEHOLDER: fill in from the Stylez document (what Stylez sells, prices, store policies) so that it matches what Suzzie's Gem knows. Claude Code builds the card with this placeholder text until then.");
     await expect(page.locator(".start-box")).toHaveText("You start the conversation. Try: \"Hi, welcome to Stylez! How may I assist you?\"");

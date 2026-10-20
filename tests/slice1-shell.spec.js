@@ -9,13 +9,12 @@ test("landing page shell", async ({ page }, testInfo) => {
   await expect(page.locator("h1.topbar-title")).toHaveText("Customer Service");
   await expect(page.locator(".topbar-sub")).toHaveText("A self-study revision module");
   await expect(page.locator(".lead")).toHaveText("Hi! In this module, you'll revise Chapter 6: Customer Service. You'll read short notes, chat with an AI customer service officer, serve an AI customer yourself, and check what you've learnt.");
-  // N01 does not exist yet, so its placeholder box shows.
-  const ph = page.locator('.img-placeholder[data-img="N01"]');
-  await expect(ph).toBeVisible();
-  await expect(ph).toContainText("🏬");
-  await expect(ph).toHaveAttribute("role", "img");
+  const banner = page.locator('img[data-img="N01"]');
+  await expect(banner).toBeVisible();
+  await expect.poll(() => banner.evaluate(el => el.complete && el.naturalWidth > 0)).toBe(true);
+  await expect(banner).toHaveAttribute("alt", "The Nexora phone store, with the staff member welcoming a customer");
   await expect(page.locator(".credits")).toContainText("A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)");
-  await expect(page.locator(".credits")).toContainText("Version 0.6.1");
+  await expect(page.locator(".credits")).toContainText("Version 0.6.2");
   await expect(page.locator(".credits a.teacher-link")).toHaveText("Teacher Mode");
   // Zoom allowed.
   const vp = await page.locator('meta[name="viewport"]').getAttribute("content");
@@ -43,7 +42,7 @@ test("teacher mode screen", async ({ page }, testInfo) => {
   expect(errors).toEqual([]);
 });
 
-test("image map: existing files load, missing files show placeholders", async ({ page }, testInfo) => {
+test("image map: all artwork loads, failed requests show accessible placeholders", async ({ page }, testInfo) => {
   // A missing image makes the browser log a 404; that is expected here, so only page errors count.
   const pageErrors = [];
   page.on("pageerror", e => pageErrors.push(String(e)));
@@ -57,18 +56,21 @@ test("image map: existing files load, missing files show placeholders", async ({
   await page.waitForTimeout(800);
   for (const id of ids) {
     const box = page.locator(`.test-img[data-id="${id}"]`);
-    if (/^[CR]\d/.test(id)) {
-      const img = box.locator("img");
-      await expect(img, `${id} should load`).toBeVisible();
-      expect(await img.evaluate(el => el.complete && el.naturalWidth > 0)).toBe(true);
-      expect((await img.getAttribute("alt")).length).toBeGreaterThan(10);
-    } else {
-      await expect(box.locator(".img-placeholder"), `${id} should show a placeholder`).toBeVisible();
-    }
+    const img = box.locator("img");
+    await expect(img, `${id} should load`).toBeVisible();
+    await expect.poll(() => img.evaluate(el => el.complete && el.naturalWidth > 0)).toBe(true);
+    expect((await img.getAttribute("alt")).length).toBeGreaterThan(10);
   }
   await expectNoAmpersand(page);
   await expectNoSidewaysScroll(page);
   await shot(page, testInfo, "slice1-images");
+  // The fallback still works if an installed illustration becomes unavailable.
+  await page.route("**/assets/img/N01-landing-banner.jpg", route => route.fulfill({ status: 404, body: "Not found" }));
+  await page.reload();
+  const fallback = page.locator('.img-placeholder[data-img="N01"]');
+  await expect(fallback).toBeVisible();
+  await expect(fallback).toHaveAttribute("role", "img");
+  await expect(fallback).toHaveAttribute("aria-label", "The Nexora phone store, with the staff member welcoming a customer");
   expect(pageErrors).toEqual([]);
 });
 
