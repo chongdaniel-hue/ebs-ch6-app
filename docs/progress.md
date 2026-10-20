@@ -10,8 +10,9 @@ Read this with `CLAUDE.md` and `docs/storyboard.md` when starting a fresh sessio
 | 2 | Back end and login: `apps-script/Code.gs`, local stand-in `server/server.js`, setup guides, Teacher Mode sign-in and Classes tab, landing, Before you start, home, 4 key terms, Switch student, saving and loading, offline | Done (commits "Slice 2", "Slice 2 fixes") |
 | 3 | Levels 1 and 2 (Service Recovery Path), locks, tabs, Continue and Next, Badges 1 and 2 | Done (commits "Slice 3" to "Slice 3 final tweaks") |
 | 4 | Levels 3, 4 and 5, hint, retry and reveal feedback, exit ticket | Done (commits "Slice 4", "Slice 4 fixes") |
-| 5 | Learning report and the rest of Teacher Mode | Built, awaiting review (commit "Slice 5") |
-| 6 | Full check, GitHub Pages workflow, summary | Not started |
+| 5 | Learning report and the rest of Teacher Mode | Done (commits "Slice 5", "Slice 5 fixes") |
+| 6 | Full check, GitHub Pages workflow, summary | Built, awaiting review (commit "Slice 6") |
+| Next | Live set-up and test: the group follows `docs/apps-script-setup.md` and `docs/github-setup.md`, then we test the live version together | Not started |
 
 ## Decisions agreed with the user (19 October 2026)
 
@@ -138,7 +139,22 @@ G1 students need strong visual support. Visual treatment may change how text loo
 - **This device**: "Unlock all levels on this device" (the storyboard message, then a "Turn off" button); "Reset this device" asks for the teacher code again, then clears every student's copy on the device and logs out; work not yet sent is kept until it reaches the server.
 - Teacher-facing wording I added (please check): Results "Choose a class", "Loading…", "Class summary: {class}", "{n} students with saved work.", "Levels finished", "Most missed on the first try" (only items someone got wrong; "Nothing missed on the first try yet." otherwise), "Confidence", "Q7: one question I still have", "Students", "Tap a row to open the student's full report.", item labels such as "Q2 R (answer: Closing the customer experience positively): wrong for 2 of 2", "No. 12 (cleared)", "← Back to the class", "(blank)" for empty answers; This device "🔓 Unlock all levels" and "🧹 Reset this device" headings with the storyboard descriptions, "Turn off", the reset pop-up "Key in the teacher code." and "Reset" / "Cancel", "Device reset. It is ready for the next student." (or, when work is still unsent, "Device reset. Work for {n} students has not been sent yet. It has been kept on this device and will be sent when the device is online."). Student-facing: the report shows "Not finished yet" for a level not finished (only possible with Unlock all levels).
 
-## Open questions
+## How slice 6 works (for the next session)
 
-- R03 now has a clean crop (from Dan). It still shows "Return & Exchange Conditions", an ampersand inside a real screenshot.
-- `CLAUDE.md` asks for no more than about one screen of reading before the next Continue ↓. Some Level 2 parts (e.g. Tab 1 part 1) are about two phone screens; the Continue points come from the storyboard, so changing them needs the group's decision.
+- **Full check** (`tests/slice6-full-check.spec.js`): walks every student and Teacher Mode screen at 1280px and 360px and fails on text contrast below 4.5:1 (3:1 for large text, worked out from the colours actually shown, including opacity), placeholder hints below 4.5:1, images without alt text, controls or buttons without a name, tap targets under 44px, more or fewer than one h1, duplicate ids, a missing page language, ampersands, sideways scrolling and console errors. Screenshots of every screen go to `tests/screenshots/final-*.png`; the text of every screen to `test-results/screen-text-*.txt` for the wording check.
+- **GitHub Pages**: `.github/workflows/pages.yml` copies only `index.html`, `app.js`, `styles.css`, `config.js` and `assets/` into the published site on every push to `main` (or by hand from the Actions tab). All paths are relative, so the app works under `https://<user>.github.io/<repo>/` (checked by serving the published files from a sub-folder).
+- **Code.gs** adds 100 rows when a tab is full before writing (a new Google Sheet tab has 1,000 rows and writing past the last row fails). The local stand-in now enforces the row limit, and a test saves 12 students into a 5-row tab.
+- Run everything with `npx playwright test` (about 3 to 4 minutes). On this Windows machine the Playwright test process very occasionally crashes ("worker process exited unexpectedly"); a rerun passes.
+
+## Open questions and things still to do
+
+1. **Pictures not yet added** (placeholders show until the files are dropped into `assets/img/`): N01 landing banner, N02 product knowledge, N03 returns comic, N04 Alex, N05 Suzzie, and the five badges (`badge-story-sharer.png`, `badge-service-scholar.png`, `badge-service-spotter.png`, `badge-service-star.png`, `badge-chapter-6-champion.png`).
+2. **About Stylez card** still shows the storyboard's ⚑ placeholder text. Fill it in from the Stylez document so it matches Suzzie's Gem, and check Suzzie's look before making N05.
+3. **Level 4 opening line** ("Try: Hi, welcome to Stylez! How may I assist you?") is kept; delete it if Suzzie's Gem starts the chat itself.
+4. **Teacher code**: the group's code is the subject's name, which appears all over the public repository and the app, so it is the first thing anyone would try. The lock-out (10 wrong codes in 10 minutes) slows guessing but does not stop a lucky first guess. Consider a code that cannot be guessed from the app. It only needs changing in Script Properties.
+5. **Live test still to do**: deploy the Apps Script (check that the account offers "Who has access: Anyone"), set `SERVER: "live"` and `LIVE_URL` in `config.js`, push to GitHub, then test together on a phone and a laptop: log in, save, second device, offline and back, Teacher Mode results, Clear this student's work, CSV. Things only the live set-up can confirm: Google's redirect on every request, the "save on closing the page" beacon reaching Apps Script, and how quickly a class of 40 saving together is handled.
+6. **The R03 picture** shows "Return & Exchange Conditions": an ampersand inside a real Uniqlo screenshot, not text the app writes.
+7. **Segmenting**: some Level 2 parts are still longer than one phone screen because splitting them would break a list or separate a picture or question from its words (listed above under the segmenting decision).
+8. **Storyboard documents**: `docs/storyboard.md` and `.docx` do not include the decisions in this file (welcome lines, 📌 Remember this, summary card wording, and so on). This file counts as part of the storyboard, but the teachers' .docx may need updating if they read only that.
+9. **Privacy**: the storyboard asks the group to confirm with their tutor that storing class and register number in a Google Sheet is acceptable.
+10. **Git identity**: commits so far are under the neutral "EBS Ch6 team"; `docs/github-setup.md` explains how to commit under a private GitHub address before pushing future changes.

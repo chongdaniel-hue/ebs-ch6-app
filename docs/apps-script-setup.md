@@ -131,7 +131,7 @@ You can read results in the app's Teacher Mode, which is easier. If you open the
 
 ## How much can it handle?
 
-Google allows a script like this to run about 30 requests at the same moment. The app is built so that a class of 40 working together stays well under that: each device saves at most every 10 seconds while a student moves through the notes, at most every 30 seconds while typing, and right away only when a student submits. A save that fails is kept on the device and tried again a little later.
+Google allows a script like this to run about 30 requests at the same moment. The app is built so that a class of 40 working together stays well under that: each device saves at most every 10 seconds while a student moves through the notes, at most every 30 seconds while typing, and right away only when a student submits, taps Check again or finishes a level. A save that fails is kept on the device and tried again a little later.
 
 ## For developers: testing on your own computer
 

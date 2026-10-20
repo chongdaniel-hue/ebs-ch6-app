@@ -1200,7 +1200,7 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
   font-weight:700;
 }
 .page p.check-prompt{max-width:none;}
-.feedback.faded{opacity:0.45;margin-top:6px;}
+.feedback.faded{margin-top:6px;background:#F3F1F2;border-left-color:#B8A9AF;color:#4B5563;}
 
 /* Revealed answers: the right option outlined in green with "✓ Correct answer", the
    student's pick marked ✗. Meaning never rests on colour alone. */
@@ -1354,3 +1354,5 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 /* Teacher tables keep a readable width on phones and scroll sideways inside their box. */
 .results-table{min-width:560px;}
 .welcome-card .welcome-btn{margin-top:14px;}
+/* Hints inside answer boxes: readable everywhere (at least 4.5:1, also on locked boxes). */
+.textarea-input::placeholder,.text-input::placeholder{color:#5B6370;opacity:1;}

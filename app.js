@@ -47,9 +47,11 @@
         This device (unlock all levels, Reset this device).
    0.5.1 Singapore time for dates and the CSV name; report button in the
         welcome card; Q4 labelled in the teacher's report.
+   0.6  Slice 6: full check (contrast fixes for hints and the faded hint),
+        GitHub Pages workflow; Code.gs adds rows when the Sheet is full.
    ============================================================ */
 
-const APP_VERSION = "0.5.1";
+const APP_VERSION = "0.6";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */

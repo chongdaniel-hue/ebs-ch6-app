@@ -135,6 +135,15 @@ function dataRows(sheet, width) {
   return sheet.getRange(2, 1, last - 1, width).getValues();
 }
 
+// The next empty row. A new Google Sheet has 1,000 rows and writing past the last one
+// fails, so more rows are added first (100 at a time) when the sheet is full.
+function nextRow(sheet) {
+  var row = sheet.getLastRow() + 1;
+  var max = sheet.getMaxRows();
+  if (row > max) sheet.insertRowsAfter(max, 100);
+  return row;
+}
+
 function nowIso() { return new Date().toISOString(); }
 function nowText() { return Utilities.formatDate(new Date(), TIME_ZONE, "yyyy-MM-dd HH:mm:ss"); }
 
@@ -191,7 +200,7 @@ function addClass(rawName) {
     if (list.some(function (c) { return c.name.toLowerCase() === lower; })) return { ok: false, error: "duplicate" };
     var order = list.reduce(function (m, c) { return Math.max(m, c.order); }, 0) + 1;
     var sheet = ensureSheets().classes;
-    var row = sheet.getLastRow() + 1;
+    var row = nextRow(sheet);
     sheet.getRange(row, 1, 1, CLASSES_HEADERS.length).setNumberFormat("@").setValues([[name, String(order), nowText()]]);
     CacheService.getScriptCache().remove("classes");
     return classLists();
@@ -267,7 +276,7 @@ function saveStudent(record) {
     var json = JSON.stringify(merged);
     if (json.length > MAX_RECORD_CHARS) return { ok: false, error: "too_big" };
     var values = studentRowValues(key, merged, nowText(), stored.clearedAt, json);
-    if (row === -1) row = sheet.getLastRow() + 1;
+    if (row === -1) row = nextRow(sheet);
     sheet.getRange(row, 1, 1, STUDENTS_HEADERS.length).setNumberFormat("@").setValues([values]);
     return { ok: true, record: merged, clearedAt: stored.clearedAt };
   });
@@ -315,7 +324,7 @@ function clearStudent(cls, reg) {
     var sheet = ensureSheets().students;
     var key = studentKey(name, n);
     var row = findStudentRow(sheet, key);
-    if (row === -1) row = sheet.getLastRow() + 1;
+    if (row === -1) row = nextRow(sheet);
     var clearedAt = nowText();
     sheet.getRange(row, 1, 1, STUDENTS_HEADERS.length).setNumberFormat("@")
       .setValues([studentRowValues(key, null, "", clearedAt, "")]);

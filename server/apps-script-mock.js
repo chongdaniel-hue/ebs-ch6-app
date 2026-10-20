@@ -14,7 +14,11 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-function createAppsScript({ dataDir, teacherCode }) {
+// maxRows: how many rows a new tab has (1,000 in Google Sheets); writing past it fails,
+// as in Google Sheets, until rows are added with insertRowsAfter.
+function createAppsScript({ dataDir, teacherCode, maxRows }) {
+  const startRows = maxRows || 1000;
+  const extraRows = {};
   const file = path.join(dataDir, "sheets.json");
   let book = {};
   try { book = JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) { book = {}; }
@@ -35,7 +39,8 @@ function createAppsScript({ dataDir, teacherCode }) {
         while (last > 0 && r[last - 1].every(v => v === "")) last--;
         return last;
       },
-      getMaxRows() { return Math.max(1000, rows().length); },
+      getMaxRows() { return startRows + (extraRows[name] || 0); },
+      insertRowsAfter(after, howMany) { extraRows[name] = (extraRows[name] || 0) + howMany; return sheet; },
       setFrozenRows() { return sheet; },
       deleteRow(n) { rows().splice(n - 1, 1); },
       getRange(row, col, numRows, numCols) {
@@ -53,6 +58,9 @@ function createAppsScript({ dataDir, teacherCode }) {
             return out;
           },
           setValues(values) {
+            if (row + numRows - 1 > sheet.getMaxRows()) {
+              throw new Error("The coordinates of the range are outside the dimensions of the sheet.");
+            }
             if (values.length !== numRows || values.some(v => v.length !== numCols)) {
               throw new Error("The number of rows or columns in the data does not match the range.");
             }
@@ -142,7 +150,7 @@ function createAppsScript({ dataDir, teacherCode }) {
       save();
       return out.getContent();
     },
-    reset() { book = {}; cacheStore.clear(); hooks.busy = 0; save(); },
+    reset() { book = {}; cacheStore.clear(); hooks.busy = 0; Object.keys(extraRows).forEach(k => delete extraRows[k]); save(); },
     hooks,
     context
   };
