@@ -9,6 +9,8 @@ const path = require("path");
 // not matter. Test workers inherit it from this process.
 process.env.TEST_TEACHER_CODE = process.env.TEST_TEACHER_CODE || "T" + crypto.randomBytes(5).toString("hex").toUpperCase();
 
+process.env.TEST_RESET_CODE = process.env.TEST_RESET_CODE || "R" + crypto.randomBytes(5).toString("hex").toUpperCase();
+
 module.exports = defineConfig({
   testDir: "tests",
   timeout: 60000,
@@ -24,6 +26,7 @@ module.exports = defineConfig({
     env: {
       PORT: "8788",
       TEACHER_CODE: process.env.TEST_TEACHER_CODE,
+      RESET_CODE: process.env.TEST_RESET_CODE,
       DATA_DIR: path.join(os.tmpdir(), "ebs-ch6-playwright-data"),
       ALLOW_TEST_HOOKS: "1"
     },

@@ -146,3 +146,14 @@ TEACHER_CODE=choose-a-test-code npm start
 ```
 
 and open <http://localhost:8787>. On Windows PowerShell, run `$env:TEACHER_CODE = 'choose-a-test-code'; node server/server.js` instead (PowerShell often blocks `npm` scripts, and this starts the same server). Stop the server with Ctrl+C. Test data is stored in `server/data/`, which is never committed. Run the automated checks with `npx playwright test`.
+
+## Password-protected student reset (version 0.6.9)
+
+The footer's **Reset progress** button clears the currently signed-in student's answers, attempts, badges and progression from both the browser and the Sheet. It preserves every other student and all classes. It requires an internet connection and asks for a separate reset password, checked on the server without case sensitivity. Teacher Mode keeps its own code.
+
+1. Paste the updated `apps-script/Code.gs` into the existing Apps Script project and save it.
+2. Under **Project Settings → Script Properties**, add `RESET_CODE` with the reset password agreed privately with the owner. Keep the value out of files and logs.
+3. Follow **After a code change: deploy again, keeping the same URL** above. Choose **New version** under the existing deployment.
+4. Check the reset using a dedicated test student. Old offline saves must not bring the cleared answers back.
+
+A website push does not update Google Apps Script. Until these steps are done, the new button reports that reset is not set up and preserves the student's browser copy. For local testing only, supply a throwaway `RESET_CODE` environment variable as well as `TEACHER_CODE`.

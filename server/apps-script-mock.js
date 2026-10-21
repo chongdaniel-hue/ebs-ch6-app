@@ -16,7 +16,7 @@ const vm = require("vm");
 
 // maxRows: how many rows a new tab has (1,000 in Google Sheets); writing past it fails,
 // as in Google Sheets, until rows are added with insertRowsAfter.
-function createAppsScript({ dataDir, teacherCode, maxRows }) {
+function createAppsScript({ dataDir, teacherCode, resetCode, maxRows }) {
   const startRows = maxRows || 1000;
   const extraRows = {};
   const file = path.join(dataDir, "sheets.json");
@@ -112,7 +112,7 @@ function createAppsScript({ dataDir, teacherCode, maxRows }) {
     },
     CacheService: { getScriptCache: () => cache },
     PropertiesService: {
-      getScriptProperties: () => ({ getProperty: (k) => (k === "TEACHER_CODE" ? teacherCode || null : null) })
+      getScriptProperties: () => ({ getProperty: (k) => (k === "TEACHER_CODE" ? teacherCode || null : k === "RESET_CODE" ? resetCode || null : null) })
     },
     ContentService: {
       MimeType: { JSON: "application/json" },

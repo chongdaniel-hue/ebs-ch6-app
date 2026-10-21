@@ -11,6 +11,7 @@
    One web app URL handles every request:
      GET  ?action=classes                      list of classes (anyone)
      GET  ?action=load&class=3E1&reg=12        one student's saved work
+     POST {action:"resetProgress", code, class, reg} protected by RESET_CODE
      POST {action:"save", record}              save one student's work
      POST {action:"teacherCheck", code}        check the teacher code
      POST {action:"addClass", code, name}
@@ -75,6 +76,7 @@ function doPost(e) {
   return respond(safely(function () {
     switch (body.action) {
       case "save": return saveStudent(body.record);
+      case "resetProgress": return resetOnly(body.code, function () { return clearStudent(body["class"], body.reg); });
       case "teacherCheck": return teacherOnly(body.code, function () { return classLists(); });
       case "addClass": return teacherOnly(body.code, function () { return addClass(body.name); });
       case "removeClass": return teacherOnly(body.code, function () { return removeClass(body.name); });
@@ -325,7 +327,12 @@ function clearStudent(cls, reg) {
     var key = studentKey(name, n);
     var row = findStudentRow(sheet, key);
     if (row === -1) row = nextRow(sheet);
-    var clearedAt = nowText();
+    var previous = readStudent(sheet, row).clearedAt;
+    var clearedAt = nowText() + "." + String(new Date().getMilliseconds() + 1000).slice(1);
+    if (previous && clearedAt <= previous) {
+      // Preserve sortable local-time markers, with a strictly newer suffix.
+      clearedAt = previous + "1";
+    }
     sheet.getRange(row, 1, 1, STUDENTS_HEADERS.length).setNumberFormat("@")
       .setValues([studentRowValues(key, null, "", clearedAt, "")]);
     return { ok: true, clearedAt: clearedAt };
@@ -335,23 +342,31 @@ function clearStudent(cls, reg) {
 /* ---------------- Teacher code ---------------- */
 
 function teacherOnly(code, fn) {
+  return protectedAction(code, "TEACHER_CODE", "no_teacher_code", "", fn);
+}
+
+function resetOnly(code, fn) {
+  return protectedAction(code, "RESET_CODE", "no_reset_code", "reset_", fn);
+}
+
+function protectedAction(code, property, missingError, prefix, fn) {
   var cache = CacheService.getScriptCache();
-  if (cache.get("lockedOut")) return { ok: false, error: "locked_out" };
-  var expected = PropertiesService.getScriptProperties().getProperty("TEACHER_CODE");
-  if (!expected) return { ok: false, error: "no_teacher_code" };
+  if (cache.get(prefix + "lockedOut")) return { ok: false, error: "locked_out" };
+  var expected = PropertiesService.getScriptProperties().getProperty(property);
+  if (!expected) return { ok: false, error: missingError };
   // Not case sensitive, and spaces before or after it are ignored. Used by Teacher Mode
   // sign-in, every teacher action and Reset this device.
   if (String(code == null ? "" : code).trim().toLowerCase() !== String(expected).trim().toLowerCase()) {
     var now = Date.now();
-    var state = JSON.parse(cache.get("badCodes") || "null") || { n: 0, since: now };
+    var state = JSON.parse(cache.get(prefix + "badCodes") || "null") || { n: 0, since: now };
     state.n += 1;
     var left = Math.max(1, BAD_CODE_WINDOW_SECONDS - Math.floor((now - state.since) / 1000));
     if (state.n >= BAD_CODE_LIMIT) {
-      cache.put("lockedOut", "1", LOCKOUT_SECONDS);
-      cache.remove("badCodes");
+      cache.put(prefix + "lockedOut", "1", LOCKOUT_SECONDS);
+      cache.remove(prefix + "badCodes");
       return { ok: false, error: "locked_out" };
     }
-    cache.put("badCodes", JSON.stringify(state), left);
+    cache.put(prefix + "badCodes", JSON.stringify(state), left);
     return { ok: false, error: "bad_code" };
   }
   return fn();

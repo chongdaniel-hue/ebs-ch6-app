@@ -25,7 +25,7 @@ const { createAppsScript } = require("./apps-script-mock");
 const PORT = process.env.PORT || 8787;
 const ROOT = path.join(__dirname, "..");
 const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, "data");
-const script = createAppsScript({ dataDir: DATA_DIR, teacherCode: process.env.TEACHER_CODE || "" });
+const script = createAppsScript({ dataDir: DATA_DIR, teacherCode: process.env.TEACHER_CODE || "", resetCode: process.env.RESET_CODE || "" });
 // Only the Playwright tests turn these on (reset the data, make saves fail for a while).
 const TEST_HOOKS = process.env.ALLOW_TEST_HOOKS === "1";
 const MAX_BODY = 200 * 1024;

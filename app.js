@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.8";
+const APP_VERSION = "0.6.9";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -360,13 +360,16 @@ function enqueue(key, due, urgent) {
 let flushTimer = null;
 function scheduleFlush() {
   const q = loadQueue();
-  const keys = Object.keys(q);
+  const keys = Object.keys(q).filter(k => k !== resettingKey);
   if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; }
   if (!keys.length) return;
   const soonest = Math.min.apply(null, keys.map(k => q[k].nextAt || 0));
   flushTimer = setTimeout(flushQueue, Math.max(0, soonest - Date.now()));
 }
 
+// Ignore responses started before a successful reset, including delayed loads and saves.
+const resetGenerations = new Map();
+let resettingKey = "";
 let flushing = false;
 let sendProblem = false;        // the last send did not work and work is waiting (V45)
 let serverUnreachable = false;  // the server could not be reached at log-in
@@ -378,14 +381,15 @@ async function flushQueue() {
     let networkDown = false;
     while (!networkDown) {
       const q = loadQueue();
-      const key = Object.keys(q).find(k => (q[k].nextAt || 0) <= Date.now());
+      const key = Object.keys(q).find(k => k !== resettingKey && (q[k].nextAt || 0) <= Date.now());
       if (!key) break;
       const record = lsGet(KEYS.rec(key));
       if (!record) { delete q[key]; saveQueue(q); continue; }
+      const generation = resetGenerations.get(key) || 0;
       let reply = null;
       try { reply = await api("POST", { action: "save", record }, 20000); }
       catch (e) { networkDown = true; }
-      handleSaveReply(key, record, reply);
+      if (generation === (resetGenerations.get(key) || 0)) handleSaveReply(key, record, reply);
     }
   } finally {
     flushing = false;
@@ -416,6 +420,8 @@ function dropFromQueue(key) {
 }
 
 function handleSaveReply(key, sent, reply) {
+  const current = lsGet(KEYS.rec(key));
+  if (reply && (reply.ok || reply.error === "cleared") && current && String(current.baseClearedAt || "") > String(reply.clearedAt || "")) return;
   if (!reply || (!reply.ok && !PERMANENT_ERRORS.includes(reply.error) && reply.error !== "cleared")) {
     retryLater(key); // no answer, "busy" or a server problem: try again later
     return;
@@ -453,7 +459,7 @@ function handleSaveReply(key, sent, reply) {
 // Last chance when the page is closed or hidden: send without waiting for a reply.
 // The entry stays in the queue until a normal save is confirmed.
 function sendBeaconNow() {
-  if (!student || !rec || !navigator.sendBeacon || !apiUrl()) return;
+  if (!student || !rec || activeKey() === resettingKey || !navigator.sendBeacon || !apiUrl()) return;
   if (!loadQueue()[activeKey()]) return;
   try {
     navigator.sendBeacon(apiUrl(), new Blob([JSON.stringify({ action: "save", record: rec })], { type: "text/plain" }));
@@ -545,7 +551,8 @@ function topBarHtml(opts) {
 function footerHtml() {
   return `
     <footer class="credits">
-      <p><a href="#teacher" class="teacher-link">Teacher Mode</a></p>
+      <p class="footer-actions"><a href="#teacher" class="teacher-link">Teacher Mode</a>
+        <button type="button" class="footer-reset" data-reset-progress ${student ? "" : "disabled"}>Reset progress</button></p>
       <p>A team effort by Anthony, Daniel, Joshua and Jufinnie <span class="nowrap">(NIE 2026)</span></p>
       <p class="credits-version">Version ${APP_VERSION}</p>
     </footer>`;
@@ -571,12 +578,102 @@ function showModal({ id, title, bodyHtml, buttons, className }) {
   btns.forEach((el, i) => el.addEventListener("click", () => { wrap.remove(); if (buttons[i].onClick) buttons[i].onClick(); }));
   wrap.addEventListener("keydown", (e) => {
     if (e.key !== "Tab") return;
-    const first = btns[0], last = btns[btns.length - 1];
+    const controls = Array.from(wrap.querySelectorAll("button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href]"));
+    const first = controls[0], last = controls[controls.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
   btns[0].focus();
   return wrap;
+}
+
+// The shared footer is present on every route. No password is stored in the page.
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-reset-progress]") && student && !resettingKey) showProgressReset();
+});
+
+function showProgressReset() {
+  const target = { ...student };
+  const key = studentKey(target.cls, target.reg);
+  const previousFocus = document.activeElement;
+  const wrap = document.createElement("div");
+  wrap.id = "progressResetModal";
+  wrap.className = "modal-backdrop";
+  setGraphicHtml(wrap, `
+    <form class="modal" role="dialog" aria-modal="true" aria-labelledby="progressResetTitle" aria-describedby="progressResetDescription">
+      <h2 class="modal-title" id="progressResetTitle">Reset progress</h2>
+      <p id="progressResetDescription">Clear all answers, badges and progress for Class ${escapeHtml(target.cls)}, Register No. ${target.reg}, on this device and the server. This cannot be undone. Other students' work will stay intact.</p>
+      <label for="progressResetPassword" class="field-label">Key in the reset password.</label>
+      <input type="password" class="text-input" id="progressResetPassword" autocomplete="off" required>
+      <p class="form-error" role="alert" id="progressResetError" hidden></p>
+      <p role="status" id="progressResetStatus" hidden>Resetting progress…</p>
+      <div class="btn-row modal-btns">
+        <button type="submit" class="btn">Reset progress</button>
+        <button type="button" class="btn secondary" id="cancelProgressReset">Cancel</button>
+      </div>
+    </form>`);
+  document.body.appendChild(wrap);
+  const input = wrap.querySelector("input");
+  const buttons = Array.from(wrap.querySelectorAll("button"));
+  const close = () => { wrap.remove(); if (previousFocus && previousFocus.isConnected) previousFocus.focus(); };
+  wrap.querySelector("#cancelProgressReset").addEventListener("click", close);
+  wrap.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !resettingKey) { e.preventDefault(); close(); }
+    if (e.key !== "Tab") return;
+    const controls = [input, ...buttons].filter(el => !el.disabled);
+    if (!controls.length) { e.preventDefault(); return; }
+    const first = controls[0], last = controls[controls.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  wrap.querySelector("form").addEventListener("submit", async e => {
+    e.preventDefault();
+    if (resettingKey || key !== activeKey()) return;
+    resettingKey = key;
+    scheduleFlush();
+    input.disabled = true;
+    buttons.forEach(b => { b.disabled = true; });
+    const error = wrap.querySelector("#progressResetError");
+    const status = wrap.querySelector("#progressResetStatus");
+    error.hidden = true;
+    status.hidden = false;
+    let reply;
+    try {
+      reply = await api("POST", { action: "resetProgress", code: input.value, "class": target.cls, reg: target.reg }, 20000);
+    } catch (err) { reply = { ok: false, error: "network" }; }
+    input.value = "";
+    resettingKey = "";
+    status.hidden = true;
+    if (reply.ok && reply.clearedAt) {
+      resetGenerations.set(key, (resetGenerations.get(key) || 0) + 1);
+      dropFromQueue(key);
+      if (key === activeKey()) {
+        if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+        lastTypingSend = 0;
+        rec = freshRecord(target.cls, target.reg, reply.clearedAt);
+        saveLocal();
+        lsRemove(KEYS.unlockAll);
+        close();
+        window.location.hash = "#home";
+        render();
+      } else {
+        lsSet(KEYS.rec(key), freshRecord(target.cls, target.reg, reply.clearedAt));
+        close();
+      }
+      updateNetBanner();
+    } else {
+      error.textContent = reply.error === "bad_code" ? "Incorrect password. Try again."
+        : reply.error === "locked_out" ? "Too many incorrect passwords. Try again in 10 minutes."
+        : ["no_reset_code", "unknown_action"].includes(reply.error) ? "Reset is not set up on the server yet. Ask your teacher."
+        : "Reset could not be confirmed. Connect to the internet and try again.";
+      error.hidden = false;
+      input.disabled = false;
+      buttons.forEach(b => { b.disabled = false; });
+      input.focus();
+    }
+    scheduleFlush();
+  });
+  input.focus();
 }
 
 /* ---------------- 0.2 Before you start ---------------- */
@@ -2784,10 +2881,12 @@ function resetThisDevice() {
 // On opening the app, pick up work saved from another device.
 async function syncActiveFromServer() {
   const key = activeKey();
+  const generation = resetGenerations.get(key) || 0;
   let reply;
   try { reply = await api("GET", { action: "load", "class": student.cls, reg: String(student.reg) }, 10000); }
   catch (e) { serverUnreachable = true; updateNetBanner(); return; }
-  if (!reply.ok || key !== activeKey()) return;
+  if (!reply.ok || key !== activeKey() || generation !== (resetGenerations.get(key) || 0)) return;
+  if (String(rec.baseClearedAt || "") > String(reply.clearedAt || "")) return;
   const before = JSON.stringify(rec);
   if (reply.clearedAt && String(rec.baseClearedAt || "") < reply.clearedAt) {
     rec = freshRecord(student.cls, student.reg, reply.clearedAt);
