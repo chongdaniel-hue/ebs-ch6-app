@@ -144,6 +144,15 @@ test.describe("new student", () => {
     await expect(page.locator("h1.page-title")).toHaveText("📘 4 key terms");
     await expect(page.locator(".lead")).toHaveText("You'll meet these words in Level 2. Read them once now.");
     await expect(page.locator(".term-list .definition")).toHaveCount(4);
+    const termIcons = page.locator(".term-graphic img");
+    await expect(termIcons).toHaveCount(4);
+    await expect.poll(() => termIcons.evaluateAll(imgs => imgs.every(img => img.complete && img.naturalWidth > 0))).toBe(true);
+    const termStyle = await page.locator(".term-list .definition").evaluateAll(cards => cards.map(card => ({
+      colour: getComputedStyle(card).backgroundColor,
+      ratio: card.querySelector(".term-graphic").getBoundingClientRect().width / (1.5 * parseFloat(getComputedStyle(document.documentElement).fontSize))
+    })));
+    expect(new Set(termStyle.map(s => s.colour)).size).toBe(4);
+    termStyle.forEach(s => expect(s.ratio).toBeCloseTo(2.5));
     await expect(page.locator(".term-list .def-body")).toHaveText([
       "Customer service: Customer service refers to what businesses do for their customers so that they are happy and satisfied.",
       "Quality customer service: Quality customer service means doing more for customers to exceed their expectations.",

@@ -28,6 +28,10 @@ window.APP_CONFIG = {
      alt   = what a screen reader says (from the storyboard)
      label = the short description shown in the placeholder box */
   IMAGES: {
+    TERM_SERVICE: { file: "assets/img/term-customer-service.png", emoji: "🎧", label: "Customer service", alt: "Customer service icon" },
+    TERM_QUALITY: { file: "assets/img/term-quality-customer-service.png", emoji: "⭐", label: "Quality customer service", alt: "Quality customer service icon" },
+    TERM_BREAKDOWN: { file: "assets/img/term-service-breakdown.png", emoji: "⚠️", label: "Service breakdown", alt: "Service breakdown icon" },
+    TERM_RECOVERY: { file: "assets/img/term-service-recovery.png", emoji: "🛠️", label: "Service recovery", alt: "Service recovery icon" },
     N01: {
       file: "assets/img/N01-landing-banner.jpg",
       emoji: "🏬",

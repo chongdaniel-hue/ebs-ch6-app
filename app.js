@@ -51,10 +51,11 @@
         GitHub Pages workflow; Code.gs adds rows when the Sheet is full.
    0.6.1 Level 2 cards: capital first letters; skill and returns names on
         their own line above the description.
+   0.6.3 Four key terms: distinct card colours and larger generated icons.
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.2";
+const APP_VERSION = "0.6.3";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -859,10 +860,10 @@ function switchStudent() {
 /* ---------------- 0.4 4 key terms ---------------- */
 
 const KEY_TERMS = [
-  { term: "Customer service", text: "Customer service refers to what businesses do for their customers so that they are happy and satisfied." },
-  { term: "Quality customer service", text: "Quality customer service means doing more for customers to exceed their expectations." },
-  { term: "Service breakdown", text: "A service breakdown occurs when customers make a complaint about a product or service." },
-  { term: "Service recovery", text: "Service recovery is a process whereby a business takes action in response to service breakdown or failure." }
+  { term: "Customer service", icon: "TERM_SERVICE", tone: "service", text: "Customer service refers to what businesses do for their customers so that they are happy and satisfied." },
+  { term: "Quality customer service", icon: "TERM_QUALITY", tone: "quality", text: "Quality customer service means doing more for customers to exceed their expectations." },
+  { term: "Service breakdown", icon: "TERM_BREAKDOWN", tone: "breakdown", text: "A service breakdown occurs when customers make a complaint about a product or service." },
+  { term: "Service recovery", icon: "TERM_RECOVERY", tone: "recovery", text: "Service recovery is a process whereby a business takes action in response to service breakdown or failure." }
 ];
 
 function renderTerms() {
@@ -877,7 +878,7 @@ function renderTerms() {
         <p class="lead">You'll meet these words in Level 2. Read them once now.</p>
         <section class="terms-block" id="termsBlock" aria-label="4 key terms">
           <ul class="term-list">
-            ${KEY_TERMS.map(t => `<li>${definitionHtml(`<p><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.text)}</p>`)}</li>`).join("")}
+            ${KEY_TERMS.map(t => `<li><div class="definition term-definition term-${t.tone}" role="note"><span class="term-graphic" aria-hidden="true">${imgHtml(t.icon)}</span><div class="def-body"><p><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.text)}</p></div></div></li>`).join("")}
           </ul>
         </section>
         <div class="btn-row"><a href="#home" class="btn" id="termsDone">Got it, back to my route</a></div>

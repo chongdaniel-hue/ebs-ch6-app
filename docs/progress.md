@@ -19,6 +19,13 @@ Read this with `CLAUDE.md`, `docs/storyboard.md` (including Section H, "Changes 
 
 These fill gaps in the storyboard. Student-facing wording here is approved and must be used exactly.
 
+### Four key terms (21 October 2026, version 0.6.3)
+- The user requested a different colour for each of the four key-term definition boxes and generated graphic icons in place of the repeated book emoji, at 2.5 times its size.
+- Key-term cards use pale blue, mint, amber and lavender with matching borders, keeping all approved wording unchanged. Other textbook definition boxes retain their existing treatment.
+- Four generated transparent icons represent customer service (headset and speech), quality (star and check), breakdown (cracked phone and warning), and recovery (repair arrow, wrench and check). Their 3.75rem square display size is exactly 2.5 times the original 1.5rem book icon.
+- New files are in assets/img/term-*.png and registered in the existing image map. The existing assets/ publishing allowance covers them; no publishing configuration changes are needed.
+- Validation: 82 Playwright checks passed at 1280px and 360px, with two duplicate phone checks intentionally skipped. The existing glossary check now verifies four distinct card colours, all four loaded icons and a 2.5 size ratio. Reviewed all 164 generated screenshots through contact sheets, plus full-size key-term views on laptop and phone: readable text, consistent alignment and spacing, transparent icons shown in full, and no sideways overflow.
+
 ### Illustration assets (20 October 2026, version 0.6.2)
 - The user asked for a more fun, image-rich platform and approved generating the storyboard's missing illustrations and badges using the existing Nexora comics as the style reference.
 - Added N01 (landing banner), N02 (product knowledge), N03 (returns comic), N04 (Alex), N05 (Suzzie), and the five named badge PNGs under `assets/img/`. Original comics are retained. The existing image map displays the new artwork without changing student wording or learning flow.
