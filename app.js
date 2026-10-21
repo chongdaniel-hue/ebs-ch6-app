@@ -51,11 +51,12 @@
         GitHub Pages workflow; Code.gs adds rows when the Sheet is full.
    0.6.1 Level 2 cards: capital first letters; skill and returns names on
         their own line above the description.
+   0.6.4 Replaced remaining book symbols with contextual graphic icons.
    0.6.3 Four key terms: distinct card colours and larger generated icons.
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.3";
+const APP_VERSION = "0.6.4";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -112,11 +113,19 @@ function imgFallback(el) {
   if (wrap.firstElementChild) el.replaceWith(wrap.firstElementChild);
 }
 
+// Replacements keep the original symbol's size as the 1x baseline.
+function graphicIconHtml(id, cls) {
+  return `<span class="graphic-icon ${cls || ""}" aria-hidden="true">${imgHtml(id)}</span>`;
+}
+function levelIconHtml(level) {
+  return level.iconImg ? graphicIconHtml(level.iconImg) : level.icon;
+}
+
 /* ---------------- Levels (home page route) ---------------- */
 
 const LEVELS = [
   { num: 1, icon: "📝", title: "Your Customer Service Stories", desc: "Think about your own experiences as a customer.", badge: "Story Sharer", badgeImg: "BADGE1" },
-  { num: 2, icon: "📘", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the four stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
+  { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the four stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
   { num: 3, icon: "💬", title: "Chat with Alex", desc: "Be the customer. Chat with Nexora's customer service officer.", badge: "Service Spotter", badgeImg: "BADGE3" },
   { num: 4, icon: "🛍️", title: "Serve Suzzie at Stylez", desc: "Switch roles. Now you're the customer service officer.", badge: "Service Star", badgeImg: "BADGE4" },
   { num: 5, icon: "✅", title: "Check and Exit Ticket", desc: "Check what you've learnt and tell your teacher how confident you feel.", badge: "Chapter 6 Champion", badgeImg: "BADGE5" }
@@ -754,7 +763,7 @@ function renderLevelCard(s) {
       <button type="button" class="level-card status-${status}" id="levelCard${s.num}" data-num="${s.num}" ${status === "locked" ? `aria-disabled="true" aria-describedby="lockedMsg${s.num}"` : ""}>
         <span class="num-badge" aria-hidden="true">${status === "done" ? "✓" : status === "locked" ? "🔒" : s.num}</span>
         <span class="info">
-          <span class="level-name"><span aria-hidden="true">${s.icon}</span> <span class="visually-hidden">Level ${s.num}: </span>${escapeHtml(s.title)}</span>
+          <span class="level-name ${s.iconImg ? "with-graphic" : ""}"><span aria-hidden="true">${levelIconHtml(s)}</span> <span><span class="visually-hidden">Level ${s.num}: </span>${escapeHtml(s.title)}</span></span>
           <span class="level-desc">${escapeHtml(s.desc)}</span>
           ${pill}
         </span>
@@ -791,7 +800,7 @@ function renderHome() {
       </div>
       <div class="block">
         <a href="#terms" class="terms-card">
-          <span class="terms-icon" aria-hidden="true">📘</span>
+          ${graphicIconHtml("ICON_TERMS", "terms-guide-graphic")}
           <span><strong>Start here: 4 key terms</strong><br><span class="terms-sub">A 1-minute look before Level 2</span></span>
         </a>
       </div>
@@ -872,7 +881,7 @@ function renderTerms() {
     <main class="page">
       <div class="block">
         <div class="head-row">
-          <h1 class="page-title">📘 4 key terms</h1>
+          <h1 class="page-title graphic-heading">${graphicIconHtml("ICON_TERMS")}<span>4 key terms</span></h1>
           ${listenButtonHtml("termsBlock")}
         </div>
         <p class="lead">You'll meet these words in Level 2. Read them once now.</p>
@@ -964,7 +973,7 @@ function renderLevel(n) {
   app.innerHTML = `
     ${topBarHtml({ showHome: true, showChip: true })}
     <div class="level-head"><div class="level-head-inner">
-      <h1 class="page-title">${s.icon} Level ${n}: ${escapeHtml(s.title)}</h1>
+      <h1 class="page-title ${s.iconImg ? "graphic-heading" : ""}">${levelIconHtml(s)} <span>Level ${n}: ${escapeHtml(s.title)}</span></h1>
       <p class="level-sub">${escapeHtml(s.desc)}</p>
     </div></div>
     ${tabBarHtml(n, t)}
@@ -1083,7 +1092,7 @@ function showBadgePopup(n) {
   showModal({
     id: "badgeModal",
     className: "badge-modal",
-    title: `${(CONFIG.IMAGES[s.badgeImg] || {}).emoji || s.icon} ${escapeHtml(s.badge)}`, // the badge's own emoji (e.g. 🔍 for Badge 3)
+    title: s.iconImg ? `<span class="graphic-heading">${levelIconHtml(s)}<span>${escapeHtml(s.badge)}</span></span>` : `${(CONFIG.IMAGES[s.badgeImg] || {}).emoji || s.icon} ${escapeHtml(s.badge)}`, // the badge's own emoji (e.g. 🔍 for Badge 3)
     bodyHtml: `<div class="badge-pop-img">${imgHtml(s.badgeImg, "badge-img")}</div>
       <p class="badge-pop-text">You earned the ${escapeHtml(s.badge)} badge!</p>`,
     buttons: [{ label: "Back to my route", primary: true, onClick: () => { window.location.hash = "#home"; } }]
@@ -1121,8 +1130,8 @@ document.addEventListener("change", (e) => { const x = e.target.closest && e.tar
 function hIcon(icon) { return `<span class="h-icon" aria-hidden="true">${icon}</span> `; }
 
 // A textbook definition, the one to learn: the same 📖 box everywhere.
-function definitionHtml(innerHtml) {
-  return `<div class="definition" role="note"><span class="def-icon" aria-hidden="true">📖</span><div class="def-body">${innerHtml}</div></div>`;
+function definitionHtml(innerHtml, iconId) {
+  return `<div class="definition" role="note">${graphicIconHtml(iconId, "definition-graphic")}<div class="def-body">${innerHtml}</div></div>`;
 }
 
 // A row of icon cards (stacks on phones). items: [{icon, html}]
@@ -1328,10 +1337,10 @@ const L2_TABS = [
     parts: [
       notesPart(() => `
         <h2 class="section-title">${hIcon("🤝")}What is customer service?</h2>
-        ${definitionHtml(`<p><strong>Customer service</strong> refers to what businesses do for their customers so that they are happy and satisfied.</p>`)}
+        ${definitionHtml(`<p><strong>Customer service</strong> refers to what businesses do for their customers so that they are happy and satisfied.</p>`, "TERM_SERVICE")}
         <p>It takes place the moment a customer enters a shop, a restaurant or an attraction, and continues even after the customer has made a purchase and left the venue.</p>
         <h2 class="section-title">${hIcon("⭐")}What is quality customer service?</h2>
-        ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to exceed their expectations.</p>`)}
+        ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to exceed their expectations.</p>`, "TERM_QUALITY")}
 `),
       notesPart(() => `
         <h2 class="section-title">${hIcon("❓")}Why does quality customer service matter?</h2>
@@ -1425,8 +1434,8 @@ const L2_TABS = [
     parts: [
       notesPart(() => `
           <h2 class="section-title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
-          ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`)}
-          ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`)}`),
+          ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
+          ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}`),
       notesPart((ctx) => {
         // First time on the path: Step 1 only. Coming back later: all 8 at once.
         if (ctx.fresh || !pathShownNow) pathShownNow = pathShown() >= 1 ? 8 : 1;
@@ -2113,13 +2122,13 @@ function renderReport() {
         <ul class="report-levels">
           ${LEVELS.map(s => {
             const when = recDone(r, s.num);
-            const badge = (CONFIG.IMAGES[s.badgeImg] || {}).emoji || s.icon;
+            const badge = s.iconImg ? levelIconHtml(s) : (CONFIG.IMAGES[s.badgeImg] || {}).emoji || s.icon;
             return `<li class="report-level ${when ? "done" : ""}">
               <div class="report-badge">${imgHtml(s.badgeImg, "badge-img")}</div>
               <div class="report-level-body">
                 <p class="report-level-name">Level ${s.num}: ${escapeHtml(s.title)}</p>
                 <p class="report-level-when">${when ? `✅ ${escapeHtml(shortDate(when))}` : "Not finished yet"}</p>
-                <p class="report-level-badge">${when ? `${badge} ${escapeHtml(s.badge)}` : ""}</p>
+                <p class="report-level-badge ${s.iconImg ? "graphic-heading" : ""}">${when ? `${badge} ${escapeHtml(s.badge)}` : ""}</p>
               </div>
             </li>`;
           }).join("")}

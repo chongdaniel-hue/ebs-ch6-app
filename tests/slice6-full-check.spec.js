@@ -10,6 +10,7 @@ const {
 // Runs in the page: returns a list of problems on the current screen.
 function auditScreen() {
   const problems = [];
+  if (/[📖📘📚]/u.test(document.body.innerText)) problems.push("book symbol remains on screen");
   const visible = el => {
     if (!(el instanceof Element)) return false;
     const r = el.getBoundingClientRect();

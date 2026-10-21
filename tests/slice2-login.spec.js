@@ -104,7 +104,7 @@ test.describe("new student", () => {
     await expect(page.locator(".terms-card")).toContainText("A 1-minute look before Level 2");
     await expect(page.locator(".journey-count")).toHaveText("0 of 5 levels done");
     await expect(page.locator(".level-name")).toHaveText([
-      "📝 Level 1: Your Customer Service Stories", "📘 Level 2: Learn: Customer Service",
+      "📝 Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service",
       "💬 Level 3: Chat with Alex", "🛍️ Level 4: Serve Suzzie at Stylez", "✅ Level 5: Check and Exit Ticket"
     ]);
     await expect(page.locator(".level-desc")).toHaveText([
@@ -141,7 +141,7 @@ test.describe("new student", () => {
     await page.click("#briefing button");
 
     await page.click(".terms-card");
-    await expect(page.locator("h1.page-title")).toHaveText("📘 4 key terms");
+    await expect(page.locator("h1.page-title")).toHaveText("4 key terms");
     await expect(page.locator(".lead")).toHaveText("You'll meet these words in Level 2. Read them once now.");
     await expect(page.locator(".term-list .definition")).toHaveCount(4);
     const termIcons = page.locator(".term-graphic img");

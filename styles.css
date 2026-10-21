@@ -1375,3 +1375,17 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .term-graphic .img-placeholder{display:flex;align-items:center;justify-content:center;}
 .term-graphic .img-placeholder-emoji{font-size:3.75rem;line-height:1;}
 .term-graphic .img-placeholder-label{display:none;}
+
+/* Contextual graphics are 2.5 times the book symbol they replace. */
+.graphic-icon{--original-icon-size:1em;display:inline-flex;flex:none;width:calc(var(--original-icon-size) * 2.5);height:calc(var(--original-icon-size) * 2.5);line-height:1;vertical-align:middle;}
+.graphic-icon .content-img,.graphic-icon .img-placeholder{display:block;width:100%;height:100%;min-height:0;max-width:none;margin:0;padding:0;object-fit:contain;border:0;border-radius:0;background:transparent;}
+.graphic-icon .img-placeholder{display:flex;align-items:center;justify-content:center;}
+.graphic-icon .img-placeholder-emoji{font-size:2em;line-height:1;}
+.graphic-icon .img-placeholder-label{display:none;}
+.terms-guide-graphic{--original-icon-size:1.8rem;}
+.definition-graphic{--original-icon-size:1.5rem;}
+.definition{align-items:center;}
+.graphic-heading,.level-name.with-graphic{display:flex;align-items:center;gap:12px;}
+.graphic-heading > span:last-child,.level-name.with-graphic > span:last-child{min-width:0;}
+.badge-modal .graphic-heading{justify-content:center;}
+.report-level-badge.graphic-heading{gap:8px;}

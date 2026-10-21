@@ -28,6 +28,8 @@ window.APP_CONFIG = {
      alt   = what a screen reader says (from the storyboard)
      label = the short description shown in the placeholder box */
   IMAGES: {
+    ICON_TERMS: { file: "assets/img/icon-key-terms.png", emoji: "🔑", label: "4 key terms", alt: "Four key terms graphic" },
+    ICON_LEARN: { file: "assets/img/icon-customer-service-learning.png", emoji: "🎓", label: "Learn customer service", alt: "Customer service learning graphic" },
     TERM_SERVICE: { file: "assets/img/term-customer-service.png", emoji: "🎧", label: "Customer service", alt: "Customer service icon" },
     TERM_QUALITY: { file: "assets/img/term-quality-customer-service.png", emoji: "⭐", label: "Quality customer service", alt: "Quality customer service icon" },
     TERM_BREAKDOWN: { file: "assets/img/term-service-breakdown.png", emoji: "⚠️", label: "Service breakdown", alt: "Service breakdown icon" },
@@ -105,7 +107,7 @@ window.APP_CONFIG = {
       alt: "Uniqlo return and exchange conditions: returns within 30 days of purchase; products that cannot be returned or exchanged include used, washed and altered products."
     },
     BADGE1: { file: "assets/img/badge-story-sharer.png", emoji: "📝", label: "Story Sharer", alt: "Story Sharer badge" },
-    BADGE2: { file: "assets/img/badge-service-scholar.png", emoji: "📘", label: "Service Scholar", alt: "Service Scholar badge" },
+    BADGE2: { file: "assets/img/badge-service-scholar-v2.png", emoji: "🎓", label: "Service Scholar", alt: "Service Scholar badge" },
     BADGE3: { file: "assets/img/badge-service-spotter.png", emoji: "🔍", label: "Service Spotter", alt: "Service Spotter badge" },
     BADGE4: { file: "assets/img/badge-service-star.png", emoji: "⭐", label: "Service Star", alt: "Service Star badge" },
     BADGE5: { file: "assets/img/badge-chapter-6-champion.png", emoji: "🏆", label: "Chapter 6 Champion", alt: "Chapter 6 Champion badge" }

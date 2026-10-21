@@ -19,6 +19,12 @@ Read this with `CLAUDE.md`, `docs/storyboard.md` (including Section H, "Changes 
 
 These fill gaps in the storyboard. Student-facing wording here is approved and must be used exactly.
 
+### Contextual graphic icons (21 October 2026, version 0.6.4)
+- The user accepted the four coloured key-term cards, then requested relevant graphic replacements for every remaining book icon, at 2.5 times the original symbol's size.
+- The four contextual term graphics now replace book symbols in the Level 2 definition boxes. Generated glossary and learning graphics replace book symbols in home links, route cards, page headings, badge pop-up labels and learning reports. The Service Scholar badge replaces its central book with a learning symbol; its ribbon wording and badge display size remain unchanged.
+- Replacement sizes follow the previous icon in each location: 60px in definitions (24px x 2.5), 72px in the home glossary link (28.8px x 2.5), and 2.5em for heading and label icons. Existing non-book icons and accepted key-term graphics keep their sizes.
+- The user requires a local preview after every change and approval before publishing. Acceptance of a design is not permission to publish the next edit.
+
 ### Four key terms (21 October 2026, version 0.6.3)
 - The user requested a different colour for each of the four key-term definition boxes and generated graphic icons in place of the repeated book emoji, at 2.5 times its size.
 - Key-term cards use pale blue, mint, amber and lavender with matching borders, keeping all approved wording unchanged. Other textbook definition boxes retain their existing treatment.
@@ -180,3 +186,5 @@ Display only: the words and punctuation stay exactly as in the storyboard.
 9. **Privacy**: the storyboard asks the group to confirm with their tutor that storing class and register number in a Google Sheet is acceptable.
 10. **Vercel and groupmates' pushes**: the Vercel project is on Dan's free Hobby account and the repository is private, so a deployment of a commit by someone else may show as **Blocked**. Agreed rule: the groupmate tells Dan, and Dan redeploys it from the Vercel dashboard (Deployments, ⋯, Redeploy). Steps in `docs/HANDOVER.md`.
 11. **Groupmates and AI tools**: a groupmate will continue with ChatGPT (Codex) connected to the GitHub repository. `AGENTS.md` makes Codex follow `CLAUDE.md`; `docs/HANDOVER.md` covers running the tests, pulling before starting and pushing small changes often.
+
+Validation for 0.6.4: full Playwright suite passed on laptop and phone (82 passed, 2 intentional skips, no failures). Reviewed all 164 screenshots and confirmed the refreshed local preview on Level 2. No deployment or push performed; awaiting user preview review.

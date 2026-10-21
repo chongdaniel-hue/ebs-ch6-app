@@ -123,7 +123,7 @@ test.describe("Level 2", () => {
     await newStudent(page, request, 23);
     await finishLevel1(page);
     await page.click("#levelCard2");
-    await expect(page.locator("h1.page-title")).toHaveText("📘 Level 2: Learn: Customer Service");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 2: Learn: Customer Service");
 
     // Step tabs: only the first is open; the others are locked and cannot be opened.
     const tabs = page.locator(".step-tab");
@@ -252,7 +252,7 @@ test.describe("Level 2", () => {
     await expect(page.locator("#finishBtn")).toHaveText("Finish Level 2");
     await checkPage(page, testInfo, "slice3-level2-end");
     await page.click("#finishBtn");
-    await expect(page.locator("#badgeModal h2")).toHaveText("📘 Service Scholar");
+    await expect(page.locator("#badgeModal h2")).toHaveText("Service Scholar");
     await expect(page.locator("#badgeModal .badge-pop-text")).toHaveText("You earned the Service Scholar badge!");
     await page.locator("#badgeModal button").click();
     await expect(page.locator(".status-pill")).toHaveText(["✅ Story Sharer", "✅ Service Scholar", "Not started", "🔒 Locked", "🔒 Locked"]);
