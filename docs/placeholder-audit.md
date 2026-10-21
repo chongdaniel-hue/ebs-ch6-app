@@ -1,12 +1,8 @@
-# Application placeholder audit — 21 October 2026
+# Application placeholder audit — updated 21 October 2026
 
-## Unfinished content: one card
+## About Stylez: resolved
 
-**Level 4 → Roleplay → About Stylez** still displays:
-
-> PLACEHOLDER: fill in from the Stylez document (what Stylez sells, prices, store policies) so that it matches what Suzzie's Gem knows. Claude Code builds the card with this placeholder text until then.
-
-The final card needs the actual Stylez products, prices and store policies used by Suzzie's Gem. This is the only explicit unfinished content placeholder in the current application. No replacement facts have been invented.
+The user supplied the authoritative Stylez roleplay Word document. Level 4 now has a two-sentence introduction and a button opening all 17 business-information rows from its Section 2. The earlier fictional proposal is superseded and is not used in the app. The Word file itself is unchanged.
 
 ## Images: no missing artwork
 

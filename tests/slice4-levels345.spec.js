@@ -192,15 +192,25 @@ test.describe("Level 3: Chat with Alex", () => {
 });
 
 test.describe("Level 4: Serve Suzzie at Stylez", () => {
-  test("roleplay tab, About Stylez placeholder, reflect, recap, badge", async ({ page, request }, testInfo) => {
+  test("roleplay tab, Stylez document reference, reflect, recap, badge", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
     await studentAt(page, request, 42, 4);
     await page.click("#levelCard4");
     await expect(page.locator("h1.page-title")).toHaveText("Level 4: Serve Suzzie at Stylez");
     await expect(page.locator(".intro-with-pic p")).toHaveText("Now switch roles. You are a customer service officer at Stylez, a retail store. The AI plays Suzzie, a customer with a question or a problem.");
     await expect(page.locator('.intro-pic img[data-img="N05"]')).toBeVisible();
-    await expect(page.locator(".placeholder-title")).toHaveText("About Stylez");
-    await expect(page.locator(".placeholder-flag")).toHaveText("PLACEHOLDER: fill in from the Stylez document (what Stylez sells, prices, store policies) so that it matches what Suzzie's Gem knows. Claude Code builds the card with this placeholder text until then.");
+    await expect(page.locator("#aboutStylezTitle")).toHaveText("About Stylez");
+    await expect(page.locator(".stylez-intro p")).toHaveText("Stylez is a casual clothing retailer for teenagers and young adults. It sells affordable everyday clothing in-store and online, including T-shirts, jeans, hoodies, dresses, shorts and accessories.");
+    await expect(page.locator(".placeholder-card")).toHaveCount(0);
+    await page.click("#stylezInfoBtn");
+    await expect(page).toHaveURL(/#stylez$/);
+    await expect(page.locator("h1")).toHaveText("Stylez store information");
+    await expect(page.locator(".stylez-fact")).toHaveCount(17);
+    await expect(page.locator(".stylez-fact dd")).toHaveText(["Casual clothing retailer for teenagers and young adults; sells affordable everyday clothing in-store and online.", "T-shirts, jeans, hoodies, dresses, shorts and accessories.", "XS to XL.", "$18 each.", "$39 each.", "$35 each.", "Buy 2 Basic T-shirts for $30.", "Stylez members get 10% off regular-priced items.", "STYLE10 gives 10% off the first online order.", "For this practice tool, promotions cannot be combined.", "Exchange within 14 days with receipt.", "Item must be unworn, unwashed and have its original tags.", "No exchange.", "Customer may bring the item and receipt to the store for assistance.", "Cash, cards and common mobile payment methods.", "Free delivery for orders of $60 or more.", "Available in-store or through Stylez online chat."]);
+    await checkPage(page, testInfo, "slice4-stylez-information");
+    await page.click("#stylezBack");
+    await expect(page).toHaveURL(/#level4$/);
+    await expect(page.locator("#nextBtn")).toBeDisabled();
     await expect(page.locator(".start-box")).toHaveText("You start the conversation. Try: \"Hi, welcome to Stylez! How may I assist you?\"");
     await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.");
     await expect(page.locator(".gem-btn")).toHaveText("Open Suzzie (new tab)");

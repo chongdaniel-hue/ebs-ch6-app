@@ -1,3 +1,5 @@
+> Superseded: use the user-supplied Stylez roleplay Word document and the app’s Stylez reference page. This earlier fictional proposal is not used in the application.
+
 # Proposed Stylez store profile
 
 Fictional classroom details for a Singapore clothes shop. These are suggested details, not verified facts from Suzzie's Gem. Use the same approved list in both the app and the Gem before students use the roleplay.

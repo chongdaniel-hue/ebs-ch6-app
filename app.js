@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.7";
+const APP_VERSION = "0.6.8";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -623,6 +623,7 @@ function render() {
   const m = hash.match(/^#level([1-5])$/);
   if (hash === "#terms") renderTerms();
   else if (hash === "#report") renderReport();
+  else if (hash === "#stylez") renderStylezInfo();
   else if (m && isUnlocked(Number(m[1]))) renderLevel(Number(m[1]));
   else {
     if (hash !== "#home" && hash !== "") { history.replaceState(null, "", "#home"); }
@@ -1836,6 +1837,130 @@ const L3_TABS = [
 
 /* ---------------- Level 4: Serve Suzzie at Stylez ---------------- */
 
+// Store facts copied from Section 2 of the supplied Stylez roleplay document.
+const STYLEZ_INTRO = "Stylez is a casual clothing retailer for teenagers and young adults. It sells affordable everyday clothing in-store and online, including T-shirts, jeans, hoodies, dresses, shorts and accessories.";
+const STYLEZ_INFORMATION = [
+  {
+    "title": "About Stylez",
+    "icon": "🏬",
+    "facts": [
+      [
+        "Business",
+        "Casual clothing retailer for teenagers and young adults; sells affordable everyday clothing in-store and online."
+      ],
+      [
+        "Products",
+        "T-shirts, jeans, hoodies, dresses, shorts and accessories."
+      ],
+      [
+        "Sizes",
+        "XS to XL."
+      ]
+    ]
+  },
+  {
+    "title": "Products and prices",
+    "icon": "💲",
+    "facts": [
+      [
+        "Basic T-shirt",
+        "$18 each."
+      ],
+      [
+        "Jeans",
+        "$39 each."
+      ],
+      [
+        "Hoodie",
+        "$35 each."
+      ]
+    ]
+  },
+  {
+    "title": "Promotions",
+    "icon": "🎟️",
+    "facts": [
+      [
+        "Promotion 1",
+        "Buy 2 Basic T-shirts for $30."
+      ],
+      [
+        "Promotion 2",
+        "Stylez members get 10% off regular-priced items."
+      ],
+      [
+        "Promo code",
+        "STYLE10 gives 10% off the first online order."
+      ],
+      [
+        "Promotion condition",
+        "For this practice tool, promotions cannot be combined."
+      ]
+    ]
+  },
+  {
+    "title": "Exchanges and defective items",
+    "icon": "🔁",
+    "facts": [
+      [
+        "Exchange",
+        "Exchange within 14 days with receipt."
+      ],
+      [
+        "Exchange conditions",
+        "Item must be unworn, unwashed and have its original tags."
+      ],
+      [
+        "Sale items",
+        "No exchange."
+      ],
+      [
+        "Defective items",
+        "Customer may bring the item and receipt to the store for assistance."
+      ]
+    ]
+  },
+  {
+    "title": "Payment, delivery and support",
+    "icon": "💬",
+    "facts": [
+      [
+        "Payment",
+        "Cash, cards and common mobile payment methods."
+      ],
+      [
+        "Online delivery",
+        "Free delivery for orders of $60 or more."
+      ],
+      [
+        "Customer support",
+        "Available in-store or through Stylez online chat."
+      ]
+    ]
+  }
+];
+
+function renderStylezInfo() {
+  setGraphicHtml(app, `
+    ${topBarHtml({ showHome: true, showChip: true })}
+    <main class="page stylez-info-page">
+      <div class="block">
+        <h1 class="page-title">${hIcon("🏬")}Stylez store information</h1>
+        <p>Use this information when serving Suzzie.</p>
+      </div>
+      ${STYLEZ_INFORMATION.map((group, i) => `
+        <section class="block card stylez-info-group" aria-labelledby="stylezGroup${i}">
+          <h2 class="section-title" id="stylezGroup${i}">${hIcon(group.icon)}${escapeHtml(group.title)}</h2>
+          <dl class="stylez-facts">${group.facts.map(([label, value]) => `
+            <div class="stylez-fact"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
+          </dl>
+        </section>`).join("")}
+      <div class="btn-row"><a href="#level4" class="btn secondary" id="stylezBack">Back to Level 4</a></div>
+    </main>
+    ${footerHtml()}
+  `);
+}
+
 const L4_BOXES = [
   { key: "s4.q1", num: 1, icon: "👍", text: "What is one thing you feel you did well when serving Suzzie?", hint: "I did well at..." },
   { key: "s4.q2", num: 2, icon: "🔄", text: "What is one thing you would do differently next time?", hint: "Next time, I would..." }
@@ -1854,10 +1979,11 @@ const L4_TABS = [
           <div class="intro-pic">${imgHtml("N05", "avatar-img")}</div>
           <p>Now switch roles. You are a customer service officer at Stylez, a retail store. The AI plays Suzzie, a customer with a question or a problem.</p>
         </div>
-        <div class="card placeholder-card" role="note">
-          <h3 class="placeholder-title"><span aria-hidden="true">🏬</span> About Stylez</h3>
-          <p class="placeholder-flag">⚑ PLACEHOLDER: fill in from the Stylez document (what Stylez sells, prices, store policies) so that it matches what Suzzie's Gem knows. Claude Code builds the card with this placeholder text until then.</p>
-        </div>
+        <section class="card stylez-intro" aria-labelledby="aboutStylezTitle">
+          <h3 class="section-title" id="aboutStylezTitle">${hIcon("🏬")}About Stylez</h3>
+          <p>${escapeHtml(STYLEZ_INTRO)}</p>
+          <div class="btn-row"><a href="#stylez" class="btn secondary" id="stylezInfoBtn">View all Stylez information</a></div>
+        </section>
         <div class="start-box">
           <p><strong>You start the conversation.</strong> Try:</p>
           ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
