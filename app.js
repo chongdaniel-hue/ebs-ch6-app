@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.10";
+const APP_VERSION = "0.6.11";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -1462,6 +1462,54 @@ function notesPart(htmlFn, extra) {
   }, extra || {});
 }
 
+// Optional illustrated examples do not change answers, progress or level locks.
+const PRODUCT_KNOWLEDGE_EXAMPLES = [
+  { id: "features", icon: "📋", image: "PK_FEATURES", title: "Product features and specifications (e.g. screen size, battery life)",
+    dialogue: "This phone has a large screen for reading. Let me show you its screen size and battery details." },
+  { id: "price", icon: "💲", image: "PK_PRICE", title: "Price and available options",
+    dialogue: "This model comes in blue or black. Let me check the price for the storage option you want." },
+  { id: "care", icon: "🧴", image: "PK_CARE", title: "How to use or care for the product",
+    dialogue: "Use a protective case and wipe the screen with a soft, dry cloth." },
+  { id: "warranty", icon: "🛡️", image: "PK_WARRANTY", title: "Warranty and after-sales support",
+    dialogue: "Keep your receipt. I can explain what the warranty covers and how to get help after your purchase." },
+  { id: "selling-point", icon: "⭐", image: "PK_SELLING_POINT", title: "Unique selling points of the product (why your product is better than competitors' products)",
+    dialogue: "Compared with this other model, this phone has a longer battery life. It may suit you if you use your phone often." }
+];
+
+function productKnowledgeCardsHtml() {
+  return `<ul class="icon-cards chips product-knowledge-cards">${PRODUCT_KNOWLEDGE_EXAMPLES.map(example => `
+    <li><button type="button" class="icon-card product-knowledge-card" data-product-example="${example.id}" aria-haspopup="dialog">
+      <span class="ic-icon" aria-hidden="true">${example.icon}</span>
+      <span class="ic-body">${escapeHtml(example.title)}<span class="product-example-link">View example</span></span>
+    </button></li>`).join("")}</ul>`;
+}
+
+function showProductKnowledgeExample(id, trigger) {
+  const example = PRODUCT_KNOWLEDGE_EXAMPLES.find(item => item.id === id);
+  if (!example) return;
+  const restoreFocus = () => { if (trigger && trigger.isConnected) trigger.focus(); };
+  const wrap = showModal({
+    id: "productExampleModal",
+    className: "product-example-modal",
+    title: escapeHtml(example.title),
+    bodyHtml: `<figure class="product-example-figure">
+      ${imgHtml(example.image, "product-example-image")}
+      <figcaption><p class="product-example-label">An example at Nexora</p>
+        <p class="say">${escapeHtml(example.dialogue)}</p>
+        <p class="product-example-note">AI-generated illustration of a fictional example.</p></figcaption>
+      </figure>`,
+    buttons: [{ label: "Close", primary: true, onClick: restoreFocus }]
+  });
+  if (wrap) wrap.addEventListener("keydown", e => {
+    if (e.key === "Escape") { e.preventDefault(); wrap.remove(); restoreFocus(); }
+  });
+}
+
+document.addEventListener("click", e => {
+  const trigger = e.target.closest("[data-product-example]");
+  if (trigger) showProductKnowledgeExample(trigger.dataset.productExample, trigger);
+});
+
 const L2_TABS = [
   {
     label: "Quality Customer Service",
@@ -1497,13 +1545,8 @@ const L2_TABS = [
       notesPart(() => `
         <h2 class="section-title">${hIcon("📱")}Good product knowledge</h2>
         <p>Staff need good product knowledge to answer questions accurately, not guess. This includes:</p>
-        ${iconCardsHtml([
-          { icon: "📋", html: "Product features and specifications (e.g. screen size, battery life)" },
-          { icon: "💲", html: "Price and available options" },
-          { icon: "🧴", html: "How to use or care for the product" },
-          { icon: "🛡️", html: "Warranty and after-sales support" },
-          { icon: "⭐", html: "Unique selling points of the product (why your product is better than competitors' products)" }
-        ], "chips")}
+        <p class="product-example-instruction">Tap a card to see the Nexora staff member explain it.</p>
+        ${productKnowledgeCardsHtml()}
         ${imgHtml("N02", "notes-img")}`)
     ]
   },
