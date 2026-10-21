@@ -43,8 +43,8 @@ These appear inside otherwise empty inputs and are not missing lesson content:
 
 Other answer boxes intentionally have no hint. The three dropdown prompts are “Choose your class…” on login, “Choose a stage…” in Level 3, and “Choose a class…” in Teacher Mode Results. These are empty selection prompts, not unfinished content. They must remain unselected until the user chooses.
 
-## One provisional instruction to confirm later
+## Level 4 opening instruction: confirmed from the supplied introduction
 
-Level 4 includes “You start the conversation. Try:” and “Hi, welcome to Stylez! How may I assist you?” The storyboard says to remove this opening instruction **if Suzzie's Gem starts the conversation itself**. It is approved current wording, not a visible placeholder. The external Gem's opening behavior has not been changed or verified in this local visual update.
+Level 4 includes “You start the conversation. Try:” and “Hi, welcome to Stylez! How may I assist you?” The storyboard says to remove this opening instruction **if Suzzie's Gem starts the conversation itself**. It is approved current wording, not a visible placeholder. On 21 October 2026, the user supplied the Gem ending in 52ae797badcf. Its visible introduction invites the student to welcome Suzzie, confirming that the current opening instruction fits. The local app link was updated to this supplied Gem; no conversation was submitted and no Gem instructions were edited.
 
 The local preview's “Preview class” is demonstration data. The Alex and Suzzie links and the live backend URL are configured; none is a placeholder URL. This audit checks local application content and files, and does not claim the external services were retested.

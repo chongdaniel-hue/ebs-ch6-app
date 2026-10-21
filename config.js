@@ -18,7 +18,7 @@ window.APP_CONFIG = {
   /* ---------- 2. Chatbot links (open in a new tab) ---------- */
   GEMS: {
     alex: "https://gemini.google.com/gem/03f888f88087",
-    suzzie: "https://gemini.google.com/gem/1lfkE4kuic0cBsFwXlTNjKbOaGi6r0tK_?usp=sharing"
+    suzzie: "https://gemini.google.com/gem/52ae797badcf?usp=sharing"
   },
 
   /* ---------- 3. Images ----------
@@ -183,10 +183,10 @@ window.APP_CONFIG = {
       label: "Uniqlo return and exchange conditions",
       alt: "Uniqlo return and exchange conditions: returns within 30 days of purchase; products that cannot be returned or exchanged include used, washed and altered products."
     },
-    BADGE1: { file: "assets/img/badge-story-sharer.png", emoji: "📝", label: "Story Sharer", alt: "Story Sharer badge" },
-    BADGE2: { file: "assets/img/badge-service-scholar-v2.png", emoji: "🎓", label: "Service Scholar", alt: "Service Scholar badge" },
-    BADGE3: { file: "assets/img/badge-service-spotter.png", emoji: "🔍", label: "Service Spotter", alt: "Service Spotter badge" },
-    BADGE4: { file: "assets/img/badge-service-star.png", emoji: "⭐", label: "Service Star", alt: "Service Star badge" },
-    BADGE5: { file: "assets/img/badge-chapter-6-champion.png", emoji: "🏆", label: "Chapter 6 Champion", alt: "Chapter 6 Champion badge" }
+    BADGE1: { file: "assets/img/badge-story-sharer-vibrant.png", emoji: "📝", label: "Story Sharer", alt: "Story Sharer badge" },
+    BADGE2: { file: "assets/img/badge-service-scholar-vibrant.png", emoji: "🎓", label: "Service Scholar", alt: "Service Scholar badge" },
+    BADGE3: { file: "assets/img/badge-service-spotter-vibrant.png", emoji: "🔍", label: "Service Spotter", alt: "Service Spotter badge" },
+    BADGE4: { file: "assets/img/badge-service-star-vibrant.png", emoji: "⭐", label: "Service Star", alt: "Service Star badge" },
+    BADGE5: { file: "assets/img/badge-chapter-6-champion-vibrant.png", emoji: "🏆", label: "Chapter 6 Champion", alt: "Chapter 6 Champion badge" }
   }
 };

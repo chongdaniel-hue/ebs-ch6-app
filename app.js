@@ -51,13 +51,14 @@
         GitHub Pages workflow; Code.gs adds rows when the Sheet is full.
    0.6.1 Level 2 cards: capital first letters; skill and returns names on
         their own line above the description.
+   0.6.6 More vibrant achievement badges and the confirmed Suzzie Gem link.
    0.6.5 Replaced remaining UI emojis with a shared SVG graphic icon set.
    0.6.4 Replaced remaining book symbols with contextual graphic icons.
    0.6.3 Four key terms: distinct card colours and larger generated icons.
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.5";
+const APP_VERSION = "0.6.6";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
