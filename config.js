@@ -187,6 +187,6 @@ window.APP_CONFIG = {
     BADGE2: { file: "assets/img/badge-service-scholar-vibrant.png", emoji: "🎓", label: "Service Scholar", alt: "Service Scholar badge" },
     BADGE3: { file: "assets/img/badge-service-spotter-vibrant.png", emoji: "🔍", label: "Service Spotter", alt: "Service Spotter badge" },
     BADGE4: { file: "assets/img/badge-service-star-vibrant.png", emoji: "⭐", label: "Service Star", alt: "Service Star badge" },
-    BADGE5: { file: "assets/img/badge-chapter-6-champion-vibrant.png", emoji: "🏆", label: "Chapter 6 Champion", alt: "Chapter 6 Champion badge" }
+    BADGE5: { file: "assets/img/badge-completion-champion.png", emoji: "🏆", label: "Completion Champion", alt: "Completion Champion badge" }
   }
 };

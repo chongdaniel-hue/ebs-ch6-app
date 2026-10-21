@@ -117,7 +117,7 @@ test.describe("new student", () => {
     await expect(page.locator(".status-pill")).toHaveText(["Not started", "Locked", "Locked", "Locked", "Locked"]);
     await expect(page.locator(".shelf-name")).toHaveText([
       "Story Sharer, not earned yet", "Service Scholar, not earned yet", "Service Spotter, not earned yet",
-      "Service Star, not earned yet", "Chapter 6 Champion, not earned yet"
+      "Service Star, not earned yet", "Completion Champion, not earned yet"
     ]);
     await expect(page.locator("a[href='#report']")).toHaveCount(0);
     await checkPage(page, testInfo, "slice2-home");

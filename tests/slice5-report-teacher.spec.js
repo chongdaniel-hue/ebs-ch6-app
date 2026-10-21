@@ -59,7 +59,7 @@ test.describe("6.1 My learning report", () => {
       "Level 4: Serve Suzzie at Stylez", "Level 5: Check and Exit Ticket"
     ]);
     await expect(page.locator(".report-level-when").first()).toHaveText("20 Oct 2026");
-    await expect(page.locator(".report-level-badge")).toHaveText(["Story Sharer", "Service Scholar", "Service Spotter", "Service Star", "Chapter 6 Champion"]);
+    await expect(page.locator(".report-level-badge")).toHaveText(["Story Sharer", "Service Scholar", "Service Spotter", "Service Star", "Completion Champion"]);
     await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 3 / 4.", "Level 5, Q3 and Q4: first try 2 / 5."]);
     await expect(page.locator("#lookTitle")).toHaveText("Look at these again");
     await expect(page.locator(".look-list li")).toHaveText([

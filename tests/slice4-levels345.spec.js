@@ -240,7 +240,7 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
 });
 
 test.describe("Level 5: Check and Exit Ticket", () => {
-  test("Q3 to Q5 feedback, Next held back, exit ticket, Chapter 6 Champion", async ({ page, request }, testInfo) => {
+  test("Q3 to Q5 feedback, Next held back, exit ticket, Completion Champion", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
     await studentAt(page, request, 43, 5);
     await page.click("#levelCard5");
@@ -355,7 +355,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await page.click("#submitExit");
     const modal = page.locator("#badgeModal");
     await expect(modal.locator("h2")).toHaveText("You've finished Chapter 6!");
-    await expect(modal.locator(".badge-pop-text")).toHaveText("Chapter 6 Champion");
+    await expect(modal.locator(".badge-pop-text")).toHaveText("Completion Champion");
     await expect(modal.locator("button")).toHaveText(["See my learning report", "Back to my route"]);
     await checkPage(page, testInfo, "slice4-champion");
     await saved;

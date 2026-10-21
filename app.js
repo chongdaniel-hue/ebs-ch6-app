@@ -51,14 +51,14 @@
         GitHub Pages workflow; Code.gs adds rows when the Sheet is full.
    0.6.1 Level 2 cards: capital first letters; skill and returns names on
         their own line above the description.
-   0.6.6 More vibrant achievement badges and the confirmed Suzzie Gem link.
+   0.6.7 More vibrant achievement badges and the confirmed Suzzie Gem link.
    0.6.5 Replaced remaining UI emojis with a shared SVG graphic icon set.
    0.6.4 Replaced remaining book symbols with contextual graphic icons.
    0.6.3 Four key terms: distinct card colours and larger generated icons.
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.6";
+const APP_VERSION = "0.6.7";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -162,7 +162,7 @@ const LEVELS = [
   { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the four stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
   { num: 3, icon: "💬", title: "Chat with Alex", desc: "Be the customer. Chat with Nexora's customer service officer.", badge: "Service Spotter", badgeImg: "BADGE3" },
   { num: 4, icon: "🛍️", title: "Serve Suzzie at Stylez", desc: "Switch roles. Now you're the customer service officer.", badge: "Service Star", badgeImg: "BADGE4" },
-  { num: 5, icon: "✅", title: "Check and Exit Ticket", desc: "Check what you've learnt and tell your teacher how confident you feel.", badge: "Chapter 6 Champion", badgeImg: "BADGE5" }
+  { num: 5, icon: "✅", title: "Check and Exit Ticket", desc: "Check what you've learnt and tell your teacher how confident you feel.", badge: "Completion Champion", badgeImg: "BADGE5" }
 ];
 
 /* ---------------- Student record ----------------
@@ -2078,7 +2078,7 @@ function showChampionPopup() {
     className: "badge-modal",
     title: "🎉 You've finished Chapter 6!",
     bodyHtml: `<div class="badge-pop-img">${imgHtml("BADGE5", "badge-img")}</div>
-      <p class="badge-pop-text">🏆 Chapter 6 Champion</p>`,
+      <p class="badge-pop-text">🏆 Completion Champion</p>`,
     buttons: [
       { label: "📊 See my learning report", primary: true, onClick: () => { window.location.hash = "#report"; } },
       { label: "Back to my route", onClick: () => { window.location.hash = "#home"; } }

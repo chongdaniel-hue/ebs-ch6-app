@@ -207,3 +207,8 @@ Validation for 0.6.5: full suite 82 passed and 2 intentional skips; final focuse
 - Badge changes require local preview review before publishing. No push or deployment is authorised for this new edit by the earlier publishing request.
 
 Validation for 0.6.6: 84 Playwright checks passed at 1280px and 360px, with 2 intentional skips and no failures. All five regenerated PNGs have genuine alpha transparency and visible badge content inside the canvas. Reviewed all 164 app screenshots, the five full-size assets and the side-by-side gallery: exact badge lettering, consistent display sizes, full ribbons, readable labels and no layout overflow. Existing contrast, tap-target, progression, saving and offline checks passed. Local home preview opened on the badge shelf; version 0.6.6 remains unpublished.
+
+### Completion Champion badge (21 October 2026, version 0.6.7)
+- User requested removing the number 6 from the final trophy and renaming its ribbon to Completion Champion. Edited the vibrant badge with built-in image generation, preserving the style and colours, and saved a sibling asset. Updated the shelf, completion popup, report name and accessible image label. Other chapter wording remains unchanged. Local preview only; no publication.
+
+Validation for 0.6.7: 32 relevant Playwright checks passed at desktop and phone widths, with 2 intentional skips. Reviewed the updated badge and five-badge gallery plus all 164 screenshot views through contact sheets: no number on the trophy, exact Completion Champion lettering and labels, full ribbon, unchanged sizing and no overflow. Local preview opened at the badge shelf; not published.
