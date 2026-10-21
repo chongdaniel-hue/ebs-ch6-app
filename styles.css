@@ -1389,3 +1389,13 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .graphic-heading > span:last-child,.level-name.with-graphic > span:last-child{min-width:0;}
 .badge-modal .graphic-heading{justify-content:center;}
 .report-level-badge.graphic-heading{gap:8px;}
+
+/* Shared drawn UI graphics. Existing large term and learning artwork stays at
+   its approved 2.5x size; controls retain a compact, consistent footprint. */
+.ui-graphic{display:inline-block;width:1.35em;height:1.35em;vertical-align:middle;flex-shrink:0;overflow:visible;}
+.ic-icon .ui-graphic,.answer-icon .ui-graphic,.story-icon .ui-graphic,.path-icon .ui-graphic,.face-emoji .ui-graphic{width:1em;height:1em;}
+.img-placeholder-emoji .ui-graphic{width:1em;height:1em;}
+.num-badge .ui-graphic,.step-num .ui-graphic{width:1.1em;height:1.1em;}
+.face-btn .ui-graphic{filter:none;}
+.conf-face .ui-graphic{width:1.6em;height:1.6em;}
+.confidence-summary .ui-graphic{width:1.5em;height:1.5em;}

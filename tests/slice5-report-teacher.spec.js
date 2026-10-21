@@ -47,28 +47,28 @@ test.describe("6.1 My learning report", () => {
     await resetServer(request, ["3E1"]);
     expect((await apiPost(request, { action: "save", record: finishedRecord(5, { wrong: ["s3q2.R", "s5q3.iii", "s5q4", "s5q3.i"] }) })).ok).toBe(true);
     await login(page, "3E1", 5);
-    await expect(page.locator(".welcome-text")).toHaveText("🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
-    await expect(page.locator(".welcome-card a.btn")).toHaveText("📊 My learning report");
+    await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
+    await expect(page.locator(".welcome-card a.btn")).toHaveText("My learning report");
     // Dates are in Singapore time: 1:30am on 20 Oct in Singapore is still 19 Oct in UTC.
     expect(await page.evaluate(() => shortDate("2026-10-19T17:30:00.000Z"))).toBe("20 Oct 2026");
     await page.click(".welcome-card a.btn");
-    await expect(page.locator("h1.page-title")).toHaveText("📊 My learning report");
+    await expect(page.locator("h1.page-title")).toHaveText("My learning report");
     await expect(page.locator(".level-sub")).toHaveText("Class 3E1, Register No. 5");
     await expect(page.locator(".report-level-name")).toHaveText([
       "Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service", "Level 3: Chat with Alex",
       "Level 4: Serve Suzzie at Stylez", "Level 5: Check and Exit Ticket"
     ]);
-    await expect(page.locator(".report-level-when").first()).toHaveText("✅ 20 Oct 2026");
-    await expect(page.locator(".report-level-badge")).toHaveText(["📝 Story Sharer", "Service Scholar", "🔍 Service Spotter", "⭐ Service Star", "🏆 Chapter 6 Champion"]);
+    await expect(page.locator(".report-level-when").first()).toHaveText("20 Oct 2026");
+    await expect(page.locator(".report-level-badge")).toHaveText(["Story Sharer", "Service Scholar", "Service Spotter", "Service Star", "Chapter 6 Champion"]);
     await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 3 / 4.", "Level 5, Q3 and Q4: first try 2 / 5."]);
-    await expect(page.locator("#lookTitle")).toHaveText("🔁 Look at these again");
+    await expect(page.locator("#lookTitle")).toHaveText("Look at these again");
     await expect(page.locator(".look-list li")).toHaveText([
       "Closing the customer experience positively (Level 2, The Four Stages)",
       "What customer service is (Level 2, Quality Customer Service)",
       "The 8 steps of service recovery (Level 2, Breakdown and Recovery)"
     ]);
-    await expect(page.locator("#confTitle")).toHaveText("💭 How confident you felt");
-    await expect(page.locator(".conf-row .conf-face")).toHaveText(["🙂 Confident", "😄 Very confident", "🙁 A little", "😟 Not yet"]);
+    await expect(page.locator("#confTitle")).toHaveText("How confident you felt");
+    await expect(page.locator(".conf-row .conf-face")).toHaveText(["Confident", "Very confident", "A little", "Not yet"]);
     await expect(page.locator("#reportBack")).toHaveText("Back to my route");
     await checkPage(page, testInfo, "slice5-report");
     await page.click("#reportBack");
@@ -90,7 +90,7 @@ test.describe("6.1 My learning report", () => {
     await page.click("#submitExit");
     await page.locator("#badgeModal button", { hasText: "See my learning report" }).click();
     await expect(page).toHaveURL(/#report$/);
-    await expect(page.locator(".look-none")).toHaveText("Nothing to look at again. You got everything right on the first try! 🎉");
+    await expect(page.locator(".look-none")).toHaveText("Nothing to look at again. You got everything right on the first try!");
     await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 4 / 4.", "Level 5, Q3 and Q4: first try 5 / 5."]);
     await checkPage(page, testInfo, "slice5-report-allright");
   });
@@ -139,8 +139,8 @@ test.describe("T.3 Results", () => {
 
     const rows = page.locator(".students-table tbody tr");
     await expect(rows).toHaveCount(3);
-    await expect(rows.nth(0).locator("td")).toHaveText(["No. 1", "5", "3 / 4", "5 / 5", "🙂 😄 🙁 😟"]);
-    await expect(rows.nth(2).locator("td")).toHaveText(["No. 3", "2", "–", "–", "🙂 😄 🙁 😟"]);
+    await expect(rows.nth(0).locator("td")).toHaveText(["No. 1", "5", "3 / 4", "5 / 5", ""]);
+    await expect(rows.nth(2).locator("td")).toHaveText(["No. 3", "2", "–", "–", ""]);
     await checkPage(page, testInfo, "slice5-results");
 
     // CSV for the chosen class, named with the Singapore date (1:30am on 20 Oct in Singapore).
@@ -194,7 +194,7 @@ test.describe("T.4 This device", () => {
     await resetServer(request, ["3E1"]);
     await login(page, "3E1", 7);
     await page.click("#briefing button");
-    await expect(page.locator(".status-pill").nth(4)).toHaveText("🔒 Locked");
+    await expect(page.locator(".status-pill").nth(4)).toHaveText("Locked");
     await teacherSignIn(page);
     await page.click("#tab_device");
     await page.click("#unlockToggle");
@@ -204,13 +204,13 @@ test.describe("T.4 This device", () => {
     await page.goto("/#home");
     await expect(page.locator(".status-pill").nth(4)).toHaveText("Not started");
     await page.click("#levelCard5");
-    await expect(page.locator("h1.page-title")).toHaveText("✅ Level 5: Check and Exit Ticket");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 5: Check and Exit Ticket");
     await teacherSignIn(page);
     await page.click("#tab_device");
     await page.click("#unlockToggle");
     await expect(page.locator("#unlockToggle")).toHaveText("Unlock all levels on this device");
     await page.goto("/#home");
-    await expect(page.locator(".status-pill").nth(4)).toHaveText("🔒 Locked");
+    await expect(page.locator(".status-pill").nth(4)).toHaveText("Locked");
   });
 
   test("Reset this device asks for the code again and keeps the work on the server", async ({ page, request }) => {

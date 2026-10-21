@@ -35,7 +35,7 @@ test.describe("Level 3: Chat with Alex", () => {
     const errors = watchErrors(page);
     await studentAt(page, request, 41, 3);
     await page.click("#levelCard3");
-    await expect(page.locator("h1.page-title")).toHaveText("💬 Level 3: Chat with Alex");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 3: Chat with Alex");
     await expect(page.locator(".level-sub")).toHaveText("Be the customer. Chat with Nexora's customer service officer.");
     await expect(page.locator(".step-label")).toHaveText(["Chat", "Think back (locked)"]);
 
@@ -48,13 +48,13 @@ test.describe("Level 3: Chat with Alex", () => {
       "Report a problem with a product, and see how Alex responds"
     ]);
     const tip = page.locator(".tip-details");
-    await expect(tip.locator("summary")).toHaveText("💡 Not sure what to ask? Try these:");
+    await expect(tip.locator("summary")).toHaveText("Not sure what to ask? Try these:");
     await expect(tip.locator(".say").first()).toBeHidden(); // collapsed until tapped
     await tip.locator("summary").click();
     await expect(tip.locator(".say")).toHaveText(["\"How much does the Nexora Core cost?\"", "\"Why is the Nexora Prime so expensive?\"", "\"My phone's screen stopped working. What can I do?\""]);
     await expect(page.locator("#part0 > p", { hasText: "Watch how" })).toHaveText("Watch how Alex starts the chat, presents information, and responds when something has gone wrong.");
     const gem = page.locator(".gem-btn");
-    await expect(gem).toHaveText("💬 Open Alex (new tab) ↗");
+    await expect(gem).toHaveText("Open Alex (new tab)");
     await expect(gem).toHaveAttribute("href", "https://gemini.google.com/gem/03f888f88087");
     await expect(gem).toHaveAttribute("target", "_blank");
     const tick = page.locator(".tick-input");
@@ -105,7 +105,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await page.click("#submitL3");
     await saved; // the first attempt goes to the server at once
 
-    await expect(page.locator('[data-q="q1"] .check-note')).toHaveText("🔎 Check your reason: does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.");
+    await expect(page.locator('[data-q="q1"] .check-note')).toHaveText("Check your reason: does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.");
     await expect(page.locator('[data-q="q1"] textarea').first()).toHaveAttribute("readonly", "");
     const fb = id => page.locator(`.match-item[data-key="s3.q2.${id}"] .feedback`);
     await expect(fb("P")).toHaveText("✓ Correct: asking questions (Step 5) and offering a solution (Step 6) are part of service recovery.");
@@ -125,7 +125,7 @@ test.describe("Level 3: Chat with Alex", () => {
     // Changing a wrong answer: the old hint fades and a prompt shows in its place.
     await page.selectOption("#sel_Q", STAGE.present);
     const itemQ = page.locator('.match-item[data-key="s3.q2.Q"]');
-    await expect(itemQ.locator(".check-prompt")).toHaveText("👆 Tap Check again to see if you're right.");
+    await expect(itemQ.locator(".check-prompt")).toHaveText("Tap Check again to see if you're right.");
     await expect(itemQ.locator(".feedback.faded")).toHaveText("Earlier hint: ✗ The officer matches a phone feature to something the customer does a lot. Which stage is about presenting a suitable product?");
     await expect(page.locator('.match-item[data-key="s3.q2.R"] .check-prompt')).toHaveCount(0); // R not changed yet
     await page.selectOption("#sel_R", STAGE.present);
@@ -142,7 +142,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(itemQ.locator(".right-tag, .wrong-tag")).toHaveCount(0); // right on the second try: no reveal
     // Summary card above the recap: the items wrong on the first try.
     const card = page.locator(".missed-card");
-    await expect(card.locator("h3")).toHaveText("💪 Let's learn from these");
+    await expect(card.locator("h3")).toHaveText("Let's learn from these");
     await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
     await expect(card.locator("li")).toHaveText([
       "Presenting product information (Level 2, The Four Stages)",
@@ -156,10 +156,10 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(page.locator("#finishBtn")).toHaveText("Finish Level 3");
     await checkPage(page, testInfo, "slice4-level3-resolved");
     await page.click("#finishBtn");
-    await expect(page.locator("#badgeModal h2")).toHaveText("🔍 Service Spotter");
+    await expect(page.locator("#badgeModal h2")).toHaveText("Service Spotter");
     await expect(page.locator("#badgeModal .badge-pop-text")).toHaveText("You earned the Service Spotter badge!");
     await page.locator("#badgeModal button").click();
-    await expect(page.locator(".status-pill").nth(2)).toHaveText("✅ Service Spotter");
+    await expect(page.locator(".status-pill").nth(2)).toHaveText("Service Spotter");
     await expect(page.locator(".status-pill").nth(3)).toHaveText("Not started");
 
     // The server has both attempts; the readable Q2 column shows the first try.
@@ -196,14 +196,14 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     const errors = watchErrors(page);
     await studentAt(page, request, 42, 4);
     await page.click("#levelCard4");
-    await expect(page.locator("h1.page-title")).toHaveText("🛍️ Level 4: Serve Suzzie at Stylez");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 4: Serve Suzzie at Stylez");
     await expect(page.locator(".intro-with-pic p")).toHaveText("Now switch roles. You are a customer service officer at Stylez, a retail store. The AI plays Suzzie, a customer with a question or a problem.");
     await expect(page.locator('.intro-pic img[data-img="N05"]')).toBeVisible();
-    await expect(page.locator(".placeholder-title")).toHaveText("🏬 About Stylez");
-    await expect(page.locator(".placeholder-flag")).toHaveText("⚑ PLACEHOLDER: fill in from the Stylez document (what Stylez sells, prices, store policies) so that it matches what Suzzie's Gem knows. Claude Code builds the card with this placeholder text until then.");
+    await expect(page.locator(".placeholder-title")).toHaveText("About Stylez");
+    await expect(page.locator(".placeholder-flag")).toHaveText("PLACEHOLDER: fill in from the Stylez document (what Stylez sells, prices, store policies) so that it matches what Suzzie's Gem knows. Claude Code builds the card with this placeholder text until then.");
     await expect(page.locator(".start-box")).toHaveText("You start the conversation. Try: \"Hi, welcome to Stylez! How may I assist you?\"");
-    await expect(page.locator(".stages-box")).toHaveText("🗺️ Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.");
-    await expect(page.locator(".gem-btn")).toHaveText("🛍️ Open Suzzie (new tab) ↗");
+    await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.");
+    await expect(page.locator(".gem-btn")).toHaveText("Open Suzzie (new tab)");
     await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/gem/1lfkE4kuic0cBsFwXlTNjKbOaGi6r0tK_?usp=sharing");
     await expect(page.locator(".tick-row")).toHaveText("I have finished serving Suzzie.");
     await expect(page.locator("#nextBtn")).toHaveText("Next: Reflect →");
@@ -231,10 +231,10 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await expect(page.locator(".story-card textarea").first()).toHaveAttribute("readonly", "");
     await checkPage(page, testInfo, "slice4-level4-recap");
     await page.click("#finishBtn");
-    await expect(page.locator("#badgeModal h2")).toHaveText("⭐ Service Star");
+    await expect(page.locator("#badgeModal h2")).toHaveText("Service Star");
     await expect(page.locator("#badgeModal .badge-pop-text")).toHaveText("You earned the Service Star badge!");
     await page.locator("#badgeModal button").click();
-    await expect(page.locator(".status-pill").nth(3)).toHaveText("✅ Service Star");
+    await expect(page.locator(".status-pill").nth(3)).toHaveText("Service Star");
     expect(errors).toEqual([]);
   });
 });
@@ -244,7 +244,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     const errors = watchErrors(page);
     await studentAt(page, request, 43, 5);
     await page.click("#levelCard5");
-    await expect(page.locator("h1.page-title")).toHaveText("✅ Level 5: Check and Exit Ticket");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 5: Check and Exit Ticket");
     await expect(page.locator(".step-label")).toHaveText(["Check", "Exit ticket (locked)"]);
     await expect(page.locator("#part0 > p").first()).toHaveText("Try these without going back to the notes. It is okay to get some wrong!");
     await expect(page.locator("#l5q3")).toHaveText("Q3. True or false? Tap True or False for each.");
@@ -287,7 +287,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(fb("s5.q3.iii")).toHaveText("✗ Count the 8 steps of service recovery. Is apologising the last step?");
     await expect(fb("s5.q3.iv")).toHaveText("✓ Correct: that is the textbook definition of service breakdown.");
     await expect(fb("s5.q4")).toHaveText("✗ The staff member apologised, but then blamed the customer's phone. Which step is about acknowledging feelings and assuring help?");
-    await expect(page.locator('[data-q="q5"] .check-note')).toHaveText("🔎 Check your answer: did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?");
+    await expect(page.locator('[data-q="q5"] .check-note')).toHaveText("Check your answer: did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?");
     await expect(page.locator("#nextBtn")).toHaveCount(0); // held back until Check again
     await checkPage(page, testInfo, "slice4-level5-feedback");
 
@@ -299,7 +299,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     })).toBe(true);
     // Q3: i fixed, iii left (still wrong). Q4: changed to D (still wrong). One tap checks them all.
     await tf("i", "False").click();
-    await expect(page.locator('[data-key="s5.q3.i"] .check-prompt')).toHaveText("👆 Tap Check again to see if you're right.");
+    await expect(page.locator('[data-key="s5.q3.i"] .check-prompt')).toHaveText("Tap Check again to see if you're right.");
     await page.locator(".mcq-btn", { hasText: "pass your feedback on" }).click();
     await page.click("#checkAgainBtn");
     await expect(fb("s5.q3.i")).toHaveText("✓ Correct: customer service continues even after the customer has made a purchase.");
@@ -317,7 +317,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(page.locator(".mcq-btn.wrong-pick .mcq-letter")).toHaveText("D");
     // Summary card: i, iii and Q4 were wrong on the first try (iii and Q4 share a line).
     const card = page.locator(".missed-card");
-    await expect(card.locator("h3")).toHaveText("💪 Let's learn from these");
+    await expect(card.locator("h3")).toHaveText("Let's learn from these");
     await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
     await expect(card.locator("li")).toHaveText([
       "What customer service is (Level 2, Quality Customer Service)",
@@ -354,15 +354,15 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     const saved = waitForSave(page);
     await page.click("#submitExit");
     const modal = page.locator("#badgeModal");
-    await expect(modal.locator("h2")).toHaveText("🎉 You've finished Chapter 6!");
-    await expect(modal.locator(".badge-pop-text")).toHaveText("🏆 Chapter 6 Champion");
-    await expect(modal.locator("button")).toHaveText(["📊 See my learning report", "Back to my route"]);
+    await expect(modal.locator("h2")).toHaveText("You've finished Chapter 6!");
+    await expect(modal.locator(".badge-pop-text")).toHaveText("Chapter 6 Champion");
+    await expect(modal.locator("button")).toHaveText(["See my learning report", "Back to my route"]);
     await checkPage(page, testInfo, "slice4-champion");
     await saved;
     await modal.locator("button", { hasText: "Back to my route" }).click();
     await expect(page.locator(".journey-count")).toHaveText("5 of 5 levels done");
-    await expect(page.locator(".welcome-text")).toHaveText("🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
-    await expect(page.locator(".welcome-card a.btn")).toHaveText("📊 My learning report"); // inside the welcome card
+    await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
+    await expect(page.locator(".welcome-card a.btn")).toHaveText("My learning report"); // inside the welcome card
     await expect(page.locator("a.btn", { hasText: "My learning report" })).toHaveCount(1);
 
     // Readable columns in the Sheet: Q3 and Q4 first try (2 of 5 right) and confidence.
@@ -393,7 +393,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(page.locator(".feedback.right")).toHaveCount(5);
     await expect(page.locator(".feedback.wrong")).toHaveCount(0);
     await expect(page.locator("#checkAgainBtn")).toHaveCount(0);
-    await expect(page.locator(".missed-card.all-good")).toHaveText("🎉 Great work!You got everything right on the first try.");
+    await expect(page.locator(".missed-card.all-good")).toHaveText("Great work!You got everything right on the first try.");
     await expect(page.locator("#nextBtn")).toBeVisible();
     await expect(page.locator(".tf-btn").first()).toBeDisabled();
   });

@@ -188,3 +188,13 @@ Display only: the words and punctuation stay exactly as in the storyboard.
 11. **Groupmates and AI tools**: a groupmate will continue with ChatGPT (Codex) connected to the GitHub repository. `AGENTS.md` makes Codex follow `CLAUDE.md`; `docs/HANDOVER.md` covers running the tests, pulling before starting and pushing small changes often.
 
 Validation for 0.6.4: full Playwright suite passed on laptop and phone (82 passed, 2 intentional skips, no failures). Reviewed all 164 screenshots and confirmed the refreshed local preview on Level 2. No deployment or push performed; awaiting user preview review.
+
+
+### All UI emoji replaced with graphic icons (21 October 2026, version 0.6.5)
+- The user accepted 0.6.4, requested replacing every remaining emoji with a relevant graphic icon, and requested a complete placeholder inventory. This visual instruction supersedes the earlier emoji styling rule; no lesson wording changes or new features were requested.
+- Added a shared set of 71 hand-drawn SVG graphics with 75 symbol mappings under assets/icons/, registered in config.js. Navigation, route and note icons, confidence and recovery faces, tips, status banners, image failure fallbacks, modal buttons, Listen/Stop and the browser favicon now use graphical assets. The accepted generated term and learning artwork retains its 2.5x sizing. New control icons retain compact footprints to keep phone buttons readable.
+- A shared HTML renderer replaces UI symbols in text nodes before inserting each screen; it excludes textarea values and marked student report answers. Teacher confidence summaries have explicit accessible labels. No dependencies or publishing whitelist changes are needed.
+- Placeholder audit: one unfinished About Stylez content card; all 23 mapped artwork files exist; 11 nonempty input/textarea hints are intentional; the Level 4 opening instruction remains provisional until Suzzie's Gem's opening behavior is confirmed. The local preview class is demo data. Exact inventory supplied in the chat workspace's application-placeholders.md.
+- No push or deployment: the user must see the local preview after this change.
+
+Validation for 0.6.5: full suite 82 passed and 2 intentional skips; final focused run 17 passed and 1 intentional skip, covering the complete UI emoji audit, Listen/Stop, layouts, all teacher screens and the new student-answer preservation check at both widths. All 71 SVG symbols rendered with nonempty bounds. Reviewed all 164 app screenshots and the complete graphic library: consistent shapes and spacing, visible confidence states, unclipped artwork, no horizontal overflow; existing contrast, control-label and tap-target checks passed. Local Level 4 preview refreshed for user review.

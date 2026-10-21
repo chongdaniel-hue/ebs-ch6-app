@@ -32,7 +32,7 @@ test("Level 1: the three question cards line up and the boxes are the same size"
   await page.reload();
   const boxes = await page.locator(".story-card textarea").evaluateAll(els => els.map(e => e.getBoundingClientRect()).map(r => ({ top: Math.round(r.top), left: Math.round(r.left), w: Math.round(r.width), h: Math.round(r.height) })));
   const cards = await page.locator(".story-card").evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().height)));
-  await expect(page.locator(".answer-icon")).toHaveText(["😊", "😞", "🤔"]);
+  expect(await page.locator(".answer-icon svg").evaluateAll(icons => icons.map(icon => icon.dataset.icon))).toEqual(["happy", "sad", "think"]);
   expect(new Set(boxes.map(b => b.w)).size).toBe(1);
   expect(new Set(boxes.map(b => b.h)).size).toBe(1);
   if (testInfo.project.name === "laptop") {
@@ -113,16 +113,16 @@ test("blocks line up: same left and right edges on every page", async ({ page, r
   }
 });
 
-test("🔊 Listen reads a block of notes, not the questions, and stops on a second tap", async ({ page, request }) => {
+test("Listen reads a block of notes, not the questions, and stops on a second tap", async ({ page, request }) => {
   await page.addInitScript(FAKE_SPEECH);
   const errors = watchErrors(page);
   await student(page, request, 33);
 
   await page.goto("/#terms");
   const termsBtn = page.locator(".head-row .listen-btn");
-  await expect(termsBtn).toHaveText("🔊 Listen");
+  await expect(termsBtn).toHaveText("Listen");
   await termsBtn.click();
-  await expect(termsBtn).toHaveText("⏹ Stop");
+  await expect(termsBtn).toHaveText("Stop");
   await expect(termsBtn).toHaveAttribute("aria-pressed", "true");
   const spoken = (await page.evaluate(() => window.__spoken)).join(" ");
   expect(spoken).toContain("Customer service: Customer service refers to what businesses do for their customers so that they are happy and satisfied.");
@@ -130,7 +130,7 @@ test("🔊 Listen reads a block of notes, not the questions, and stops on a seco
   expect(await page.evaluate(() => window.__lastUtterance.rate)).toBe(0.9);
   expect(await page.evaluate(() => window.__lastUtterance.lang)).toBe("en-GB");
   await termsBtn.click();
-  await expect(termsBtn).toHaveText("🔊 Listen");
+  await expect(termsBtn).toHaveText("Listen");
   await expect(termsBtn).toHaveAttribute("aria-pressed", "false");
 
   // Level 2: one Listen per block of notes; the optional question box is not read.

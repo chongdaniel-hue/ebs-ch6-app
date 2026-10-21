@@ -10,7 +10,16 @@ const {
 // Runs in the page: returns a list of problems on the current screen.
 function auditScreen() {
   const problems = [];
-  if (/[📖📘📚]/u.test(document.body.innerText)) problems.push("book symbol remains on screen");
+  // Student-entered text may contain emoji; the application UI must use graphics.
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (node.parentElement.closest("script, style, textarea, [data-student-text]")) continue;
+    if (/\p{Extended_Pictographic}/u.test(node.textContent)) problems.push("emoji remains in application UI");
+  }
+  document.querySelectorAll("svg.ui-graphic").forEach(icon => {
+    if (!icon.querySelector("use[href]") || !icon.dataset.icon) problems.push("graphic without a symbol");
+  });
   const visible = el => {
     if (!(el instanceof Element)) return false;
     const r = el.getBoundingClientRect();

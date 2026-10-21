@@ -51,12 +51,13 @@
         GitHub Pages workflow; Code.gs adds rows when the Sheet is full.
    0.6.1 Level 2 cards: capital first letters; skill and returns names on
         their own line above the description.
+   0.6.5 Replaced remaining UI emojis with a shared SVG graphic icon set.
    0.6.4 Replaced remaining book symbols with contextual graphic icons.
    0.6.3 Four key terms: distinct card colours and larger generated icons.
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.4";
+const APP_VERSION = "0.6.5";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -65,6 +66,38 @@ function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str == null ? "" : str;
   return div.innerHTML;
+}
+
+
+// The same drawn graphic is used everywhere a UI symbol appears. Convert text
+// nodes only: never HTML attributes, input values or students' written answers.
+function uiGraphicHtml(symbol) {
+  const icons = CONFIG.UI_ICONS;
+  const id = icons && icons.symbols[symbol];
+  if (!id) return escapeHtml(symbol);
+  return `<svg class="ui-graphic" viewBox="0 0 32 32" aria-hidden="true" focusable="false" data-icon="${id}"><use href="${icons.file}#${id}"></use></svg>`;
+}
+
+function setGraphicHtml(el, html) {
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  const symbols = Object.keys((CONFIG.UI_ICONS || {}).symbols || {}).sort((a, b) => b.length - a.length);
+  if (!symbols.length) { el.replaceChildren(template.content); return; }
+  const pattern = new RegExp(symbols.join("|"), "gu");
+  const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+  textNodes.forEach(node => {
+    if (node.parentElement && node.parentElement.closest("textarea, option, script, style, [data-student-text], svg")) return;
+    const text = node.textContent;
+    pattern.lastIndex = 0;
+    if (!pattern.test(text)) return;
+    pattern.lastIndex = 0;
+    const replacement = document.createElement("template");
+    replacement.innerHTML = escapeHtml(text).replace(pattern, symbol => uiGraphicHtml(symbol));
+    node.replaceWith(replacement.content);
+  });
+  el.replaceChildren(template.content);
 }
 
 // Allows **bold** in content strings while still escaping everything else.
@@ -109,7 +142,7 @@ function imgHtml(id, cls) {
 
 function imgFallback(el) {
   const wrap = document.createElement("div");
-  wrap.innerHTML = imgPlaceholderHtml(el.getAttribute("data-img"), el.getAttribute("data-cls"));
+  setGraphicHtml(wrap, imgPlaceholderHtml(el.getAttribute("data-img"), el.getAttribute("data-cls")));
   if (wrap.firstElementChild) el.replaceWith(wrap.firstElementChild);
 }
 
@@ -452,7 +485,7 @@ function updateNetBanner() {
     bar.id = "netBanner"; bar.className = "net-banner"; bar.setAttribute("role", "status");
     document.body.insertBefore(bar, document.getElementById("app"));
   }
-  if (bar.textContent !== msg) bar.textContent = msg;
+  if (bar.dataset.message !== msg) { setGraphicHtml(bar, escapeHtml(msg)); bar.dataset.message = msg; }
 }
 
 /* ---------------- Class list ---------------- */
@@ -524,14 +557,14 @@ function showModal({ id, title, bodyHtml, buttons, className }) {
   const wrap = document.createElement("div");
   wrap.className = "modal-backdrop " + (className || "");
   if (id) wrap.id = id;
-  wrap.innerHTML = `
+  setGraphicHtml(wrap, `
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="${id || "modal"}Title">
       <h2 class="modal-title" id="${id || "modal"}Title">${title}</h2>
       ${bodyHtml || ""}
       <div class="btn-row modal-btns">
         ${buttons.map((b, i) => `<button type="button" class="btn ${b.primary ? "" : "secondary"}" data-i="${i}">${escapeHtml(b.label)}</button>`).join("")}
       </div>
-    </div>`;
+    </div>`);
   document.body.appendChild(wrap);
   const btns = Array.from(wrap.querySelectorAll("button"));
   btns.forEach((el, i) => el.addEventListener("click", () => { wrap.remove(); if (buttons[i].onClick) buttons[i].onClick(); }));
@@ -612,7 +645,7 @@ function renderLanding() {
     : empty ? "Your teacher hasn't added your class yet. Ask your teacher to add it." : "";
   const picked = (document.getElementById("classInput") || {}).value || "";
   const typed = (document.getElementById("regInput") || {}).value || "";
-  app.innerHTML = `
+  setGraphicHtml(app, `
     ${topBarHtml({ titleIsHeading: true, showSubtitle: true })}
     <main class="page">
       <div class="block landing-banner">${imgHtml("N01", "banner-img")}</div>
@@ -640,7 +673,7 @@ function renderLanding() {
       </div>
     </main>
     ${footerHtml()}
-  `;
+  `);
   const reg = document.getElementById("regInput");
   reg.addEventListener("input", () => { const clean = reg.value.replace(/\D/g, ""); if (clean !== reg.value) reg.value = clean; });
   reg.addEventListener("keydown", (e) => { if (e.key === "Enter") document.getElementById("startBtn").click(); });
@@ -786,7 +819,7 @@ function renderHome() {
   const done = doneCount();
   const loaded = justLoggedIn;
   justLoggedIn = false;
-  app.innerHTML = `
+  setGraphicHtml(app, `
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
       <div class="block">
@@ -818,7 +851,7 @@ function renderHome() {
       </section>
     </main>
     ${footerHtml()}
-  `;
+  `);
   document.getElementById("howLink").addEventListener("click", (e) => { e.preventDefault(); showBriefing(); });
   document.getElementById("switchLink").addEventListener("click", (e) => { e.preventDefault(); confirmSwitchStudent(); });
   LEVELS.forEach(s => {
@@ -876,7 +909,7 @@ const KEY_TERMS = [
 ];
 
 function renderTerms() {
-  app.innerHTML = `
+  setGraphicHtml(app, `
     ${topBarHtml({ showHome: true, showChip: true })}
     <main class="page">
       <div class="block">
@@ -894,7 +927,7 @@ function renderTerms() {
       </div>
     </main>
     ${footerHtml()}
-  `;
+  `);
   wireListen(app);
 }
 
@@ -970,7 +1003,7 @@ function renderLevel(n) {
   const content = LEVEL_CONTENT[n];
   const t = currentTab(n);
   const tab = content.tabs[t];
-  app.innerHTML = `
+  setGraphicHtml(app, `
     ${topBarHtml({ showHome: true, showChip: true })}
     <div class="level-head"><div class="level-head-inner">
       <h1 class="page-title ${s.iconImg ? "graphic-heading" : ""}">${levelIconHtml(s)} <span>Level ${n}: ${escapeHtml(s.title)}</span></h1>
@@ -979,7 +1012,7 @@ function renderLevel(n) {
     ${tabBarHtml(n, t)}
     <main class="page level-page" id="levelMain"></main>
     ${footerHtml()}
-  `;
+  `);
   syncStickyOffsets();
   // Opening a level counts as starting it ("In progress" on the home page), but not
   // while the Before you start pop-up is still waiting for "I'm ready".
@@ -1000,8 +1033,8 @@ function drawTab(n, t, tab, o) {
   const main = document.getElementById("levelMain");
   const shown = Math.min(partsShown(n, t), tab.parts.length);
   const ctx = { n, t, readOnly: isDone(n), fresh: !!o.fresh };
-  main.innerHTML = tab.parts.slice(0, shown).map((part, i) =>
-    `<section class="block part" id="part${i}" aria-labelledby="part${i}Title">${part.html(ctx)}</section>`).join("");
+  setGraphicHtml(main, tab.parts.slice(0, shown).map((part, i) =>
+    `<section class="block part" id="part${i}" aria-labelledby="part${i}Title">${part.html(ctx)}</section>`).join(""));
   tab.parts.slice(0, shown).forEach((part, i) => {
     const sec = document.getElementById(`part${i}`);
     const title = sec.querySelector(":scope > h2, :scope > .head-row > h2, :scope > .head-row > p, :scope > p, :scope > h3");
@@ -1185,7 +1218,7 @@ function pickVoice() {
 function stopSpeaking() {
   if (!canSpeak) return;
   window.speechSynthesis.cancel();
-  if (speakingBtn) { speakingBtn.textContent = "🔊 Listen"; speakingBtn.setAttribute("aria-pressed", "false"); }
+  if (speakingBtn) { setGraphicHtml(speakingBtn, "🔊 Listen"); speakingBtn.setAttribute("aria-pressed", "false"); }
   speakingBtn = null;
 }
 
@@ -1209,7 +1242,7 @@ function wireListen(el) {
     const sentences = blockSpeechText(block).match(/[^.!?]+[.!?]*["')]*\s*/g) || [];
     const voice = pickVoice();
     speakingBtn = btn;
-    btn.textContent = "⏹ Stop";
+    setGraphicHtml(btn, "⏹ Stop");
     btn.setAttribute("aria-pressed", "true");
     sentences.forEach((s, i) => {
       const u = new SpeechSynthesisUtterance(s.trim());
@@ -1495,7 +1528,7 @@ function wirePath(el, ctx) {
     raiseReached("s2.path", pathShownNow);
     queueSave("soon");
     if (pathShownNow < 8) {
-      el.querySelector("#pathHolder").innerHTML = recoveryPathHtml(pathShownNow, true);
+      setGraphicHtml(el.querySelector("#pathHolder"), recoveryPathHtml(pathShownNow, true));
       wirePath(el, ctx);
       revealFocus(document.getElementById(`pathLabel${pathShownNow}`));
       return;
@@ -2111,7 +2144,7 @@ function renderReport() {
   const q2 = recFirstTry(r, L3_Q2);
   const q34 = recFirstTry(r, L5_MARKED);
   const look = recLookAgain(r);
-  app.innerHTML = `
+  setGraphicHtml(app, `
     ${topBarHtml({ showHome: true, showChip: true })}
     <main class="page">
       <div class="block">
@@ -2158,7 +2191,7 @@ function renderReport() {
       <div class="block"><div class="btn-row"><a href="#home" class="btn" id="reportBack">Back to my route</a></div></div>
     </main>
     ${footerHtml()}
-  `;
+  `);
 }
 
 /* ---------------- Teacher Mode ----------------
@@ -2186,7 +2219,7 @@ function renderTeacher() {
 }
 
 function renderTeacherGate() {
-  app.innerHTML = `
+  setGraphicHtml(app, `
     ${topBarHtml({ showHome: true })}
     <main class="page">
       <div class="block">
@@ -2202,7 +2235,7 @@ function renderTeacherGate() {
       </div>
     </main>
     ${footerHtml()}
-  `;
+  `);
   const input = document.getElementById("teacherCode");
   const btn = document.getElementById("teacherEnter");
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") btn.click(); });
@@ -2230,7 +2263,7 @@ function renderTeacherGate() {
 /* T.2 Classes */
 function renderClassesTab(el, message) {
   const list = teacher.classes;
-  el.innerHTML = `
+  setGraphicHtml(el, `
     <h2 class="section-title">Your classes</h2>
     ${list.length ? `<ul class="class-list">${list.map((c, i) => `
       <li class="class-row"><span class="class-name">${escapeHtml(c)}</span>
@@ -2245,7 +2278,7 @@ function renderClassesTab(el, message) {
       <p id="classError" class="form-error" role="alert" ${message ? "" : "hidden"}>${escapeHtml(message || "")}</p>
       <p class="field-note">Classes appear in the class dropdown on the home page, in this order.</p>
     </div>
-  `;
+  `);
   const input = el.querySelector("#newClass");
   const addBtn = el.querySelector("#addClassBtn");
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") addBtn.click(); });
@@ -2295,7 +2328,7 @@ function renderClassesTab(el, message) {
 function renderTeacherHome() {
   const tabs = [["classes", "Classes"], ["results", "Results"], ["device", "This device"]];
   const cur = teacher.tab || "classes";
-  app.innerHTML = `
+  setGraphicHtml(app, `
     ${topBarHtml({ showHome: true })}
     <main class="page">
       <div class="block">
@@ -2307,7 +2340,7 @@ function renderTeacherHome() {
       <div class="block" id="teacherPanel" role="tabpanel" aria-labelledby="tab_${cur}"></div>
     </main>
     ${footerHtml()}
-  `;
+  `);
   app.querySelectorAll(".tabs .tab").forEach(b => b.addEventListener("click", () => {
     teacher.tab = b.getAttribute("data-tab");
     renderTeacherHome();
@@ -2339,7 +2372,7 @@ function renderResultsTab(el) {
   const res = teacher.results || {};
   const options = teacher.classes.map(c => ({ value: c, label: c }))
     .concat((teacher.removed || []).map(c => ({ value: c, label: `${c} (removed)` })));
-  el.innerHTML = `
+  setGraphicHtml(el, `
     <div class="field">
       <label for="resultsClass" class="field-label">Choose a class</label>
       <select id="resultsClass" class="select-input results-class">
@@ -2348,18 +2381,18 @@ function renderResultsTab(el) {
       </select>
     </div>
     <div id="resultsBody"></div>
-  `;
+  `);
   el.querySelector("#resultsClass").addEventListener("change", async (e) => {
     const cls = e.target.value;
     teacher.view = null;
     teacher.notice = "";
-    el.querySelector("#resultsBody").innerHTML = `<p class="muted">Loading…</p>`;
+    setGraphicHtml(el.querySelector("#resultsBody"), `<p class="muted">Loading…</p>`);
     await loadResults(cls);
     renderResultsTab(el);
   });
   const body = el.querySelector("#resultsBody");
   if (!res.cls) return;
-  if (res.error) { body.innerHTML = `<p class="form-error" role="alert">${escapeHtml(res.error)}</p>`; return; }
+  if (res.error) { setGraphicHtml(body, `<p class="form-error" role="alert">${escapeHtml(res.error)}</p>`); return; }
   if (teacher.view != null) { renderStudentReport(body, el); return; }
   renderClassResults(body, el);
 }
@@ -2377,7 +2410,7 @@ function renderClassResults(body, panel) {
   }).filter(m => m.wrong > 0).sort((a, b) => b.wrong - a.wrong); // only items someone got wrong
   const q7 = withWork.map(s => ({ reg: s.reg, v: recAnswer(s.record, "s5.q7") })).filter(x => x.v && String(x.v).trim());
 
-  body.innerHTML = `
+  setGraphicHtml(body, `
     ${teacher.notice ? `<p class="notice" role="status">${escapeHtml(teacher.notice)}</p>` : ""}
     <section class="card results-summary" aria-labelledby="sumTitle">
       <h2 class="section-title" id="sumTitle">Class summary: ${escapeHtml(res.cls)}</h2>
@@ -2392,7 +2425,7 @@ function renderClassResults(body, panel) {
         <tbody>${CONFIDENCE_ROWS.map((row, i) => `<tr><th scope="row">${escapeHtml(row)}</th>${FACES.map((f, v) => `<td>${withWork.filter(x => recAnswer(x.record, `s5.q8.${i + 1}`) === v).length}</td>`).join("")}</tr>`).join("")}</tbody>
       </table></div>
       <h3 class="sum-head">Q7: one question I still have</h3>
-      ${q7.length ? `<ul class="sum-list">${q7.map(x => `<li><strong>No. ${x.reg}:</strong> ${escapeHtml(x.v)}</li>`).join("")}</ul>` : `<p class="muted">No answers yet.</p>`}
+      ${q7.length ? `<ul class="sum-list">${q7.map(x => `<li><strong>No. ${x.reg}:</strong> <span data-student-text>${escapeHtml(x.v)}</span></li>`).join("")}</ul>` : `<p class="muted">No answers yet.</p>`}
     </section>
     <section class="card" aria-labelledby="tableTitle">
       <h2 class="section-title" id="tableTitle">Students</h2>
@@ -2402,7 +2435,7 @@ function renderClassResults(body, panel) {
         <tbody>${students.map((s, i) => {
           const r = s.record;
           const q2 = recFirstTry(r, L3_Q2), q34 = recFirstTry(r, L5_MARKED);
-          const faces = CONFIDENCE_ROWS.map((row, k) => { const v = recAnswer(r, `s5.q8.${k + 1}`); return typeof v === "number" ? `<span title="${FACES[v][1]}">${FACES[v][0]}</span>` : "·"; }).join(" ");
+          const faces = CONFIDENCE_ROWS.map((row, k) => { const v = recAnswer(r, `s5.q8.${k + 1}`); return typeof v === "number" ? `<span class="confidence-summary" role="img" aria-label="${FACES[v][1]}" title="${FACES[v][1]}">${FACES[v][0]}</span>` : "·"; }).join(" ");
           return `<tr class="student-row" data-i="${i}">
             <td><button type="button" class="row-link" data-i="${i}">No. ${s.reg}</button>${r ? "" : `<span class="muted"> (cleared)</span>`}</td>
             <td>${r ? recLevelsDone(r) : 0}</td><td>${q2 == null ? "–" : `${q2} / 4`}</td><td>${q34 == null ? "–" : `${q34} / 5`}</td><td class="faces-cell">${faces}</td>
@@ -2411,7 +2444,7 @@ function renderClassResults(body, panel) {
       </table></div>
       <div class="btn-row"><button type="button" class="btn secondary" id="downloadCsv">⬇️ Download CSV</button></div>
     </section>
-  `;
+  `);
   const open = (i) => { teacher.view = i; teacher.notice = ""; renderResultsTab(panel); window.scrollTo(0, 0); };
   body.querySelectorAll(".student-row").forEach(row => row.addEventListener("click", () => open(Number(row.getAttribute("data-i")))));
   body.querySelector("#downloadCsv").addEventListener("click", () => downloadClassCsv(res));
@@ -2420,7 +2453,7 @@ function renderClassResults(body, panel) {
 // A student's full report (Teacher Mode).
 function qa(label, value) {
   const v = value == null || String(value).trim() === "" ? "(blank)" : String(value);
-  return `<div class="qa"><p class="qa-q">${escapeHtml(label)}</p><p class="qa-a">${escapeHtml(v)}</p></div>`;
+  return `<div class="qa"><p class="qa-q">${escapeHtml(label)}</p><p class="qa-a" data-student-text>${escapeHtml(v)}</p></div>`;
 }
 function attemptsTable(items, firstCol) {
   return `<div class="table-wrap"><table class="results-table">
@@ -2436,7 +2469,7 @@ function renderStudentReport(body, panel) {
   const s = res.students[teacher.view];
   const r = s.record || {};
   const withR = items => items.map(it => Object.assign({ _r: r }, it));
-  body.innerHTML = `
+  setGraphicHtml(body, `
     <div class="btn-row"><button type="button" class="btn secondary" id="backToClass">← Back to the class</button></div>
     <section class="card student-report" aria-labelledby="stuTitle">
       <h2 class="section-title" id="stuTitle">Class ${escapeHtml(res.cls)}, Register No. ${s.reg}</h2>
@@ -2462,7 +2495,7 @@ function renderStudentReport(body, panel) {
       <ul class="conf-list">${CONFIDENCE_ROWS.map((row, i) => { const v = recAnswer(r, `s5.q8.${i + 1}`); return `<li class="conf-row"><span class="conf-text">${escapeHtml(row)}</span><span class="conf-face">${typeof v === "number" ? `<span aria-hidden="true">${FACES[v][0]}</span> ${FACES[v][1]}` : "–"}</span></li>`; }).join("")}</ul>
     </section>
     <div class="btn-row"><button type="button" class="btn secondary danger" id="clearStudent">Clear this student's work</button></div>
-  `;
+  `);
   body.querySelector("#backToClass").addEventListener("click", () => { teacher.view = null; renderResultsTab(panel); });
   body.querySelector("#clearStudent").addEventListener("click", () => {
     showModal({
@@ -2535,7 +2568,7 @@ function downloadClassCsv(res) {
 
 function renderDeviceTab(el, message) {
   const on = unlockAllOnDevice();
-  el.innerHTML = `
+  setGraphicHtml(el, `
     ${message ? `<p class="notice" role="status">${escapeHtml(message)}</p>` : ""}
     <section class="card device-card" aria-labelledby="unlockTitle">
       <h2 class="section-title" id="unlockTitle">${hIcon("🔓")}Unlock all levels</h2>
@@ -2549,7 +2582,7 @@ function renderDeviceTab(el, message) {
       <p>Logs out the student and clears the copy of their work on this device. Their work stays saved on the server.</p>
       <div class="btn-row"><button type="button" class="btn secondary" id="resetDevice">Reset this device</button></div>
     </section>
-  `;
+  `);
   el.querySelector("#unlockToggle").addEventListener("click", () => {
     if (on) lsRemove(KEYS.unlockAll); else lsSet(KEYS.unlockAll, true);
     renderDeviceTab(el);

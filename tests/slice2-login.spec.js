@@ -81,9 +81,9 @@ test.describe("new student", () => {
     await login(page, "3E1", 12);
 
     const modal = page.locator("#briefing");
-    await expect(modal.locator("h2")).toHaveText("📋 Before you start");
+    await expect(modal.locator("h2")).toHaveText("Before you start");
     await expect(modal.locator("li > span:last-child")).toHaveText(BRIEFING);
-    await expect(modal.locator("button")).toHaveText("✅ I'm ready");
+    await expect(modal.locator("button")).toHaveText("I'm ready");
     await checkPage(page, testInfo, "slice2-before-you-start");
 
     // Until "I'm ready", every page shows the pop-up.
@@ -96,16 +96,16 @@ test.describe("new student", () => {
     expect(page.url()).toMatch(/#home$/);
 
     await expect(page.locator(".topbar-chip")).toHaveText("Class 3E1 · Register No. 12");
-    await expect(page.locator(".welcome-text")).toHaveText("👋 Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!");
+    await expect(page.locator(".welcome-text")).toHaveText("Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!");
     await expect(page.locator(".notice")).toHaveCount(0);
-    await expect(page.locator("#howLink")).toHaveText("📋 How this works");
-    await expect(page.locator("#switchLink")).toHaveText("🔄 Sharing this device? Switch student");
+    await expect(page.locator("#howLink")).toHaveText("How this works");
+    await expect(page.locator("#switchLink")).toHaveText("Sharing this device? Switch student");
     await expect(page.locator(".terms-card")).toContainText("Start here: 4 key terms");
     await expect(page.locator(".terms-card")).toContainText("A 1-minute look before Level 2");
     await expect(page.locator(".journey-count")).toHaveText("0 of 5 levels done");
     await expect(page.locator(".level-name")).toHaveText([
-      "📝 Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service",
-      "💬 Level 3: Chat with Alex", "🛍️ Level 4: Serve Suzzie at Stylez", "✅ Level 5: Check and Exit Ticket"
+      "Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service",
+      "Level 3: Chat with Alex", "Level 4: Serve Suzzie at Stylez", "Level 5: Check and Exit Ticket"
     ]);
     await expect(page.locator(".level-desc")).toHaveText([
       "Think about your own experiences as a customer.",
@@ -114,7 +114,7 @@ test.describe("new student", () => {
       "Switch roles. Now you're the customer service officer.",
       "Check what you've learnt and tell your teacher how confident you feel."
     ]);
-    await expect(page.locator(".status-pill")).toHaveText(["Not started", "🔒 Locked", "🔒 Locked", "🔒 Locked", "🔒 Locked"]);
+    await expect(page.locator(".status-pill")).toHaveText(["Not started", "Locked", "Locked", "Locked", "Locked"]);
     await expect(page.locator(".shelf-name")).toHaveText([
       "Story Sharer, not earned yet", "Service Scholar, not earned yet", "Service Spotter, not earned yet",
       "Service Star, not earned yet", "Chapter 6 Champion, not earned yet"
@@ -132,7 +132,7 @@ test.describe("new student", () => {
 
     // Level 1 is open.
     await page.click("#levelCard1");
-    await expect(page.locator("h1.page-title")).toHaveText("📝 Level 1: Your Customer Service Stories");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 1: Your Customer Service Stories");
     await page.click("#homeBtn");
 
     // "How this works" reopens the pop-up with Close.
@@ -238,7 +238,7 @@ test.describe("saving and loading", () => {
     await page.click("#startBtn");
     await expect(page.locator(".welcome-card")).toBeVisible();
     await expect(page.locator("#briefing")).toHaveCount(0); // "I'm ready" from this device's copy
-    await expect(page.locator("#netBanner")).toHaveText("📡 No internet. Your work is saved on this device and will be sent when the connection is back.");
+    await expect(page.locator("#netBanner")).toHaveText("No internet. Your work is saved on this device and will be sent when the connection is back.");
     await checkPage(page, testInfo, "slice2-offline");
 
     // Connection back: the queued work is sent and the bar goes.
@@ -259,7 +259,7 @@ test.describe("saving and loading", () => {
     const busyReply = page.waitForResponse(r => r.url().endsWith("/api") && r.request().method() === "POST", { timeout: 25000 });
     await page.click("#briefing button");
     expect((await (await busyReply).json()).error).toBe("busy");
-    await expect(page.locator("#netBanner")).toHaveText("⏳ Your answers have not been sent yet. They are safe on this device. We will keep trying.", { timeout: 5000 });
+    await expect(page.locator("#netBanner")).toHaveText("Your answers have not been sent yet. They are safe on this device. We will keep trying.", { timeout: 5000 });
     await waitForSave(page, 15000); // retried after about 5 seconds
     await expect(page.locator("#netBanner")).toHaveCount(0, { timeout: 5000 });
   });
@@ -278,7 +278,7 @@ test.describe("saving and loading", () => {
     await page.selectOption("#classInput", "3E1");
     await page.fill("#regInput", "11");
     await page.click("#startBtn");
-    await expect(page.locator("#briefing button")).toHaveText("✅ I'm ready"); // starts again
+    await expect(page.locator("#briefing button")).toHaveText("I'm ready"); // starts again
     await expect(page.locator(".notice")).toHaveCount(0);
     // A save from a copy made before the clear is refused.
     const stale = await apiPost(request, { action: "save", record: { cls: "3E1", reg: 11, updatedAt: new Date().toISOString(), baseClearedAt: "" } });
