@@ -157,3 +157,7 @@ The footer's **Reset progress** button clears the currently signed-in student's 
 4. Check the reset using a dedicated test student. Old offline saves must not bring the cleared answers back.
 
 A website push does not update Google Apps Script. Until these steps are done, the new button reports that reset is not set up and preserves the student's browser copy. For local testing only, supply a throwaway `RESET_CODE` environment variable as well as `TEACHER_CODE`.
+
+## Matching passcodes (version 0.6.10)
+
+The owner requested the same privately agreed passcode for Teacher Mode, Reset this device, and Reset progress. In the existing Apps Script project's **Project Settings → Script Properties**, set both `TEACHER_CODE` and `RESET_CODE` to that agreed value. Both checks already ignore letter case and surrounding spaces. Reset this device uses `TEACHER_CODE`; Reset progress uses `RESET_CODE`. Updating the properties takes effect immediately. If the new reset action is not deployed yet, also paste the current `Code.gs` and deploy a **New version** of the existing deployment, keeping its URL. The owner confirmed Dan must perform this live backend update. No passcode is embedded in the public website or repository.

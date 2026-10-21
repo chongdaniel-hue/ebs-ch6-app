@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.9";
+const APP_VERSION = "0.6.10";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -552,7 +552,7 @@ function footerHtml() {
   return `
     <footer class="credits">
       <p class="footer-actions"><a href="#teacher" class="teacher-link">Teacher Mode</a>
-        <button type="button" class="footer-reset" data-reset-progress ${student ? "" : "disabled"}>Reset progress</button></p>
+        <button type="button" class="teacher-link footer-reset" data-reset-progress ${student ? "" : "disabled"}>Reset progress</button></p>
       <p>A team effort by Anthony, Daniel, Joshua and Jufinnie <span class="nowrap">(NIE 2026)</span></p>
       <p class="credits-version">Version ${APP_VERSION}</p>
     </footer>`;
