@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.13";
+const APP_VERSION = "0.6.14";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -142,9 +142,15 @@ function imgHtml(id, cls) {
 }
 
 function imgFallback(el) {
+  const exampleFigure = el.closest(".product-example-figure");
   const wrap = document.createElement("div");
   setGraphicHtml(wrap, imgPlaceholderHtml(el.getAttribute("data-img"), el.getAttribute("data-cls")));
   if (wrap.firstElementChild) el.replaceWith(wrap.firstElementChild);
+  // If the graphic fails, show its speech transcript so the example stays usable.
+  if (exampleFigure) {
+    const caption = exampleFigure.querySelector("figcaption");
+    if (caption) caption.classList.remove("visually-hidden");
+  }
 }
 
 // Replacements keep the original symbol's size as the 1x baseline.
@@ -1477,9 +1483,9 @@ const PRODUCT_KNOWLEDGE_EXAMPLES = [
   { id: "price", icon: "💲", image: "PK_PRICE", title: "Price and available options",
     dialogue: "This model comes in blue or black. Let me check the price for the storage option you want." },
   { id: "care", icon: "🧴", image: "PK_CARE", title: "How to use or care for the product",
-    dialogue: "Use a protective case and wipe the screen with a soft, dry cloth." },
+    dialogue: "You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition." },
   { id: "warranty", icon: "🛡️", image: "PK_WARRANTY", title: "Warranty and after-sales support",
-    dialogue: "Keep your receipt. I can explain what the warranty covers and how to get help after your purchase." },
+    dialogue: "Please keep your receipt as proof of purchase for warranty and exchanges. Let me explain what the warranty covers and how to get help after you purchase." },
   { id: "selling-point", icon: "⭐", image: "PK_SELLING_POINT", title: "Unique selling points of the product (why your product is better than competitors' products)",
     dialogue: "Compared with this other model, this phone has a longer battery life. It may suit you if you use your phone often." }
 ];
@@ -1502,9 +1508,7 @@ function showProductKnowledgeExample(id, trigger) {
     title: escapeHtml(example.title),
     bodyHtml: `<figure class="product-example-figure">
       ${imgHtml(example.image, "product-example-image")}
-      <figcaption><p class="product-example-label">An example at Nexora</p>
-        <p class="say">${escapeHtml(example.dialogue)}</p>
-        <p class="product-example-note">AI-generated illustration of a fictional example.</p></figcaption>
+      <figcaption class="visually-hidden">The staff member says: ${escapeHtml(example.dialogue)} AI-generated illustration of a fictional example.</figcaption>
       </figure>`,
     buttons: [{ label: "Close", primary: true, onClick: restoreFocus }]
   });

@@ -25,10 +25,12 @@ test("each product card opens its matching generated picture, closes accessibly 
     await expect(dialog.locator("h2")).toHaveText(title);
     const image=dialog.locator("img");
     await expect(image).toHaveCount(1);
-    await expect(image).toHaveAttribute("src",`assets/img/product-knowledge-${id}.png`);
+    await expect(image).toHaveAttribute("src",`assets/img/product-knowledge-${id}-speech.png`);
     await expect.poll(()=>image.evaluate(el=>el.complete && el.naturalWidth>0)).toBe(true);
     await expect(image).toHaveAttribute("alt",/Nexora staff member/);
-    await expect(dialog.locator(".say")).not.toBeEmpty();
+    await expect(dialog.locator(".say")).toHaveCount(0);
+    await expect(dialog.locator("figcaption")).toHaveClass("visually-hidden");
+    await expect(dialog.locator("figcaption")).toContainText("The staff member says:");
     await expect(dialog.getByRole("button",{name:"Close",exact:true})).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(dialog.getByRole("button",{name:"Close",exact:true})).toBeFocused();
@@ -48,11 +50,12 @@ test("each product card opens its matching generated picture, closes accessibly 
 
 test("a failed example image keeps its accessible description and dialogue",async({page,request})=>{
   await openKnowledge(page,request);
-  await page.route("**/assets/img/product-knowledge-care.png",route=>route.fulfill({status:404,body:"Missing test image"}));
+  await page.route("**/assets/img/product-knowledge-care-speech.png",route=>route.fulfill({status:404,body:"Missing test image"}));
   await page.locator('[data-product-example="care"]').click();
   const dialog=page.locator("#productExampleModal");
   await expect(dialog.getByRole("img")).toHaveAttribute("aria-label",/soft dry cloth/);
-  await expect(dialog.locator(".say")).toHaveText("Use a protective case and wipe the screen with a soft, dry cloth.");
+  await expect(dialog.locator("figcaption")).toContainText("You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition.");
+  await expect(dialog.locator("figcaption")).toBeVisible();
   await dialog.getByRole("button",{name:"Close",exact:true}).click();
   await expect(dialog).toHaveCount(0);
 });

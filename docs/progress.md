@@ -262,3 +262,21 @@ Validation for 0.6.11: 40 relevant checks passed with 2 intentional skips across
 - Includes the pending suitability image and requested Uniqlo introduction. Local preview only, pending review.
 
 Validation for 0.6.13 and pending content edits: full suite 102 passed, 2 intentional skips, no failures at laptop and phone widths. Additional shared accessibility audit passed all five new teacher preview routes and the expanded learning report at 1280px and 360px (contrast, names, duplicate IDs, tap targets and overflow). Six new regression cases verify teacher authentication, every lesson part being visible, all eight recovery steps, disabled activities, zero student saves or changes, unchanged student locks, all 27 saved response fields including drafts and retry fallback, escaped text and preserved student-written emoji. Visually reviewed all 12 new teacher/report screenshot views and full-size answer-card crops, plus the suitability illustration and both revised sections at both widths: consistent cards, readable wrapping/spacing, no image stretching or sideways scrolling. Confirmed the suitability image sits between its heading and original paragraph; Uniqlo wording matches the user's request. Local authenticated teacher preview opened for review. No push or deployment.
+
+
+### Published baseline and unpublished speech bubbles (22 October 2026, version 0.6.14 preview)
+- User explicitly authorised publishing all work through 0.6.13, then requested the five View example illustrations include the staff dialogue inside the graphics, removing the repeated bottom captions. User explicitly prohibited publishing this new revision until review.
+- Published commits 515b67c and 9d9bf09; Vercel reported successful deployment of 9d9bf09 and production app.js/config.js/styles.css matched that reviewed baseline exactly before further edits.
+- Edited five sibling speech-bubble assets with built-in image generation, preserving their individual Nexora demonstrations. The visible modal now contains the graphic and Close button only. A screen-reader transcript remains, and becomes visible if the image cannot load. No new lesson wording, dependencies, backend changes or publishing whitelist changes. This revision remains local only.
+
+Validation: 18 checks passed, with 2 intentional skips, covering phone and laptop layouts, all five popups, image fallback, keyboard closing, progress preservation and whole-app accessibility checks. Reviewed all five generated graphics and ten popup screenshots. Local teacher preview opened for review. This revision remains unpublished.
+
+- Care-image refinement: user requested a smaller speech bubble and exact wording “you may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition.”. Updated the care graphic and its accessible/fallback transcript together. Remains unpublished for review.
+
+- Further bubble refinement: user requested smaller bubbles for price, unique selling points, features and warranty, matching the care example. Warranty wording updated verbatim to “Please keep your receipt as proof of purchase for warranty and exchanges. Let me explain what the warranty covers and how to get help after you purchase.”, including the accessible transcript. The four illustrations are edited with built-in image generation; publication remains on hold for user review.
+
+Validation of smaller-bubble refinements: all 4 product-example tests passed at phone and laptop widths, including failed-image transcript and unchanged progress. Inspected all four full-size images and popup screenshots, with exact warranty wording, unclipped teaching scenes and smaller speech bubbles. Local warranty popup opened for user review; no publication.
+
+- Care bubble correction: user requested capital Y in “You may use…”. Updated the image and accessible/fallback transcript; local review only, unpublished.
+
+Publication authorised by user after capital-Y correction. Final release checks: 18 passed, 2 intentional skips at phone and laptop widths. All five speech-bubble assets and accessible transcripts are included in version 0.6.14.
