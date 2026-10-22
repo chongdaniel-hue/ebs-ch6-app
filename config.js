@@ -105,6 +105,7 @@ window.APP_CONFIG = {
     "⚑": "flag"
 } },
   IMAGES: {
+    SUITABILITY: { file: "assets/img/product-suitability-camera.png", emoji: "📱", label: "Matching the phone camera to a customer who enjoys photography", alt: "A customer shows her photo gallery while the Nexora staff member points out a new phone camera and a clear flower photo, matching its camera features to her interest in taking photos." },
     PK_FEATURES: { file: "assets/img/product-knowledge-features.png", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member shows a customer a phone screen and explains its screen size and battery features." },
     PK_PRICE: { file: "assets/img/product-knowledge-price.png", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member shows a customer blue and black phones and explains price and storage options." },
     PK_CARE: { file: "assets/img/product-knowledge-care.png", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member demonstrates wiping a phone screen with a soft dry cloth, with a protective case beside it." },

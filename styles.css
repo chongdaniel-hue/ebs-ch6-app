@@ -1430,3 +1430,17 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .product-example-image{display:block;width:100%;max-height:48vh;object-fit:contain;margin:12px auto 16px;}
 .product-example-label{font-weight:700;color:var(--brand-dark);}
 .product-example-note{font-size:0.875rem;color:var(--muted);}
+
+.teacher-lesson-links{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0 24px;}
+.teacher-lesson-links [aria-current="page"]{background:var(--brand-light);border-width:2px;}
+.teacher-preview-note{padding:16px;background:var(--brand-light);border-radius:12px;color:var(--brand-dark);}
+.teacher-step-title{padding-bottom:12px;border-bottom:2px solid var(--border);}
+.teacher-lesson-step{margin-top:40px;}
+.report-answer-level{margin-top:24px;}
+.report-answer-level .qa-q{font-size:1rem;margin:0 0 8px;}
+.report-answer-level .qa-a{white-space:pre-wrap;overflow-wrap:anywhere;}
+.report-attempts{margin:12px 0 24px;padding:12px 16px;background:var(--bg);border-radius:10px;}
+.report-attempts dt{font-weight:700;color:var(--brand-dark);}
+.report-attempts dd{margin:4px 0 12px;white-space:pre-wrap;overflow-wrap:anywhere;}
+
+.report-answer-level > * + *{margin-top:16px;}

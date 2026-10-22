@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.11";
+const APP_VERSION = "0.6.13";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -179,6 +179,7 @@ const KEYS = {
 
 let student = null;  // {cls, reg}
 let rec = null;      // that student's record
+let renderingTeacherPreview = false;
 
 function studentKey(cls, reg) { return cls + "#" + reg; }
 function activeKey() { return student ? studentKey(student.cls, student.reg) : ""; }
@@ -192,7 +193,7 @@ function freshRecord(cls, reg, baseClearedAt) {
 
 let storageWarned = false;
 function saveLocal() {
-  if (!student || !rec) return;
+  if (renderingTeacherPreview || !student || !rec) return;
   if (!lsSet(KEYS.rec(activeKey()), rec) && !storageWarned) {
     storageWarned = true;
     alert("We couldn't save your work on this device. Its storage may be full.");
@@ -326,7 +327,7 @@ let lastTypingSend = 0;
 let typingTimer = null;
 
 function queueSave(mode) {
-  if (!student || !rec) return;
+  if (renderingTeacherPreview || !student || !rec) return;
   rec.updatedAt = nowIso();
   saveLocal();
   const now = Date.now();
@@ -716,6 +717,13 @@ function render() {
   const hash = window.location.hash;
   document.querySelectorAll(".modal-backdrop").forEach(m => { if (m.id !== "briefing") m.remove(); });
   if (hash === "#teacher") { renderTeacher(); window.scrollTo(0, 0); return; }
+  const teacherLevel = hash.match(/^#teacher-preview-([1-5])$/);
+  if (teacherLevel) {
+    if (teacher) renderTeacherLesson(Number(teacherLevel[1]));
+    else renderTeacherGate();
+    window.scrollTo(0, 0);
+    return;
+  }
   if (!student) { renderLanding(); return; }
   const m = hash.match(/^#level([1-5])$/);
   if (hash === "#terms") renderTerms();
@@ -1601,6 +1609,7 @@ const L2_TABS = [
         ${imgHtml("C03", "comic-img")}`),
       notesPart(() => `
         <h2 class="section-title">${hIcon("🎯")}Presenting product information: suitability</h2>
+        ${imgHtml("SUITABILITY", "notes-img suitability-img")}
         <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>`)
     ]
   },
@@ -1645,7 +1654,7 @@ const L2_TABS = [
         ${imgHtml("N03", "comic-img")}
 `),
       notesPart((ctx) => `
-        <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt.</p>
+        <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt. For example, Uniqlo, as shown below.</p>
         ${imgHtml("R03", "uniqlo-img")}
         <div class="card think-card">
           <h3 class="think-title">${hIcon("🤔")}Think about it (optional)</h3>
@@ -2404,6 +2413,45 @@ function attemptText(item, att) {
   return `${label == null ? "(blank)" : label} (${att.ok ? "right" : "wrong"})`;
 }
 
+function reportAnswerHtml(label, value) {
+  const blank = value == null || String(value).trim() === "";
+  return `<div class="qa"><h4 class="qa-q">${escapeHtml(label)}</h4><p class="qa-a" data-student-text>${escapeHtml(blank ? "Not answered yet" : String(value))}</p></div>`;
+}
+
+function reportChoiceLabel(item, value) {
+  if (value === undefined || value === null || value === "") return "Not answered yet";
+  if (item.type === "select") return item.options[value] || "Not answered yet";
+  if (item.type === "tf") return value === true ? "True" : value === false ? "False" : "Not answered yet";
+  const option = item.options.find(o => o.letter === value);
+  return option ? `${option.letter}. ${option.text}` : "Not answered yet";
+}
+
+function reportMarkedHtml(item, r) {
+  const first = r && r.first && r.first[item.attemptKey];
+  const second = r && r.second && r.second[item.attemptKey];
+  let value = recAnswer(r, item.answerKey);
+  if (value === undefined) value = second ? second.a : first ? first.a : undefined;
+  const title = item.type === "select" ? `Q2 ${item.id}. ${item.quote}`
+    : item.type === "tf" ? `Q3 ${item.id}. ${item.text}`
+    : `Q4. A customer at a mobile phone shop says, "This is the third time I've called about the same faulty charger, and nobody has fixed it!" Which response best shows good service recovery? Tap one.`;
+  return `<div class="report-marked-answer">${reportAnswerHtml(title, reportChoiceLabel(item, value))}
+    <dl class="report-attempts"><dt>First try</dt><dd data-student-text>${escapeHtml(first ? `${reportChoiceLabel(item, first.a)} (${first.ok ? "right" : "wrong"})` : "Not attempted yet")}</dd>
+      <dt>Second try</dt><dd data-student-text>${escapeHtml(second ? `${reportChoiceLabel(item, second.a)} (${second.ok ? "right" : "wrong"})` : "Not attempted")}</dd></dl></div>`;
+}
+
+function learningAnswersHtml(r) {
+  const qa = (label, key) => reportAnswerHtml(label, recAnswer(r, key));
+  const tick = key => recAnswer(r,key) === true ? "Yes" : recAnswer(r,key) === false ? "No" : undefined;
+  const groups = [
+    L1_BOXES.map(b => qa(`${b.num}. ${b.text}`,b.key)).join(""),
+    qa("Was this good service recovery? Which of the 8 steps above were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
+    reportAnswerHtml("I have finished chatting with Alex.",tick("s3.tick")) + qa("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed. Skill or quality:","s3.q1a") + qa("This is important to customers because","s3.q1b") + L3_Q2.map(it=>reportMarkedHtml(it,r)).join(""),
+    reportAnswerHtml("I have finished serving Suzzie.",tick("s4.tick")) + L4_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
+    L5_MARKED.map(it=>reportMarkedHtml(it,r)).join("") + qa("Q5. Quality customer service matters because","s5.q5") + qa("Q6. What is one thing you have learnt about customer service?","s5.q6") + qa("Q7. What is one question you still have about this chapter?","s5.q7") + CONFIDENCE_ROWS.map((row,i)=>{const v=recAnswer(r,`s5.q8.${i+1}`);return reportAnswerHtml(`Q8. ${row}`,typeof v==="number" && FACES[v] ? FACES[v][1] : undefined);}).join("")
+  ];
+  return groups.map((html,i)=>`<section class="card report-answer-level" aria-labelledby="answerLevel${i+1}"><h3 class="section-title" id="answerLevel${i+1}">Level ${i+1}: ${escapeHtml(LEVELS[i].title)}</h3>${html}</section>`).join("");
+}
+
 /* ---------------- 6.1 My learning report ---------------- */
 
 function renderReport() {
@@ -2454,6 +2502,11 @@ function renderReport() {
               <span class="conf-face">${typeof v === "number" ? `<span aria-hidden="true">${FACES[v][0]}</span> ${FACES[v][1]}` : "–"}</span></li>`;
           }).join("")}
         </ul>
+      </section>
+      <section class="block learning-answers" aria-labelledby="allAnswersTitle">
+        <h2 class="section-title" id="allAnswersTitle">Your answers to every question</h2>
+        <p>These are your saved answers. Questions you have not answered are marked “Not answered yet”.</p>
+        ${learningAnswersHtml(r)}
       </section>
       <div class="block"><div class="btn-row"><a href="#home" class="btn" id="reportBack">Back to my route</a></div></div>
     </main>
@@ -2523,7 +2576,8 @@ function renderTeacherGate() {
       return;
     }
     teacher = { code, classes: reply.classes || [], removed: reply.removed || [], tab: "classes", results: null, view: null, notice: "" };
-    renderTeacherHome();
+    if (/^#teacher-preview-[1-5]$/.test(window.location.hash)) render();
+    else renderTeacherHome();
   });
 }
 
@@ -2592,6 +2646,45 @@ function renderClassesTab(el, message) {
   }));
 }
 
+function teacherLessonLinksHtml(current) {
+  return `<nav class="teacher-lesson-links" aria-label="Teacher lesson preview">${LEVELS.map(level=>`<a class="btn secondary" href="#teacher-preview-${level.num}" ${current===level.num ? 'aria-current="page"' : ""}>Level ${level.num}</a>`).join("")}</nav>`;
+}
+
+function renderTeacherLesson(n) {
+  // Render against an isolated, temporary record. Never load or write student answers.
+  const previousRecord = rec;
+  const previousPath = pathShownNow;
+  let content;
+  renderingTeacherPreview = true;
+  try {
+    rec = freshRecord("",0,"");
+    rec.agreed = "preview";
+    rec.reached["s2.path"] = 8;
+    pathShownNow = 8;
+    content = LEVEL_CONTENT[n].tabs.map((tab,t)=>`<section class="teacher-lesson-step" aria-labelledby="teacherStep${t}">
+      <h2 class="teacher-step-title" id="teacherStep${t}">${escapeHtml(tab.label)}</h2>
+      ${tab.parts.map((part,i)=>`<section class="block part teacher-lesson-part" id="teacherPart${n}_${t}_${i}">${part.html({n,t,readOnly:true,fresh:false})}</section>`).join("")}
+    </section>`).join("");
+  } finally {
+    rec = previousRecord;
+    pathShownNow = previousPath;
+    renderingTeacherPreview = false;
+  }
+  setGraphicHtml(app,`${topBarHtml({})}<main class="page teacher-lesson">
+    <div class="block"><h1 class="page-title">Level ${n}: ${escapeHtml(lvl(n).title)}</h1>
+      <p class="teacher-preview-note">Teacher preview: all sections are open. Activities are view-only and do not change student progress.</p>
+      <div class="btn-row"><a class="btn secondary" href="#teacher">Back to Teacher Mode</a></div>
+      ${teacherLessonLinksHtml(n)}</div>${content}</main>${footerHtml()}`);
+  app.querySelectorAll(".teacher-lesson-part input, .teacher-lesson-part select, .teacher-lesson-part textarea, .teacher-lesson-part button").forEach(el=>{
+    if (!el.matches(".listen-btn, [data-product-example]")) el.disabled = true;
+  });
+  app.querySelectorAll(".teacher-lesson [aria-labelledby]").forEach(el=>{
+    if (!el.getAttribute("aria-labelledby").split(/\s+/).every(id=>document.getElementById(id))) el.removeAttribute("aria-labelledby");
+  });
+  wireListen(app);
+  labelFormControls();
+}
+
 function renderTeacherHome() {
   const tabs = [["classes", "Classes"], ["results", "Results"], ["device", "This device"]];
   const cur = teacher.tab || "classes";
@@ -2600,6 +2693,8 @@ function renderTeacherHome() {
     <main class="page">
       <div class="block">
         <h1 class="page-title">Teacher Mode</h1>
+        <p>View any level without completing the activities.</p>
+        ${teacherLessonLinksHtml()}
         <div class="tabs" role="tablist" aria-label="Teacher Mode">
           ${tabs.map(([id, label]) => `<button type="button" role="tab" class="tab ${cur === id ? "current" : ""}" aria-selected="${cur === id}" id="tab_${id}" data-tab="${id}">${label}</button>`).join("")}
         </div>

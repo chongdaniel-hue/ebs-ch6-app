@@ -244,7 +244,7 @@ test.describe("Level 2", () => {
     await expect(page.locator("#part3 .ic-desc")).toHaveText(["Replace it with the same product.", "Offer to exchange it with a different product.", "Give a refund."]);
     // Part 5 (new Continue point): the returns rules, Uniqlo, the second optional box, recap.
     await page.click("#continueBtn");
-    await expect(page.locator("#part4 .head-row p")).toHaveText("Many businesses also set clear rules for returns, such as a time limit and needing the receipt.");
+    await expect(page.locator("#part4 .head-row p")).toHaveText("Many businesses also set clear rules for returns, such as a time limit and needing the receipt. For example, Uniqlo, as shown below.");
     await expect(page.locator('#part4 img[data-img="R03"]')).toBeVisible();
     // The optional box is left empty: Finish still works.
     await expect(page.locator(".recap-card .recap-title")).toHaveText("Remember this");
