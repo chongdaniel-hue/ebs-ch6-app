@@ -9,12 +9,12 @@ test("landing page shell", async ({ page }, testInfo) => {
   await expect(page.locator("h1.topbar-title")).toHaveText("Customer Service");
   await expect(page.locator(".topbar-sub")).toHaveText("A self-study revision module");
   await expect(page.locator(".lead")).toHaveText("Hi! In this module, you'll revise Chapter 6: Customer Service. You'll read short notes, chat with an AI customer service officer, serve an AI customer yourself, and check what you've learnt.");
-  const banner = page.locator('img[data-img="N01"]');
+  const banner = page.locator('img[data-img="WELCOME"]');
   await expect(banner).toBeVisible();
   await expect.poll(() => banner.evaluate(el => el.complete && el.naturalWidth > 0)).toBe(true);
-  await expect(banner).toHaveAttribute("alt", "The Nexora phone store, with the staff member welcoming a customer");
+  await expect(banner).toHaveAttribute("alt", "Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity.");
   await expect(page.locator(".credits")).toContainText("A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)");
-  await expect(page.locator(".credits")).toContainText("Version 0.6.19");
+  await expect(page.locator(".credits")).toContainText("Version 0.6.20");
   await expect(page.locator(".credits a.teacher-link")).toHaveText("Teacher Mode");
   // Zoom allowed.
   const vp = await page.locator('meta[name="viewport"]').getAttribute("content");
@@ -48,7 +48,7 @@ test("image map: all artwork loads, failed requests show accessible placeholders
   page.on("pageerror", e => pageErrors.push(String(e)));
   await page.goto("/");
   const ids = await page.evaluate(() => Object.keys(window.APP_CONFIG.IMAGES));
-  expect(ids).toEqual(["SUITABILITY", "PK_FEATURES", "PK_PRICE", "PK_CARE", "PK_WARRANTY", "PK_SELLING_POINT", "ICON_TERMS", "ICON_LEARN", "TERM_SERVICE", "TERM_QUALITY", "TERM_BREAKDOWN", "TERM_RECOVERY", "N01", "N02", "N03", "N04", "N05", "C01", "C02", "C03", "C04", "R01", "R02", "R03", "BADGE1", "BADGE2", "BADGE3", "BADGE4", "BADGE5"]);
+  expect(ids).toEqual(["WELCOME", "SUITABILITY", "PK_FEATURES", "PK_PRICE", "PK_CARE", "PK_WARRANTY", "PK_SELLING_POINT", "ICON_TERMS", "ICON_LEARN", "TERM_SERVICE", "TERM_QUALITY", "TERM_BREAKDOWN", "TERM_RECOVERY", "N01", "N02", "N03", "N04", "N05", "C01", "C02", "C03", "C04", "R01", "R02", "R03", "BADGE1", "BADGE2", "BADGE3", "BADGE4", "BADGE5"]);
   // Draw every image into the page, as the levels will.
   await page.evaluate(ids => {
     document.querySelector(".page").innerHTML = ids.map(id => `<div class="block test-img" data-id="${id}"><p><strong>${id}</strong></p>${imgHtml(id)}</div>`).join("");
@@ -65,12 +65,12 @@ test("image map: all artwork loads, failed requests show accessible placeholders
   await expectNoSidewaysScroll(page);
   await shot(page, testInfo, "slice1-images");
   // The fallback still works if an installed illustration becomes unavailable.
-  await page.route("**/assets/img/N01-landing-banner.jpg", route => route.fulfill({ status: 404, body: "Not found" }));
+  await page.route("**/assets/img/welcome-customer-service-banner.png", route => route.fulfill({ status: 404, body: "Not found" }));
   await page.reload();
-  const fallback = page.locator('.img-placeholder[data-img="N01"]');
+  const fallback = page.locator('.img-placeholder[data-img="WELCOME"]');
   await expect(fallback).toBeVisible();
   await expect(fallback).toHaveAttribute("role", "img");
-  await expect(fallback).toHaveAttribute("aria-label", "The Nexora phone store, with the staff member welcoming a customer");
+  await expect(fallback).toHaveAttribute("aria-label", "Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity.");
   expect(pageErrors).toEqual([]);
 });
 

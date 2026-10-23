@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.19";
+const APP_VERSION = "0.6.20";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -905,6 +905,7 @@ function renderLanding() {
   setGraphicHtml(app, `
     ${topBarHtml({ titleIsHeading: true, showSubtitle: true })}
     <main class="page">
+      <div class="block landing-banner">${imgHtml("WELCOME", "welcome-activity-banner")}</div>
       <div class="block">
         <div class="card login-card">
           <h2 class="card-title">Step 1: Log in</h2>
@@ -925,7 +926,6 @@ function renderLanding() {
           <div class="btn-row"><button class="btn" id="startBtn" type="button">Start</button></div>
         </div>
       </div>
-      <div class="block landing-banner">${imgHtml("N01", "banner-img")}</div>
       <div class="block">
         <p class="lead">Hi! In this module, you'll revise Chapter 6: Customer Service. You'll read short notes, chat with an AI customer service officer, serve an AI customer yourself, and check what you've learnt.</p>
       </div>
@@ -1092,10 +1092,10 @@ function renderHome() {
   setGraphicHtml(app, `
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
+      <div class="block landing-banner">${imgHtml("WELCOME", "welcome-activity-banner")}</div>
       <form class="card block" id="studentNameForm"><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" ${profileName(rec) ? "readonly" : "required"}>${profileName(rec) ? "" : `<div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div>`}<p id="studentNameStatus" role="status">${profileName(rec) ? "Name saved. It cannot be edited." : "Check your name before saving. Once saved, it cannot be edited."}</p></form>
       <div class="block">
-        <div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p>
-          ${done === LEVELS.length ? `<div class="btn-row welcome-btn"><a href="#report" class="btn">📊 My learning report</a></div>` : ""}</div>
+        ${done === LEVELS.length ? "" : `<div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p></div>`}
         <p class="home-links">
           <a href="#" id="howLink">📋 How this works</a>
           <span class="dot-sep" aria-hidden="true">·</span>
@@ -1120,6 +1120,7 @@ function renderHome() {
         <h2 class="section-title" id="badgesTitle">🏅 Your badges</h2>
         ${badgeShelfHtml()}
       </section>
+      ${done === LEVELS.length ? `<section class="block home-learning-report" aria-label="Learning report"><div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p><div class="btn-row welcome-btn"><a href="#report" class="btn">📊 My learning report</a></div></div></section>` : ""}
     </main>
     ${footerHtml()}
   `);
@@ -1182,10 +1183,10 @@ function switchStudent() {
 /* ---------------- 0.4 4 key terms ---------------- */
 
 const KEY_TERMS = [
-  { term: "Customer service", icon: "TERM_SERVICE", tone: "service", text: "Customer service refers to what businesses do for their customers so that they are happy and satisfied." },
-  { term: "Quality customer service", icon: "TERM_QUALITY", tone: "quality", text: "Quality customer service means doing more for customers to exceed their expectations." },
-  { term: "Service breakdown", icon: "TERM_BREAKDOWN", tone: "breakdown", text: "A service breakdown occurs when customers make a complaint about a product or service." },
-  { term: "Service recovery", icon: "TERM_RECOVERY", tone: "recovery", text: "Service recovery is a process whereby a business takes action in response to service breakdown or failure." }
+  { term: "Customer service", icon: "TERM_SERVICE", tone: "service", text: "Refers to what businesses do for their customers so that they are happy and satisfied." },
+  { term: "Quality customer service", icon: "TERM_QUALITY", tone: "quality", text: "Means doing more for customers to exceed their expectations." },
+  { term: "Service breakdown", icon: "TERM_BREAKDOWN", tone: "breakdown", text: "Occurs when customers make a complaint about a product or service." },
+  { term: "Service recovery", icon: "TERM_RECOVERY", tone: "recovery", text: "A process whereby a business takes action in response to service breakdown or failure." }
 ];
 
 function renderTerms() {
@@ -2050,7 +2051,7 @@ const L3_Q2 = [
   { id: "Q", quote: "\"Since you play a lot of games, the Nexora Prime's fast processor would suit you best.\"", correct: 1,
     hint: "The officer matches a phone feature to something the customer does a lot. Which stage is about presenting a suitable product?",
     right: "Correct: matching a feature to the customer's needs is presenting product information." },
-  { id: "R", quote: "\"So that's the Nexora Core with the 256GB upgrade and the one-year warranty. You can collect it on Friday!\"", correct: 2,
+  { id: "R", quote: "\"Your purchase is confirmed: the Nexora Core with the 256GB upgrade and the one-year warranty. You can collect it on Friday. Thank you for shopping at Nexora. Have a great day!\"", correct: 2,
     hint: "The officer sums up what the customer chose and when to collect it. Is this the start or the end of the interaction?",
     right: "Correct: summing up the decision and the next steps closes the customer experience positively." },
   { id: "S", quote: "\"Good afternoon! Is there anything I can help you find today?\"", correct: 0,

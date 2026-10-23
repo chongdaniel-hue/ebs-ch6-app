@@ -105,6 +105,7 @@ window.APP_CONFIG = {
     "⚑": "flag"
 } },
   IMAGES: {
+    WELCOME: {file:"assets/img/welcome-customer-service-banner.png",emoji:"👋",label:"Welcome to Customer Service",alt:"Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity."},
     SUITABILITY: { file: "assets/img/product-suitability-camera.png", emoji: "📱", label: "Matching the phone camera to a customer who enjoys photography", alt: "A customer shows her photo gallery while the Nexora staff member points out a new phone camera and a clear flower photo, matching its camera features to her interest in taking photos." },
     PK_FEATURES: { file: "assets/img/product-knowledge-features-speech.png", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member shows a customer a phone screen and explains its screen size and battery features." },
     PK_PRICE: { file: "assets/img/product-knowledge-price-speech.png", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member shows a customer blue and black phones and explains price and storage options." },
@@ -166,7 +167,7 @@ window.APP_CONFIG = {
       alt: "Three-panel comic. 1, \"GREETING APPROACH\": \"Good morning! Welcome to Nexora!\" 2, \"SERVICE APPROACH\": \"Hi! How may I assist you?\" 3, \"PRODUCT APPROACH\": \"I noticed that you are interested in this model. It is our new arrival. Would you like to try it?\""
     },
     C04: {
-      file: "assets/img/C04-breakdown-to-recovery.jpg",
+      file: "assets/img/C04-breakdown-to-recovery-tanned.png",
       emoji: "🖼️",
       label: "Service breakdown to service recovery comic",
       alt: "Two-panel comic. \"SERVICE BREAKDOWN\": the customer holds a cracked phone: \"I just bought this phone and the screen is already cracked!\" The staff member: \"I'm really sorry to hear that. Let me take a look and help you with this.\" \"SERVICE RECOVERY\": the staff member hands over a new phone box: \"You're welcome! If you need any further help, just let us know.\" The customer: \"Thank you so much for helping me! I'm really happy with the new phone.\""

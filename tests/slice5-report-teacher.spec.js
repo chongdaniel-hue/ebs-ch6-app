@@ -48,10 +48,10 @@ test.describe("6.1 My learning report", () => {
     expect((await apiPost(request, { action: "save", record: finishedRecord(5, { wrong: ["s3q2.R", "s5q3.iii", "s5q4", "s5q3.i"] }) })).ok).toBe(true);
     await login(page, "3E1", 5);
     await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
-    await expect(page.locator(".welcome-card a.btn")).toHaveText("My learning report");
+    await expect(page.locator(".home-learning-report a.btn")).toHaveText("My learning report");
     // Dates are in Singapore time: 1:30am on 20 Oct in Singapore is still 19 Oct in UTC.
     expect(await page.evaluate(() => shortDate("2026-10-19T17:30:00.000Z"))).toBe("20 Oct 2026");
-    await page.click(".welcome-card a.btn");
+    await page.click(".home-learning-report a.btn");
     await expect(page.locator("h1.page-title")).toHaveText("My learning report");
     await expect(page.locator(".level-sub")).toHaveText("Test Student 5 · Class 3E1, Register No. 5");
     await expect(page.locator(".report-level-name")).toHaveText([

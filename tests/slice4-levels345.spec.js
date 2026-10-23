@@ -79,7 +79,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(page.locator(".match-line")).toHaveText([
       "P. \"Could you tell me when the screen first stopped working? Then we can arrange a repair or replacement for you.\"",
       "Q. \"Since you play a lot of games, the Nexora Prime's fast processor would suit you best.\"",
-      "R. \"So that's the Nexora Core with the 256GB upgrade and the one-year warranty. You can collect it on Friday!\"",
+      "R. \"Your purchase is confirmed: the Nexora Core with the 256GB upgrade and the one-year warranty. You can collect it on Friday. Thank you for shopping at Nexora. Have a great day!\"",
       "S. \"Good afternoon! Is there anything I can help you find today?\""
     ]);
     for (const id of ["P", "Q", "R", "S"]) {

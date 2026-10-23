@@ -154,10 +154,10 @@ test.describe("new student", () => {
     expect(new Set(termStyle.map(s => s.colour)).size).toBe(4);
     termStyle.forEach(s => expect(s.ratio).toBeCloseTo(2.5));
     await expect(page.locator(".term-list .def-body")).toHaveText([
-      "Customer service: Customer service refers to what businesses do for their customers so that they are happy and satisfied.",
-      "Quality customer service: Quality customer service means doing more for customers to exceed their expectations.",
-      "Service breakdown: A service breakdown occurs when customers make a complaint about a product or service.",
-      "Service recovery: Service recovery is a process whereby a business takes action in response to service breakdown or failure."
+      "Customer service: Refers to what businesses do for their customers so that they are happy and satisfied.",
+      "Quality customer service: Means doing more for customers to exceed their expectations.",
+      "Service breakdown: Occurs when customers make a complaint about a product or service.",
+      "Service recovery: A process whereby a business takes action in response to service breakdown or failure."
     ]);
     await checkPage(page, testInfo, "slice2-terms");
     await page.click("#termsDone");

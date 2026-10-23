@@ -14,7 +14,7 @@ async function prepare(page, request) {
   await apiPost(request,{action:"save",record:record(6)});
   await login(page,"3E1",5);
   await expect(page.locator(".welcome-card")).toBeVisible();
-  await page.locator(".welcome-card a.btn").click();
+  await page.locator(".home-learning-report a.btn").click();
   await expect(page.locator("h1.page-title")).toHaveText("My learning report");
 }
 
