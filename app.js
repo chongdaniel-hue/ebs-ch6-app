@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.14";
+const APP_VERSION = "0.6.15";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -227,7 +227,9 @@ function mergeRecords(primary, other) {
     reg: p.reg || o.reg,
     updatedAt: maxText(p.updatedAt, o.updatedAt),
     baseClearedAt: maxText(p.baseClearedAt, o.baseClearedAt),
-    agreed: minText(p.agreed, o.agreed)
+    agreed: minText(p.agreed, o.agreed),
+    // Grants belong to the server copy; ordinary student saves cannot add them.
+    unlockedLevels: isPlainObject(p.unlockedLevels) ? p.unlockedLevels : {}
   };
   Object.keys(MERGE_RULES).forEach(function (section) {
     var rule = MERGE_RULES[section];
@@ -559,7 +561,8 @@ function footerHtml() {
   return `
     <footer class="credits">
       <p class="footer-actions"><a href="#teacher" class="teacher-link">Teacher Mode</a>
-        <button type="button" class="teacher-link footer-reset" data-reset-progress ${student ? "" : "disabled"}>Reset progress</button></p>
+        <button type="button" class="teacher-link footer-reset" data-reset-progress ${student ? "" : "disabled"}>Reset progress</button>
+        <button type="button" class="teacher-link footer-unlock" data-unlock-progress>Unlock</button></p>
       <p>A team effort by Anthony, Daniel, Joshua and Jufinnie <span class="nowrap">(NIE 2026)</span></p>
       <p class="credits-version">Version ${APP_VERSION}</p>
     </footer>`;
@@ -596,6 +599,7 @@ function showModal({ id, title, bodyHtml, buttons, className }) {
 
 // The shared footer is present on every route. No password is stored in the page.
 document.addEventListener("click", e => {
+  if (e.target.closest("[data-unlock-progress]")) showStudentUnlock();
   if (e.target.closest("[data-reset-progress]") && student && !resettingKey) showProgressReset();
 });
 
@@ -679,6 +683,132 @@ function showProgressReset() {
       input.focus();
     }
     scheduleFlush();
+  });
+  input.focus();
+}
+
+// Unlock credentials stay in this dialog's memory and are checked again on every action.
+function showStudentUnlock() {
+  if (document.getElementById("studentUnlockModal")) return;
+  const previousFocus = document.activeElement;
+  const wrap = document.createElement("div");
+  wrap.id = "studentUnlockModal";
+  wrap.className = "modal-backdrop";
+  let code = "", busy = false, profiles = [], requestNumber = 0;
+  setGraphicHtml(wrap, `<form class="modal" role="dialog" aria-modal="true" aria-labelledby="studentUnlockTitle">
+    <h2 class="modal-title" id="studentUnlockTitle">Unlock student levels</h2>
+    <p>Select a student profile and open selected levels or all five levels. Answers, completed activities and badges will stay unchanged.</p>
+    <div id="unlockSignIn"><label class="field-label" for="unlockPassword">Key in the unlock passcode.</label>
+      <input class="text-input" type="password" id="unlockPassword" autocomplete="off" required>
+      <div class="btn-row"><button class="btn" type="submit">Continue</button></div></div>
+    <div id="unlockSelection" hidden>
+      <div class="field"><label class="field-label" for="unlockClass">Class</label><select class="text-input" id="unlockClass"><option value="">Choose a class</option></select></div>
+      <div class="field"><label class="field-label" for="unlockStudent">Student profile</label><select class="text-input" id="unlockStudent" disabled><option value="">Choose a student</option></select></div>
+      <p id="unlockExisting" role="status"></p>
+      <fieldset class="unlock-levels"><legend>Select levels to unlock</legend>
+        ${LEVELS.map((l,i)=>`<label class="unlock-level-option"><input type="checkbox" value="${i+1}">Level ${i+1}: ${escapeHtml(l.title)}</label>`).join("")}
+      </fieldset>
+      <div class="btn-row"><button class="btn secondary" type="button" id="unlockAllSelection">Select all levels</button>
+        <button class="btn" type="submit" id="applyUnlock" disabled>Unlock selected levels</button></div>
+      <p class="muted">Previously unlocked levels stay open. The student can refresh the app or log in again on another device to use the new access.</p>
+    </div>
+    <p class="form-error" id="unlockError" role="alert" hidden></p>
+    <p id="unlockStatus" role="status" hidden></p>
+    <div class="btn-row modal-btns"><button class="btn secondary" type="button" id="cancelUnlock">Cancel</button></div>
+  </form>`);
+  document.body.appendChild(wrap);
+  const input = wrap.querySelector("#unlockPassword");
+  const cls = wrap.querySelector("#unlockClass"), reg = wrap.querySelector("#unlockStudent");
+  const apply = wrap.querySelector("#applyUnlock"), error = wrap.querySelector("#unlockError"), status = wrap.querySelector("#unlockStatus");
+  const checks = Array.from(wrap.querySelectorAll("input[type=checkbox]"));
+  const close = () => { code = ""; requestNumber++; wrap.remove(); if (previousFocus && previousFocus.isConnected) previousFocus.focus(); };
+  const fail = reply => {
+    error.textContent = reply.error === "bad_code" ? "Incorrect passcode. Try again."
+      : reply.error === "locked_out" ? "Too many incorrect passcodes. Try again in 10 minutes."
+      : ["unknown_action", "no_teacher_code"].includes(reply.error) ? "Unlock is not set up on the server yet. Ask your teacher to update Apps Script."
+      : reply.error === "no_student" ? "This student profile is no longer available. Choose another student."
+      : "Could not confirm the change. Check your internet connection and try again.";
+    error.hidden = false;
+  };
+  const update = () => {
+    apply.disabled = busy || !reg.value || !checks.some(c=>c.checked && !c.disabled);
+  };
+  const setBusy = value => {
+    busy = value;
+    wrap.querySelectorAll("button, input, select").forEach(el => { el.disabled = value; });
+    if (!value) { reg.disabled = !profiles.length; update(); }
+  };
+  wrap.querySelector("#cancelUnlock").addEventListener("click", close);
+  wrap.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !busy) { e.preventDefault(); close(); }
+    if (e.key !== "Tab") return;
+    const controls = Array.from(wrap.querySelectorAll("button,input,select")).filter(el=>!el.disabled && el.getClientRects().length);
+    if (!controls.length) { e.preventDefault(); return; }
+    const first = controls[0], last = controls[controls.length-1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  checks.forEach(c=>c.addEventListener("change",update));
+  wrap.querySelector("#unlockAllSelection").addEventListener("click",()=>{ checks.forEach(c=>{c.checked=true;}); update(); });
+  reg.addEventListener("change",()=>{
+    checks.forEach(c=>{c.checked=false;});
+    const profile=profiles.find(p=>String(p.reg)===reg.value);
+    const grants=Object.keys((profile && profile.record && profile.record.unlockedLevels) || {}).filter(n=>/^[1-5]$/.test(n));
+    wrap.querySelector("#unlockExisting").textContent=profile ? (grants.length ? `Previously unlocked levels: ${grants.join(", ")}.` : "No levels have been manually unlocked for this student.") : "";
+    update();
+  });
+  cls.addEventListener("change",async()=>{
+    const sequence=++requestNumber;
+    busy=false;
+    profiles=[]; reg.innerHTML='<option value="">Choose a student</option>'; reg.disabled=true;
+    checks.forEach(c=>{c.checked=false;}); wrap.querySelector("#unlockExisting").textContent=""; error.hidden=true; update();
+    if (!cls.value) return;
+    busy=true; update(); status.textContent="Loading student profiles…"; status.hidden=false;
+    let reply;
+    try { reply=await api("POST",{action:"results",code,"class":cls.value},15000); } catch(e) { reply={ok:false,error:"network"}; }
+    if (!wrap.isConnected || sequence!==requestNumber) return;
+    busy=false; status.hidden=true;
+    if (!reply.ok) { fail(reply); update(); return; }
+    profiles=(reply.students || []).filter(p=>p.record);
+    reg.innerHTML='<option value="">Choose a student</option>'+profiles.map(p=>`<option value="${p.reg}">Register No. ${p.reg}</option>`).join("");
+    reg.disabled=!profiles.length;
+    if (!profiles.length) { status.textContent="No saved student profiles in this class yet. The student must log in and save progress first."; status.hidden=false; }
+    update();
+  });
+  wrap.querySelector("form").addEventListener("submit",async e=>{
+    e.preventDefault(); if(busy) return;
+    error.hidden=true; status.hidden=false;
+    const signingIn=!wrap.querySelector("#unlockSignIn").hidden;
+    if(signingIn) {
+      code=input.value; input.value="";
+      setBusy(true); status.textContent="Checking passcode…";
+      let reply;
+      try { reply=await api("POST",{action:"teacherCheck",code},15000); } catch(e) { reply={ok:false,error:"network"}; }
+      if(!wrap.isConnected) return;
+      status.hidden=true; setBusy(false);
+      if(!reply.ok) { code=""; fail(reply); input.focus(); return; }
+      input.required=false;
+      cls.innerHTML='<option value="">Choose a class</option>'+(reply.classes || []).map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+      wrap.querySelector("#unlockSignIn").hidden=true; wrap.querySelector("#unlockSelection").hidden=false; cls.focus(); return;
+    }
+    const levels=checks.filter(c=>c.checked).map(c=>Number(c.value));
+    if(!reg.value || !levels.length) { status.hidden=true; return; }
+    const target={cls:cls.value,reg:Number(reg.value)};
+    setBusy(true); status.textContent="Unlocking selected levels…";
+    let reply;
+    try { reply=await api("POST",{action:"unlockStudent",code,"class":target.cls,reg:target.reg,levels},20000); } catch(e) { reply={ok:false,error:"network"}; }
+    if(!wrap.isConnected) return;
+    setBusy(false); status.hidden=true;
+    if(!reply.ok) { fail(reply); return; }
+    const key=studentKey(target.cls,target.reg);
+    const local=key===activeKey() ? rec : lsGet(KEYS.rec(key));
+    if(!local || String(local.baseClearedAt || "")<=String(reply.clearedAt || "")) {
+      const sameEpoch=local && String(local.baseClearedAt || "")===String(reply.clearedAt || "");
+      const merged=mergeRecords(reply.record,sameEpoch ? local : null);
+      if(key===activeKey()) { rec=merged; saveLocal(); } else lsSet(KEYS.rec(key),merged);
+    }
+    close(); render();
+    showModal({id:"studentUnlocked",title:"Levels unlocked",bodyHtml:`<p>Class ${escapeHtml(target.cls)}, Register No. ${target.reg}: levels ${levels.join(", ")} are now open. Answers and completion remain unchanged.</p>`,buttons:[{label:"Close",primary:true,onClick:()=>{const b=document.querySelector("[data-unlock-progress]");if(b)b.focus();}}]});
   });
   input.focus();
 }
@@ -872,7 +1002,8 @@ async function startLogin() {
 function isDone(num) { return !!(rec && rec.done && rec.done[num]); }
 function doneCount() { return LEVELS.filter(s => isDone(s.num)).length; }
 function unlockAllOnDevice() { return lsGet(KEYS.unlockAll) === true; }
-function isUnlocked(num) { return num === 1 || isDone(num - 1) || unlockAllOnDevice(); }
+function hasLevelGrant(num) { return !!(rec && rec.unlockedLevels && rec.unlockedLevels[num]); }
+function isUnlocked(num) { return num === 1 || isDone(num - 1) || hasLevelGrant(num) || unlockAllOnDevice(); }
 
 // "In progress" once the student has done anything in the level.
 function isStarted(num) {
@@ -1060,8 +1191,8 @@ const ANSWER_MAX = 1500; // characters per answer box (keeps a record well under
 
 function lvl(n) { return LEVELS[n - 1]; }
 function tabsUnlocked(n) { return Number(rec.reached[`s${n}.tabs`]) || 0; }
-function partsShown(n, t) { return Math.max(1, Number(rec.reached[`s${n}.t${t}`]) || 0); }
-function isTabUnlocked(n, t) { return t === 0 || isDone(n) || tabsUnlocked(n) >= t || unlockAllOnDevice(); }
+function partsShown(n, t) { return hasLevelGrant(n) ? LEVEL_CONTENT[n].tabs[t].parts.length : Math.max(1, Number(rec.reached[`s${n}.t${t}`]) || 0); }
+function isTabUnlocked(n, t) { return t === 0 || isDone(n) || tabsUnlocked(n) >= t || hasLevelGrant(n) || unlockAllOnDevice(); }
 
 function currentTab(n) {
   const content = LEVEL_CONTENT[n];
@@ -1626,7 +1757,7 @@ const L2_TABS = [
           ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}`),
       notesPart((ctx) => {
         // First time on the path: Step 1 only. Coming back later: all 8 at once.
-        if (ctx.fresh || !pathShownNow) pathShownNow = pathShown() >= 1 ? 8 : 1;
+        if (ctx.fresh || !pathShownNow) pathShownNow = hasLevelGrant(2) || pathShown() >= 1 ? 8 : 1;
         if (pathShown() < pathShownNow) { raiseReached("s2.path", pathShownNow); saveLocal(); }
         return `
           <p>To perform service recovery, follow these 8 steps:</p>

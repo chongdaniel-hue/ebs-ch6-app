@@ -161,3 +161,15 @@ A website push does not update Google Apps Script. Until these steps are done, t
 ## Matching passcodes (version 0.6.10)
 
 The owner requested the same privately agreed passcode for Teacher Mode, Reset this device, and Reset progress. In the existing Apps Script project's **Project Settings → Script Properties**, set both `TEACHER_CODE` and `RESET_CODE` to that agreed value. Both checks already ignore letter case and surrounding spaces. Reset this device uses `TEACHER_CODE`; Reset progress uses `RESET_CODE`. Updating the properties takes effect immediately. If the new reset action is not deployed yet, also paste the current `Code.gs` and deploy a **New version** of the existing deployment, keeping its URL. The owner confirmed Dan must perform this live backend update. No passcode is embedded in the public website or repository.
+
+## Student-specific Unlock button (version 0.6.15)
+
+The footer Unlock button uses the existing `TEACHER_CODE` Script Property, with the same case-insensitive comparison as Teacher Mode. It does not need another property. Keep the agreed value in Script Properties only.
+
+1. Open the existing Apps Script project linked to the application's Google Sheet.
+2. Replace `Code.gs` with the complete updated repository file `apps-script/Code.gs` and save.
+3. Open Project Settings, then Script Properties. Check `TEACHER_CODE` is the agreed shared passcode. Keep `RESET_CODE` for Reset progress.
+4. Choose Deploy, Manage deployments, edit the existing web-app deployment, select New version, then Deploy. Keep the existing URL and access settings. Do not create a replacement deployment URL.
+5. After the frontend update is published, open Unlock in the footer, enter the passcode, choose a class and saved student profile, select levels or Select all levels, then Unlock selected levels. On another device, log in as that class/register number or refresh the existing session to confirm access.
+
+This grants access only. It does not submit answers, mark levels complete, or award badges. Normal student saves cannot create or remove server grants. Reset progress and the teacher's Clear student action clear grants with the rest of that student's work. Profiles appear once a student has saved a record; cleared or never-saved profiles are not selectable.

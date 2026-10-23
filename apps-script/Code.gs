@@ -77,6 +77,7 @@ function doPost(e) {
     switch (body.action) {
       case "save": return saveStudent(body.record);
       case "resetProgress": return resetOnly(body.code, function () { return clearStudent(body["class"], body.reg); });
+      case "unlockStudent": return teacherOnly(body.code, function () { return unlockStudent(body["class"], body.reg, body.levels); });
       case "teacherCheck": return teacherOnly(body.code, function () { return classLists(); });
       case "addClass": return teacherOnly(body.code, function () { return addClass(body.name); });
       case "removeClass": return teacherOnly(body.code, function () { return removeClass(body.name); });
@@ -339,6 +340,34 @@ function clearStudent(cls, reg) {
   });
 }
 
+// Add access grants without changing answers, attempts, completions or badges.
+// Only the authenticated action may create grants; saveStudent ignores incoming grants.
+function unlockStudent(cls, reg, levels) {
+  var who = checkStudent(cls, reg);
+  if (who.error) return { ok: false, error: who.error };
+  if (!Array.isArray(levels) || !levels.length || levels.length > 5 || levels.some(function (n) {
+    return typeof n !== "number" || Math.floor(n) !== n || n < 1 || n > 5;
+  })) return { ok: false, error: "bad_levels" };
+  return withLock(function () {
+    var sheet = ensureSheets().students;
+    var key = studentKey(who.cls, who.reg);
+    var row = findStudentRow(sheet, key);
+    if (row === -1) return { ok: false, error: "no_student" };
+    var stored = readStudent(sheet, row);
+    if (!stored.record) return { ok: false, error: "no_student" };
+    var record = stored.record;
+    var grants = isPlainObject(record.unlockedLevels) ? record.unlockedLevels : {};
+    var time = nowIso();
+    levels.forEach(function (n) { if (!grants[n]) grants[n] = time; });
+    record.unlockedLevels = grants;
+    var json = JSON.stringify(record);
+    if (json.length > MAX_RECORD_CHARS) return { ok: false, error: "too_big" };
+    sheet.getRange(row, 1, 1, STUDENTS_HEADERS.length).setNumberFormat("@")
+      .setValues([studentRowValues(key, record, nowText(), stored.clearedAt, json)]);
+    return { ok: true, record: record, clearedAt: stored.clearedAt };
+  });
+}
+
 /* ---------------- Teacher code ---------------- */
 
 function teacherOnly(code, fn) {
@@ -402,7 +431,9 @@ function mergeRecords(primary, other) {
     reg: p.reg || o.reg,
     updatedAt: maxText(p.updatedAt, o.updatedAt),
     baseClearedAt: maxText(p.baseClearedAt, o.baseClearedAt),
-    agreed: minText(p.agreed, o.agreed)
+    agreed: minText(p.agreed, o.agreed),
+    // Grants belong to the server copy; ordinary student saves cannot add them.
+    unlockedLevels: isPlainObject(p.unlockedLevels) ? p.unlockedLevels : {}
   };
   Object.keys(MERGE_RULES).forEach(function (section) {
     var rule = MERGE_RULES[section];
