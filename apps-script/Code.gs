@@ -440,7 +440,7 @@ function protectedAction(code, property, missingError, prefix, fn) {
 
 var MERGE_RULES = {
   done: "earliest", submitted: "earliest", reached: "max",
-  first: "keep", second: "keep", answers: "newest", ui: "newest", profile: "newest"
+  first: "keep", second: "keep", answers: "newest", ui: "newest", profile: "keep"
 };
 
 function mergeRecords(primary, other) {

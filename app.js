@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.16";
+const APP_VERSION = "0.6.17";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -217,7 +217,7 @@ function saveLocal() {
 //   answers, ui: the newest value of each box wins
 const MERGE_RULES = {
   done: "earliest", submitted: "earliest", reached: "max",
-  first: "keep", second: "keep", answers: "newest", ui: "newest", profile: "newest"
+  first: "keep", second: "keep", answers: "newest", ui: "newest", profile: "keep"
 };
 
 function mergeRecords(primary, other) {
@@ -999,10 +999,16 @@ async function startLogin() {
     returning = !!local;
     record = local || freshRecord(cls, reg, "");
   }
+  const savedName = profileName(record);
+  if (savedName && savedName.toLocaleLowerCase() !== name.toLocaleLowerCase()) {
+    btn.disabled=false;btn.textContent="Start";
+    showError("This profile already has a saved name. Enter that name to continue; it cannot be changed.");
+    document.getElementById("nameInput").focus();return;
+  }
   record.cls = cls;
   record.reg = reg;
   record.profile = record.profile || {};
-  if (profileName(record) !== name) record.profile.name = {v:name,t:nowIso()};
+  if (!profileName(record)) record.profile.name = {v:name,t:nowIso()};
 
   student = { cls, reg };
   rec = record;
@@ -1085,7 +1091,7 @@ function renderHome() {
   setGraphicHtml(app, `
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
-      <form class="card block" id="studentNameForm"><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" required><div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div><p id="studentNameStatus" role="status"></p></form>
+      <form class="card block" id="studentNameForm"><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" ${profileName(rec) ? "readonly" : "required"}>${profileName(rec) ? "" : `<div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div>`}<p id="studentNameStatus" role="status">${profileName(rec) ? "Name saved. It cannot be edited." : "Check your name before saving. Once saved, it cannot be edited."}</p></form>
       <div class="block">
         <div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p>
           ${done === LEVELS.length ? `<div class="btn-row welcome-btn"><a href="#report" class="btn">📊 My learning report</a></div>` : ""}</div>
@@ -1118,9 +1124,11 @@ function renderHome() {
   `);
   document.getElementById("studentNameForm").addEventListener("submit", e=>{
     e.preventDefault();const name=document.getElementById("studentNameInput").value.trim().replace(/\s+/g," ");
-    if(!name)return;
+    if(!name || profileName(rec))return;
     rec.profile=rec.profile || {};rec.profile.name={v:name,t:nowIso()};queueSave("now");
-    document.getElementById("studentNameStatus").textContent="Name saved on this device. It will sync when connected.";
+    document.getElementById("studentNameStatus").textContent="Name saved. It cannot be edited. It will sync when connected.";
+    document.getElementById("studentNameInput").readOnly=true;
+    document.querySelector("#studentNameForm .btn-row").remove();
     const chip=document.querySelector(".topbar-chip");if(chip)setGraphicHtml(chip,`<span data-student-text>${escapeHtml(name)}</span> · Class ${escapeHtml(student.cls)} · Register No. ${student.reg}`);
   });
   document.getElementById("howLink").addEventListener("click", (e) => { e.preventDefault(); showBriefing(); });
