@@ -1458,3 +1458,8 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 @media(max-width:600px){.class-row{grid-template-columns:minmax(0,1fr) auto;}.class-name{grid-column:1/-1;}}
 .class-visibility{display:flex;align-items:center;gap:8px;min-height:44px;}
 .class-visibility input{width:20px;height:20px;flex-shrink:0;}
+
+/* Badges are transparent PNGs: no white square behind them (shelf, pop-up, report). */
+.shelf-img .content-img,
+.badge-pop-img .content-img,
+.report-badge .content-img{background:transparent;border-radius:0;}
