@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.17";
+const APP_VERSION = "0.6.18";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -905,11 +905,6 @@ function renderLanding() {
   setGraphicHtml(app, `
     ${topBarHtml({ titleIsHeading: true, showSubtitle: true })}
     <main class="page">
-      <div class="block card"><label for="nameInput" class="field-label">Your name</label><input type="text" id="nameInput" class="text-input" maxlength="80" autocomplete="name" value="${escapeHtml(typedName)}"><p class="field-note">Use the same name, class and register number each time to find your progress.</p></div>
-      <div class="block landing-banner">${imgHtml("N01", "banner-img")}</div>
-      <div class="block">
-        <p class="lead">Hi! In this module, you'll revise Chapter 6: Customer Service. You'll read short notes, chat with an AI customer service officer, serve an AI customer yourself, and check what you've learnt.</p>
-      </div>
       <div class="block">
         <div class="card login-card">
           <h2 class="card-title">Step 1: Log in</h2>
@@ -921,6 +916,7 @@ function renderLanding() {
             </select>
             ${note ? `<p class="field-note" id="classNote">${escapeHtml(note)}</p>` : ""}
           </div>
+          <div class="field"><label for="nameInput" class="field-label">Your name</label><input type="text" id="nameInput" class="text-input" maxlength="80" autocomplete="name" value="${escapeHtml(typedName)}"><p class="field-note">Use the same name, class and register number each time to find your progress.</p></div>
           <div class="field">
             <label for="regInput" class="field-label">Key in your register number.</label>
             <input type="text" id="regInput" class="text-input reg-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" placeholder="e.g. 12" value="${escapeHtml(typed)}">
@@ -929,6 +925,11 @@ function renderLanding() {
           <div class="btn-row"><button class="btn" id="startBtn" type="button">Start</button></div>
         </div>
       </div>
+      <div class="block landing-banner">${imgHtml("N01", "banner-img")}</div>
+      <div class="block">
+        <p class="lead">Hi! In this module, you'll revise Chapter 6: Customer Service. You'll read short notes, chat with an AI customer service officer, serve an AI customer yourself, and check what you've learnt.</p>
+      </div>
+
     </main>
     ${footerHtml()}
   `);
