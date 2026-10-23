@@ -20,7 +20,7 @@ async function prepare(page, request) {
 
 test("password, cancel, keyboard focus, server reset, reload and other students", async ({page, request}, testInfo) => {
   await prepare(page,request);
-  await page.locator("[data-reset-progress]").click();
+  await page.evaluate(()=>showProgressReset({...student}));
   const modal=page.locator("#progressResetModal");
   const input=modal.locator("input");
   await expect(input).toBeFocused();
@@ -33,7 +33,7 @@ test("password, cancel, keyboard focus, server reset, reload and other students"
   await shot(page,testInfo,"reset-progress-password");
   await modal.getByRole("button",{name:"Cancel",exact:true}).click();
   expect((await apiGet(request,{action:"load",class:"3E1",reg:5})).record.done[5]).toBe(T);
-  await page.locator("[data-reset-progress]").click();
+  await page.evaluate(()=>showProgressReset({...student}));
   await input.fill("wrong-test-password");
   await modal.getByRole("button",{name:"Reset progress",exact:true}).click();
   await expect(page.locator("#progressResetError")).toHaveText("Incorrect password. Try again.");
@@ -43,7 +43,8 @@ test("password, cancel, keyboard focus, server reset, reload and other students"
   await expect(modal).toHaveCount(0);
   await expect(page.locator("#briefing")).toBeVisible();
   const loaded=await apiGet(request,{action:"load",class:"3E1",reg:5});
-  expect(loaded.record).toBeNull();
+  expect(loaded.record.done).toEqual({});
+  expect(loaded.record.profile.name.v).toBe("Test Student 5");
   expect(loaded.clearedAt).toBeTruthy();
   const local=await page.evaluate(()=>JSON.parse(localStorage.getItem("ch6_rec_3E1#5")));
   for(const section of ["done","submitted","reached","first","second","answers","ui"]) expect(local[section]).toEqual({});
@@ -67,7 +68,7 @@ test("offline reset preserves progress; delayed saves cannot revive cleared answ
     if(data && data.action==="resetProgress") return route.abort();
     return route.continue();
   });
-  await page.locator("[data-reset-progress]").click();
+  await page.evaluate(()=>showProgressReset({...student}));
   await page.locator("#progressResetPassword").fill(resetCode());
   await page.locator("#progressResetModal button[type=submit]").click();
   await expect(page.locator("#progressResetError")).toContainText("could not be confirmed");
@@ -117,16 +118,16 @@ test("server enforces password, independent lockout and successive reset epochs"
 });
 
 
-test("missing backend setup preserves progress and the footer requires a student",async({page,request})=>{
+test("missing backend setup preserves progress and the footer supports selecting a registered student",async({page,request})=>{
   await page.goto("/");
-  await expect(page.locator("[data-reset-progress]")).toBeDisabled();
+  await expect(page.locator("[data-reset-progress]")).toBeEnabled();
   await prepare(page,request);
   await page.route("**/api",async route=>{
     const data=route.request().postDataJSON();
     if(data && data.action==="resetProgress") return route.fulfill({json:{ok:false,error:"unknown_action"}});
     return route.continue();
   });
-  await page.locator("[data-reset-progress]").click();
+  await page.evaluate(()=>showProgressReset({...student}));
   await page.locator("#progressResetPassword").fill(resetCode());
   await page.locator("#progressResetModal button[type=submit]").click();
   await expect(page.locator("#progressResetError")).toHaveText("Reset is not set up on the server yet. Ask your teacher.");

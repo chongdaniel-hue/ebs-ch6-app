@@ -77,6 +77,8 @@ function doPost(e) {
     switch (body.action) {
       case "save": return saveStudent(body.record);
       case "resetProgress": return resetOnly(body.code, function () { return clearStudent(body["class"], body.reg); });
+      case "profileClasses": return profileOnly(body.code, body.purpose, function () { return {ok:true,classes:getClassNames()}; });
+      case "profileList": return profileOnly(body.code, body.purpose, function () { return registeredProfiles(body["class"]); });
       case "unlockStudent": return teacherOnly(body.code, function () { return unlockStudent(body["class"], body.reg, body.levels); });
       case "teacherCheck": return teacherOnly(body.code, function () { return classLists(); });
       case "addClass": return teacherOnly(body.code, function () { return addClass(body.name); });
@@ -269,7 +271,11 @@ function saveStudent(record) {
     var stored = row === -1 ? { record: null, clearedAt: "" } : readStudent(sheet, row);
     // Work cleared by a teacher after this copy was loaded is thrown away.
     if (stored.clearedAt && String(record.baseClearedAt || "") < stored.clearedAt) {
-      return { ok: false, error: "cleared", clearedAt: stored.clearedAt };
+      return { ok: false, error: "cleared", clearedAt: stored.clearedAt, record: stored.record };
+    }
+    if (record.profile && record.profile.name) {
+      var studentName=record.profile.name;
+      if (!studentName || typeof studentName !== "object" || typeof studentName.v !== "string" || !studentName.v.trim() || studentName.v.length > 80) return {ok:false,error:"bad_name"};
     }
     var incoming = capTimes(record, nowIso());
     var merged = mergeRecords(stored.record, incoming);
@@ -328,15 +334,19 @@ function clearStudent(cls, reg) {
     var key = studentKey(name, n);
     var row = findStudentRow(sheet, key);
     if (row === -1) row = nextRow(sheet);
-    var previous = readStudent(sheet, row).clearedAt;
+    var previousStudent = readStudent(sheet, row);
+    var previous = previousStudent.clearedAt;
     var clearedAt = nowText() + "." + String(new Date().getMilliseconds() + 1000).slice(1);
     if (previous && clearedAt <= previous) {
       // Preserve sortable local-time markers, with a strictly newer suffix.
       clearedAt = previous + "1";
     }
+    var profile = previousStudent.record && previousStudent.record.profile;
+    var blank = profile && profile.name ? {v:1,cls:name,reg:n,updatedAt:nowIso(),baseClearedAt:clearedAt,agreed:null,
+      profile:profile,done:{},submitted:{},reached:{},first:{},second:{},answers:{},ui:{},unlockedLevels:{}} : null;
     sheet.getRange(row, 1, 1, STUDENTS_HEADERS.length).setNumberFormat("@")
-      .setValues([studentRowValues(key, null, "", clearedAt, "")]);
-    return { ok: true, clearedAt: clearedAt };
+      .setValues([studentRowValues(key, blank, "", clearedAt, blank ? JSON.stringify(blank) : "")]);
+    return { ok: true, clearedAt: clearedAt, record:blank };
   });
 }
 
@@ -366,6 +376,18 @@ function unlockStudent(cls, reg, levels) {
       .setValues([studentRowValues(key, record, nowText(), stored.clearedAt, json)]);
     return { ok: true, record: record, clearedAt: stored.clearedAt };
   });
+}
+
+// Return only the registered profile identity and access grants to the footer selectors.
+function registeredProfiles(cls) {
+  var result=classResults(cls);
+  return {ok:true,students:result.students.filter(function(s){return !!s.record;}).map(function(s){
+    var name=s.record.profile && s.record.profile.name;
+    return {reg:s.reg,name:name ? String(name.v || "") : "",unlockedLevels:s.record.unlockedLevels || {}};
+  })};
+}
+function profileOnly(code, purpose, fn) {
+  return purpose === "reset" ? resetOnly(code,fn) : teacherOnly(code,fn);
 }
 
 /* ---------------- Teacher code ---------------- */
@@ -418,7 +440,7 @@ function protectedAction(code, property, missingError, prefix, fn) {
 
 var MERGE_RULES = {
   done: "earliest", submitted: "earliest", reached: "max",
-  first: "keep", second: "keep", answers: "newest", ui: "newest"
+  first: "keep", second: "keep", answers: "newest", ui: "newest", profile: "newest"
 };
 
 function mergeRecords(primary, other) {
@@ -466,7 +488,7 @@ function capTimes(record, now) {
   ["done", "submitted"].forEach(function (s) {
     if (isPlainObject(r[s])) Object.keys(r[s]).forEach(function (k) { r[s][k] = cap(r[s][k]); });
   });
-  ["first", "second", "answers", "ui"].forEach(function (s) {
+  ["first", "second", "answers", "ui", "profile"].forEach(function (s) {
     if (isPlainObject(r[s])) Object.keys(r[s]).forEach(function (k) {
       if (isPlainObject(r[s][k])) r[s][k].t = cap(r[s][k].t);
     });

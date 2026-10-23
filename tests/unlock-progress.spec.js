@@ -32,7 +32,7 @@ test('footer unlock chooses a profile, selected/all levels, password errors, per
  await page.locator('[data-unlock-progress]').click();await password.fill('wrong-test-unlock');await modal.getByRole('button',{name:'Continue',exact:true}).click();await expect(modal.locator('#unlockError')).toContainText('Incorrect passcode');
  await password.fill(CODE().toLowerCase());await modal.getByRole('button',{name:'Continue',exact:true}).click();
  await expect(modal.locator('#unlockSelection')).toBeVisible();await expect(modal.locator('#unlockClass')).toHaveValue('');
- await modal.locator('#unlockClass').selectOption('Empty');await expect(modal.locator('#unlockStatus')).toContainText('No saved student profiles');
+ await modal.locator('#unlockClass').selectOption('Empty');await expect(modal.locator('#unlockStatus')).toContainText('No registered student profiles');
  await modal.locator('#unlockClass').selectOption('3E1');await expect(modal.locator('#unlockStudent option')).toHaveCount(3);await modal.locator('#unlockStudent').selectOption('6');
  await expect(modal.locator('input[type=checkbox]:checked')).toHaveCount(0);await expect(modal.locator('#applyUnlock')).toBeDisabled();
  await modal.locator('input[type=checkbox][value="3"]').check();await modal.locator('input[type=checkbox][value="5"]').check();
@@ -43,7 +43,7 @@ test('footer unlock chooses a profile, selected/all levels, password errors, per
  await page.locator('#studentUnlocked button').click();
  // A new browser context loads the server grants, while other levels stay locked.
  const ctx=await browser.newContext({viewport:testInfo.project.use.viewport});const other=await ctx.newPage();
- await other.goto('http://localhost:8788/');await other.locator('#classInput').selectOption('3E1');await other.locator('#regInput').fill('6');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();
+ await other.goto('http://localhost:8788/');await other.locator('#classInput').selectOption('3E1');await other.locator('#regInput').fill('6');await other.locator('#nameInput').fill('Test Student 6');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();
  expect(await other.evaluate(()=>isUnlocked(3))).toBe(true);expect(await other.evaluate(()=>isUnlocked(4))).toBe(false);
  await other.goto('http://localhost:8788/#level3');await expect(other.locator('h1.page-title')).toContainText('Level 3');
  await expect(other.locator('.step-tab[aria-disabled=true]')).toHaveCount(0);expect(await other.evaluate(()=>Object.keys(rec.done))).toEqual([]);
@@ -58,7 +58,7 @@ test('footer unlock chooses a profile, selected/all levels, password errors, per
 test('failed backend action preserves access and clearing class during a pending load does not freeze the dialog',async({page,request})=>{
  await seed(request);await page.goto('/');await page.locator('[data-unlock-progress]').click();const modal=page.locator('#studentUnlockModal');await modal.locator('#unlockPassword').fill(CODE());await modal.getByRole('button',{name:'Continue',exact:true}).click();
  let release;const pending=new Promise(r=>{release=r;});
- await page.route('**/api',async route=>{const b=route.request().postDataJSON();if(b.action==='results'){await pending;}await route.continue();});
+ await page.route('**/api',async route=>{const b=route.request().postDataJSON();if(b.action==='profileList'){await pending;}await route.continue();});
  await modal.locator('#unlockClass').selectOption('3E1');await expect(modal.locator('#unlockStatus')).toContainText('Loading');await modal.locator('#unlockClass').selectOption('');release();
  await modal.locator('#unlockClass').selectOption('3E1');await expect(modal.locator('#unlockStudent option')).toHaveCount(3);await modal.locator('#unlockStudent').selectOption('5');await modal.locator('#unlockAllSelection').click();await expect(modal.locator('#applyUnlock')).toBeEnabled();
  await page.unroute('**/api');

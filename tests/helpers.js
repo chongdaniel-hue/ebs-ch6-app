@@ -69,6 +69,7 @@ async function login(page, cls, reg) {
   await page.goto("/");
   await page.locator("#classInput").selectOption(cls);
   await page.locator("#regInput").fill(String(reg));
+  await page.locator("#nameInput").fill("Test Student " + reg);
   await page.locator("#startBtn").click();
 }
 

@@ -53,7 +53,7 @@ test.describe("6.1 My learning report", () => {
     expect(await page.evaluate(() => shortDate("2026-10-19T17:30:00.000Z"))).toBe("20 Oct 2026");
     await page.click(".welcome-card a.btn");
     await expect(page.locator("h1.page-title")).toHaveText("My learning report");
-    await expect(page.locator(".level-sub")).toHaveText("Class 3E1, Register No. 5");
+    await expect(page.locator(".level-sub")).toHaveText("Test Student 5 · Class 3E1, Register No. 5");
     await expect(page.locator(".report-level-name")).toHaveText([
       "Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service", "Level 3: Chat with Alex",
       "Level 4: Serve Suzzie at Stylez", "Level 5: Check and Exit Ticket"
@@ -150,9 +150,9 @@ test.describe("T.3 Results", () => {
     const csv = fs.readFileSync(await download.path(), "utf8");
     const lines = csv.replace(/^﻿/, "").split("\r\n");
     expect(lines).toHaveLength(4);
-    expect(lines[0]).toContain("Register No.,Levels done,Level 1 finished");
+    expect(lines[0]).toContain("Register No.,Student name,Levels done,Level 1 finished");
     expect(lines[0]).toContain("Q2 R first try,Q2 R second try");
-    expect(lines[1]).toContain("3E1,1,5,");
+    expect(lines[1]).toContain("3E1,1,,5,");
     expect(lines[1]).toContain("Closing the customer experience positively (right)");
     expect(lines[1]).toContain("How do I close positively?");
 
@@ -169,7 +169,7 @@ test.describe("T.3 Results", () => {
 
     // Clear this student's work.
     await page.click("#clearStudent");
-    await expect(page.locator("#clearModal p")).toHaveText("Clear all work for Class 3E1, Register No. 2? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy.");
+    await expect(page.locator("#clearModal p")).toHaveText("Clear all work for Student, Class 3E1, Register No. 2? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy.");
     await expect(page.locator("#clearModal button")).toHaveText(["Clear work", "Cancel"]);
     await checkPage(page, testInfo, "slice5-clear-popup");
     await page.locator("#clearModal button", { hasText: "Cancel" }).click();
@@ -236,6 +236,7 @@ test.describe("T.4 This device", () => {
     // Logging in again brings the work back from the server.
     await page.selectOption("#classInput", "3E1");
     await page.fill("#regInput", "8");
+    await page.fill("#nameInput", "Test Student 8");
     await page.click("#startBtn");
     await expect(page.locator(".welcome-card")).toBeVisible();
     await page.goto("/#level1");

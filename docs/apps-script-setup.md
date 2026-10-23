@@ -6,7 +6,7 @@ The app saves every student's work in a Google Sheet that only you can open. Stu
 
 ## Before you start: which Google account?
 
-Everything below is owned by one Google account, and the Sheet holds student work (class and register number only, no names), so choose the account carefully.
+Everything below is owned by one Google account, and the Sheet holds student work (registered name, class and register number, with progress), so choose the account carefully.
 
 - A school or group account is better than a personal one.
 - Some school accounts (including some MOE accounts) are not allowed to publish a web app to "Anyone". Step 6 checks this. If your account fails that check, start again with a group Gmail account made for this module.
@@ -172,4 +172,10 @@ The footer Unlock button uses the existing `TEACHER_CODE` Script Property, with 
 4. Choose Deploy, Manage deployments, edit the existing web-app deployment, select New version, then Deploy. Keep the existing URL and access settings. Do not create a replacement deployment URL.
 5. After the frontend update is published, open Unlock in the footer, enter the passcode, choose a class and saved student profile, select levels or Select all levels, then Unlock selected levels. On another device, log in as that class/register number or refresh the existing session to confirm access.
 
-This grants access only. It does not submit answers, mark levels complete, or award badges. Normal student saves cannot create or remove server grants. Reset progress and the teacher's Clear student action clear grants with the rest of that student's work. Profiles appear once a student has saved a record; cleared or never-saved profiles are not selectable.
+This grants access only. It does not submit answers, mark levels complete, or award badges. Normal student saves cannot create or remove server grants. Reset progress and the teacher's Clear student action clear grants with the rest of that student's work. Profiles appear once a student has saved a record. From version 0.6.16, named registered profiles remain selectable after progress resets; never-saved profiles are not listed.
+
+## Names and registered-profile selectors (version 0.6.16)
+
+Use the same Code.gs replacement and New version deployment steps above. This version adds protected profileClasses/profileList actions and keeps a registered name when resetting progress. Unlock uses TEACHER_CODE; selecting/resetting a profile uses RESET_CODE. Both retain their existing case-insensitive comparison. No new Script Property, Sheet column or deployment URL is required.
+
+Students enter their name at the top of registration. Existing profiles can add or correct their name at the top of the home page with Save name. Names stay tied to the same class/register-number record and appear alongside progress in reports and the Unlock/Reset selectors. Previously saved profiles without a name remain accessible and are explicitly labelled until the student adds one. A reset clears learning work but keeps the name and registered profile available.

@@ -95,7 +95,7 @@ test.describe("new student", () => {
     await expect(page.locator("#briefing")).toHaveCount(0);
     expect(page.url()).toMatch(/#home$/);
 
-    await expect(page.locator(".topbar-chip")).toHaveText("Class 3E1 · Register No. 12");
+    await expect(page.locator(".topbar-chip")).toHaveText("Test Student 12 · Class 3E1 · Register No. 12");
     await expect(page.locator(".welcome-text")).toHaveText("Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!");
     await expect(page.locator(".notice")).toHaveCount(0);
     await expect(page.locator("#howLink")).toHaveText("How this works");
@@ -173,7 +173,8 @@ test.describe("saving and loading", () => {
     await login(page, "3E1", 7);
     const saved = waitForSave(page);
     await page.click("#briefing button");
-    await saved; // "soon" save: about 10 to 13 seconds
+    await saved; // Registration can save before the later briefing agreement.
+    await expect.poll(async()=>{const r=await apiGet(request,{action:"load",class:"3E1",reg:"7"});return !!(r.record && r.record.agreed);},{timeout:20000}).toBe(true);
 
     const row = await apiGet(request, { action: "load", class: "3E1", reg: "7" });
     expect(row.ok).toBe(true);
@@ -218,6 +219,7 @@ test.describe("saving and loading", () => {
     // Logging in again loads the work from the server.
     await page.selectOption("#classInput", "3E1");
     await page.fill("#regInput", "8");
+    await page.fill("#nameInput", "Test Student 8");
     await page.click("#startBtn");
     await expect(page.locator(".welcome-card")).toBeVisible();
   });
@@ -235,6 +237,7 @@ test.describe("saving and loading", () => {
     await page.route("**/api?*", r => r.abort());
     await page.selectOption("#classInput", "3E1"); // the class list was cached on this device
     await page.fill("#regInput", "9");
+    await page.fill("#nameInput", "Test Student 9");
     await page.click("#startBtn");
     await expect(page.locator(".welcome-card")).toBeVisible();
     await expect(page.locator("#briefing")).toHaveCount(0); // "I'm ready" from this device's copy
@@ -277,6 +280,7 @@ test.describe("saving and loading", () => {
     await page.goto("/");
     await page.selectOption("#classInput", "3E1");
     await page.fill("#regInput", "11");
+    await page.fill("#nameInput", "Test Student 11");
     await page.click("#startBtn");
     await expect(page.locator("#briefing button")).toHaveText("I'm ready"); // starts again
     await expect(page.locator(".notice")).toHaveCount(0);

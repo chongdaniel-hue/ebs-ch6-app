@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.15";
+const APP_VERSION = "0.6.16";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -187,6 +187,9 @@ let student = null;  // {cls, reg}
 let rec = null;      // that student's record
 let renderingTeacherPreview = false;
 
+function profileName(record) { return String(record && record.profile && record.profile.name && record.profile.name.v || ""); }
+function profileLabel(record, reg) { const name = profileName(record); return name ? `${name} · Register No. ${reg}` : `Register No. ${reg} (name not added yet)`; }
+
 function studentKey(cls, reg) { return cls + "#" + reg; }
 function activeKey() { return student ? studentKey(student.cls, student.reg) : ""; }
 
@@ -214,7 +217,7 @@ function saveLocal() {
 //   answers, ui: the newest value of each box wins
 const MERGE_RULES = {
   done: "earliest", submitted: "earliest", reached: "max",
-  first: "keep", second: "keep", answers: "newest", ui: "newest"
+  first: "keep", second: "keep", answers: "newest", ui: "newest", profile: "newest"
 };
 
 function mergeRecords(primary, other) {
@@ -325,7 +328,7 @@ async function api(method, data, timeoutMs) {
 const SOON_MS = 10000;
 const TYPING_MS = 30000;
 const RETRY_MS = [5000, 10000, 20000, 40000, 80000, 160000, 300000];
-const PERMANENT_ERRORS = ["no_class", "bad_reg", "too_big", "bad_request", "unknown_action"];
+const PERMANENT_ERRORS = ["no_class", "bad_reg", "too_big", "bad_request", "unknown_action", "bad_name"];
 
 function jitter(ms) { return Math.floor(Math.random() * ms); }
 function loadQueue() { return lsGet(KEYS.queue) || {}; }
@@ -440,7 +443,7 @@ function handleSaveReply(key, sent, reply) {
     lsRemove(KEYS.rec(key));
     dropFromQueue(key);
     if (key === activeKey()) {
-      rec = freshRecord(student.cls, student.reg, reply.clearedAt);
+      rec = mergeRecords(reply.record, freshRecord(student.cls, student.reg, reply.clearedAt));
       saveLocal();
       window.location.hash = "#home";
       render();
@@ -550,7 +553,7 @@ function topBarHtml(opts) {
           <p class="topbar-label">EBS Chapter 6</p>
           <${titleTag} class="topbar-title">Customer Service</${titleTag}>
           ${o.showSubtitle ? `<p class="topbar-sub">A self-study revision module</p>` : ""}
-          ${o.showChip && student ? `<p class="topbar-chip">Class ${escapeHtml(student.cls)} · Register No. ${student.reg}</p>` : ""}
+          ${o.showChip && student ? `<p class="topbar-chip"><span data-student-text>${escapeHtml(profileName(rec))}</span>${profileName(rec) ? " · " : ""}Class ${escapeHtml(student.cls)} · Register No. ${student.reg}</p>` : ""}
         </div>
         ${o.showHome ? `<a href="#home" class="topbar-home" id="homeBtn">🏠 Home</a>` : ""}
       </div>
@@ -561,7 +564,7 @@ function footerHtml() {
   return `
     <footer class="credits">
       <p class="footer-actions"><a href="#teacher" class="teacher-link">Teacher Mode</a>
-        <button type="button" class="teacher-link footer-reset" data-reset-progress ${student ? "" : "disabled"}>Reset progress</button>
+        <button type="button" class="teacher-link footer-reset" data-reset-progress>Reset progress</button>
         <button type="button" class="teacher-link footer-unlock" data-unlock-progress>Unlock</button></p>
       <p>A team effort by Anthony, Daniel, Joshua and Jufinnie <span class="nowrap">(NIE 2026)</span></p>
       <p class="credits-version">Version ${APP_VERSION}</p>
@@ -600,11 +603,12 @@ function showModal({ id, title, bodyHtml, buttons, className }) {
 // The shared footer is present on every route. No password is stored in the page.
 document.addEventListener("click", e => {
   if (e.target.closest("[data-unlock-progress]")) showStudentUnlock();
-  if (e.target.closest("[data-reset-progress]") && student && !resettingKey) showProgressReset();
+  if (e.target.closest("[data-reset-progress]") && !resettingKey) showStudentUnlock("reset");
 });
 
-function showProgressReset() {
-  const target = { ...student };
+function showProgressReset(selectedStudent, verifiedCode) {
+  const target = { ...(selectedStudent || student) };
+  if (!target.cls || !target.reg) return;
   const key = studentKey(target.cls, target.reg);
   const previousFocus = document.activeElement;
   const wrap = document.createElement("div");
@@ -613,9 +617,9 @@ function showProgressReset() {
   setGraphicHtml(wrap, `
     <form class="modal" role="dialog" aria-modal="true" aria-labelledby="progressResetTitle" aria-describedby="progressResetDescription">
       <h2 class="modal-title" id="progressResetTitle">Reset progress</h2>
-      <p id="progressResetDescription">Clear all answers, badges and progress for Class ${escapeHtml(target.cls)}, Register No. ${target.reg}, on this device and the server. This cannot be undone. Other students' work will stay intact.</p>
-      <label for="progressResetPassword" class="field-label">Key in the reset password.</label>
-      <input type="password" class="text-input" id="progressResetPassword" autocomplete="off" required>
+      <p id="progressResetDescription">Clear all answers, badges and progress for ${escapeHtml(target.name || "Student")}, Class ${escapeHtml(target.cls)}, Register No. ${target.reg}, on this device and the server. This cannot be undone. The student name and registered profile will remain. Other students' work will stay intact.</p>
+      <div ${verifiedCode ? "hidden" : ""}><label for="progressResetPassword" class="field-label">Key in the reset password.</label>
+      <input type="password" class="text-input" id="progressResetPassword" autocomplete="off" ${verifiedCode ? "" : "required"}></div>
       <p class="form-error" role="alert" id="progressResetError" hidden></p>
       <p role="status" id="progressResetStatus" hidden>Resetting progress…</p>
       <div class="btn-row modal-btns">
@@ -631,7 +635,7 @@ function showProgressReset() {
   wrap.addEventListener("keydown", e => {
     if (e.key === "Escape" && !resettingKey) { e.preventDefault(); close(); }
     if (e.key !== "Tab") return;
-    const controls = [input, ...buttons].filter(el => !el.disabled);
+    const controls = [input, ...buttons].filter(el => !el.disabled && el.getClientRects().length);
     if (!controls.length) { e.preventDefault(); return; }
     const first = controls[0], last = controls[controls.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
@@ -639,7 +643,7 @@ function showProgressReset() {
   });
   wrap.querySelector("form").addEventListener("submit", async e => {
     e.preventDefault();
-    if (resettingKey || key !== activeKey()) return;
+    if (resettingKey) return;
     resettingKey = key;
     scheduleFlush();
     input.disabled = true;
@@ -650,7 +654,7 @@ function showProgressReset() {
     status.hidden = false;
     let reply;
     try {
-      reply = await api("POST", { action: "resetProgress", code: input.value, "class": target.cls, reg: target.reg }, 20000);
+      reply = await api("POST", { action: "resetProgress", code: verifiedCode || input.value, "class": target.cls, reg: target.reg }, 20000);
     } catch (err) { reply = { ok: false, error: "network" }; }
     input.value = "";
     resettingKey = "";
@@ -661,15 +665,16 @@ function showProgressReset() {
       if (key === activeKey()) {
         if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
         lastTypingSend = 0;
-        rec = freshRecord(target.cls, target.reg, reply.clearedAt);
+        rec = mergeRecords(reply.record, freshRecord(target.cls, target.reg, reply.clearedAt));
         saveLocal();
         lsRemove(KEYS.unlockAll);
         close();
         window.location.hash = "#home";
         render();
       } else {
-        lsSet(KEYS.rec(key), freshRecord(target.cls, target.reg, reply.clearedAt));
+        lsSet(KEYS.rec(key), mergeRecords(reply.record, freshRecord(target.cls, target.reg, reply.clearedAt)));
         close();
+        showModal({id:"studentResetComplete",title:"Progress reset",bodyHtml:`<p>${escapeHtml(target.name || "Student")}, Class ${escapeHtml(target.cls)}, Register No. ${target.reg}: progress has been cleared. The registered name has been kept.</p>`,buttons:[{label:"Close",primary:true,onClick:()=>{const b=document.querySelector("[data-reset-progress]");if(b)b.focus();}}]});
       }
       updateNetBanner();
     } else {
@@ -680,15 +685,16 @@ function showProgressReset() {
       error.hidden = false;
       input.disabled = false;
       buttons.forEach(b => { b.disabled = false; });
-      input.focus();
+      if (verifiedCode) buttons[0].focus(); else input.focus();
     }
     scheduleFlush();
   });
-  input.focus();
+  if (verifiedCode) buttons[0].focus(); else input.focus();
 }
 
 // Unlock credentials stay in this dialog's memory and are checked again on every action.
-function showStudentUnlock() {
+function showStudentUnlock(mode = "unlock") {
+  const resetting = mode === "reset";
   if (document.getElementById("studentUnlockModal")) return;
   const previousFocus = document.activeElement;
   const wrap = document.createElement("div");
@@ -696,21 +702,21 @@ function showStudentUnlock() {
   wrap.className = "modal-backdrop";
   let code = "", busy = false, profiles = [], requestNumber = 0;
   setGraphicHtml(wrap, `<form class="modal" role="dialog" aria-modal="true" aria-labelledby="studentUnlockTitle">
-    <h2 class="modal-title" id="studentUnlockTitle">Unlock student levels</h2>
-    <p>Select a student profile and open selected levels or all five levels. Answers, completed activities and badges will stay unchanged.</p>
-    <div id="unlockSignIn"><label class="field-label" for="unlockPassword">Key in the unlock passcode.</label>
+    <h2 class="modal-title" id="studentUnlockTitle">${resetting ? "Reset student progress" : "Unlock student levels"}</h2>
+    <p>${resetting ? "Select a registered student profile to reset. You will confirm before any work is cleared." : "Select a registered student profile and open selected levels or all five levels. Answers, completed activities and badges will stay unchanged."}</p>
+    <div id="unlockSignIn"><label class="field-label" for="unlockPassword">Key in the ${resetting ? "reset" : "unlock"} passcode.</label>
       <input class="text-input" type="password" id="unlockPassword" autocomplete="off" required>
       <div class="btn-row"><button class="btn" type="submit">Continue</button></div></div>
     <div id="unlockSelection" hidden>
       <div class="field"><label class="field-label" for="unlockClass">Class</label><select class="text-input" id="unlockClass"><option value="">Choose a class</option></select></div>
-      <div class="field"><label class="field-label" for="unlockStudent">Student profile</label><select class="text-input" id="unlockStudent" disabled><option value="">Choose a student</option></select></div>
+      <div class="field"><label class="field-label" for="unlockStudent">Student profile</label><select class="text-input" id="unlockStudent" disabled><option value="">Choose a student</option></select><p id="unlockIdentity" class="field-note" data-student-text></p></div>
       <p id="unlockExisting" role="status"></p>
-      <fieldset class="unlock-levels"><legend>Select levels to unlock</legend>
+      <fieldset class="unlock-levels" ${resetting ? "hidden" : ""}><legend>Select levels to unlock</legend>
         ${LEVELS.map((l,i)=>`<label class="unlock-level-option"><input type="checkbox" value="${i+1}">Level ${i+1}: ${escapeHtml(l.title)}</label>`).join("")}
       </fieldset>
-      <div class="btn-row"><button class="btn secondary" type="button" id="unlockAllSelection">Select all levels</button>
-        <button class="btn" type="submit" id="applyUnlock" disabled>Unlock selected levels</button></div>
-      <p class="muted">Previously unlocked levels stay open. The student can refresh the app or log in again on another device to use the new access.</p>
+      <div class="btn-row"><button class="btn secondary" type="button" id="unlockAllSelection" ${resetting ? "hidden" : ""}>Select all levels</button>
+        <button class="btn" type="submit" id="applyUnlock" disabled>${resetting ? "Continue to reset" : "Unlock selected levels"}</button></div>
+      <p class="muted" ${resetting ? "hidden" : ""}>Previously unlocked levels stay open. The student can refresh the app or log in again on another device to use the new access.</p>
     </div>
     <p class="form-error" id="unlockError" role="alert" hidden></p>
     <p id="unlockStatus" role="status" hidden></p>
@@ -731,7 +737,7 @@ function showStudentUnlock() {
     error.hidden = false;
   };
   const update = () => {
-    apply.disabled = busy || !reg.value || !checks.some(c=>c.checked && !c.disabled);
+    apply.disabled = busy || !reg.value || (!resetting && !checks.some(c=>c.checked && !c.disabled));
   };
   const setBusy = value => {
     busy = value;
@@ -753,26 +759,27 @@ function showStudentUnlock() {
   reg.addEventListener("change",()=>{
     checks.forEach(c=>{c.checked=false;});
     const profile=profiles.find(p=>String(p.reg)===reg.value);
-    const grants=Object.keys((profile && profile.record && profile.record.unlockedLevels) || {}).filter(n=>/^[1-5]$/.test(n));
-    wrap.querySelector("#unlockExisting").textContent=profile ? (grants.length ? `Previously unlocked levels: ${grants.join(", ")}.` : "No levels have been manually unlocked for this student.") : "";
+    wrap.querySelector("#unlockIdentity").textContent=profile ? `${profile.name || "Name not added yet"} · Register No. ${profile.reg}` : "";
+    const grants=Object.keys((profile && profile.unlockedLevels) || {}).filter(n=>/^[1-5]$/.test(n));
+    wrap.querySelector("#unlockExisting").textContent=profile && !resetting ? (grants.length ? `Previously unlocked levels: ${grants.join(", ")}.` : "No levels have been manually unlocked for this student.") : "";
     update();
   });
   cls.addEventListener("change",async()=>{
     const sequence=++requestNumber;
     busy=false;
     profiles=[]; reg.innerHTML='<option value="">Choose a student</option>'; reg.disabled=true;
-    checks.forEach(c=>{c.checked=false;}); wrap.querySelector("#unlockExisting").textContent=""; error.hidden=true; update();
+    checks.forEach(c=>{c.checked=false;}); wrap.querySelector("#unlockExisting").textContent="";wrap.querySelector("#unlockIdentity").textContent=""; error.hidden=true; update();
     if (!cls.value) return;
     busy=true; update(); status.textContent="Loading student profiles…"; status.hidden=false;
     let reply;
-    try { reply=await api("POST",{action:"results",code,"class":cls.value},15000); } catch(e) { reply={ok:false,error:"network"}; }
+    try { reply=await api("POST",{action:"profileList",purpose:mode,code,"class":cls.value},15000); } catch(e) { reply={ok:false,error:"network"}; }
     if (!wrap.isConnected || sequence!==requestNumber) return;
     busy=false; status.hidden=true;
     if (!reply.ok) { fail(reply); update(); return; }
-    profiles=(reply.students || []).filter(p=>p.record);
-    reg.innerHTML='<option value="">Choose a student</option>'+profiles.map(p=>`<option value="${p.reg}">Register No. ${p.reg}</option>`).join("");
+    profiles=reply.students || [];
+    reg.innerHTML='<option value="">Choose a student</option>'+profiles.map(p=>`<option value="${p.reg}">${escapeHtml(p.name ? `${p.name} · Register No. ${p.reg}` : `Register No. ${p.reg} (name not added yet)`)}</option>`).join("");
     reg.disabled=!profiles.length;
-    if (!profiles.length) { status.textContent="No saved student profiles in this class yet. The student must log in and save progress first."; status.hidden=false; }
+    if (!profiles.length) { status.textContent="No registered student profiles in this class yet. Students must log in and save their names first."; status.hidden=false; }
     update();
   });
   wrap.querySelector("form").addEventListener("submit",async e=>{
@@ -783,7 +790,7 @@ function showStudentUnlock() {
       code=input.value; input.value="";
       setBusy(true); status.textContent="Checking passcode…";
       let reply;
-      try { reply=await api("POST",{action:"teacherCheck",code},15000); } catch(e) { reply={ok:false,error:"network"}; }
+      try { reply=await api("POST",{action:"profileClasses",purpose:mode,code},15000); } catch(e) { reply={ok:false,error:"network"}; }
       if(!wrap.isConnected) return;
       status.hidden=true; setBusy(false);
       if(!reply.ok) { code=""; fail(reply); input.focus(); return; }
@@ -791,9 +798,15 @@ function showStudentUnlock() {
       cls.innerHTML='<option value="">Choose a class</option>'+(reply.classes || []).map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
       wrap.querySelector("#unlockSignIn").hidden=true; wrap.querySelector("#unlockSelection").hidden=false; cls.focus(); return;
     }
+    if(resetting && reg.value) {
+      const profile=profiles.find(p=>String(p.reg)===reg.value);
+      const target={cls:cls.value,reg:Number(reg.value),name:profile && profile.name || ""};
+      const resetCode=code;close();showProgressReset(target,resetCode);return;
+    }
     const levels=checks.filter(c=>c.checked).map(c=>Number(c.value));
     if(!reg.value || !levels.length) { status.hidden=true; return; }
-    const target={cls:cls.value,reg:Number(reg.value)};
+    const selectedProfile=profiles.find(p=>String(p.reg)===reg.value);
+    const target={cls:cls.value,reg:Number(reg.value),name:selectedProfile && selectedProfile.name || ""};
     setBusy(true); status.textContent="Unlocking selected levels…";
     let reply;
     try { reply=await api("POST",{action:"unlockStudent",code,"class":target.cls,reg:target.reg,levels},20000); } catch(e) { reply={ok:false,error:"network"}; }
@@ -808,7 +821,7 @@ function showStudentUnlock() {
       if(key===activeKey()) { rec=merged; saveLocal(); } else lsSet(KEYS.rec(key),merged);
     }
     close(); render();
-    showModal({id:"studentUnlocked",title:"Levels unlocked",bodyHtml:`<p>Class ${escapeHtml(target.cls)}, Register No. ${target.reg}: levels ${levels.join(", ")} are now open. Answers and completion remain unchanged.</p>`,buttons:[{label:"Close",primary:true,onClick:()=>{const b=document.querySelector("[data-unlock-progress]");if(b)b.focus();}}]});
+    showModal({id:"studentUnlocked",title:"Levels unlocked",bodyHtml:`<p>${escapeHtml(target.name || "Student")}, Class ${escapeHtml(target.cls)}, Register No. ${target.reg}: levels ${levels.join(", ")} are now open. Answers and completion remain unchanged.</p>`,buttons:[{label:"Close",primary:true,onClick:()=>{const b=document.querySelector("[data-unlock-progress]");if(b)b.focus();}}]});
   });
   input.focus();
 }
@@ -888,9 +901,11 @@ function renderLanding() {
     : empty ? "Your teacher hasn't added your class yet. Ask your teacher to add it." : "";
   const picked = (document.getElementById("classInput") || {}).value || "";
   const typed = (document.getElementById("regInput") || {}).value || "";
+  const typedName = (document.getElementById("nameInput") || {}).value || "";
   setGraphicHtml(app, `
     ${topBarHtml({ titleIsHeading: true, showSubtitle: true })}
     <main class="page">
+      <div class="block card"><label for="nameInput" class="field-label">Your name</label><input type="text" id="nameInput" class="text-input" maxlength="80" autocomplete="name" value="${escapeHtml(typedName)}"><p class="field-note">Use the same name, class and register number each time to find your progress.</p></div>
       <div class="block landing-banner">${imgHtml("N01", "banner-img")}</div>
       <div class="block">
         <p class="lead">Hi! In this module, you'll revise Chapter 6: Customer Service. You'll read short notes, chat with an AI customer service officer, serve an AI customer yourself, and check what you've learnt.</p>
@@ -940,6 +955,7 @@ async function refreshClassList() {
 async function startLogin() {
   const cls = document.getElementById("classInput").value;
   const regText = document.getElementById("regInput").value.trim();
+  const name = document.getElementById("nameInput").value.trim().replace(/\s+/g," ");
   const errEl = document.getElementById("loginError");
   const btn = document.getElementById("startBtn");
   const showError = (msg) => { errEl.textContent = msg; errEl.hidden = false; };
@@ -949,6 +965,7 @@ async function startLogin() {
   const reg = Number(regText);
   if (!/^\d+$/.test(regText) || reg < 1 || reg > 50) { showError("Register numbers are whole numbers from 1 to 50."); return; }
 
+  if (!name) { showError("Please key in your name at the top of the page."); document.getElementById("nameInput").focus(); return; }
   btn.disabled = true;
   btn.textContent = "Checking...";
   const key = studentKey(cls, reg);
@@ -984,13 +1001,15 @@ async function startLogin() {
   }
   record.cls = cls;
   record.reg = reg;
+  record.profile = record.profile || {};
+  if (profileName(record) !== name) record.profile.name = {v:name,t:nowIso()};
 
   student = { cls, reg };
   rec = record;
   lsSet(KEYS.active, student);
   saveLocal();
   // Send anything this device had that the server did not (and check the connection).
-  if (local || serverUnreachable) enqueue(key, Date.now() + jitter(3000), false);
+  enqueue(key, Date.now(), false);
   updateNetBanner();
   justLoggedIn = true;
   if (window.location.hash === "#home") render();
@@ -1066,6 +1085,7 @@ function renderHome() {
   setGraphicHtml(app, `
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
+      <form class="card block" id="studentNameForm"><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" required><div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div><p id="studentNameStatus" role="status"></p></form>
       <div class="block">
         <div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p>
           ${done === LEVELS.length ? `<div class="btn-row welcome-btn"><a href="#report" class="btn">📊 My learning report</a></div>` : ""}</div>
@@ -1096,6 +1116,13 @@ function renderHome() {
     </main>
     ${footerHtml()}
   `);
+  document.getElementById("studentNameForm").addEventListener("submit", e=>{
+    e.preventDefault();const name=document.getElementById("studentNameInput").value.trim().replace(/\s+/g," ");
+    if(!name)return;
+    rec.profile=rec.profile || {};rec.profile.name={v:name,t:nowIso()};queueSave("now");
+    document.getElementById("studentNameStatus").textContent="Name saved on this device. It will sync when connected.";
+    const chip=document.querySelector(".topbar-chip");if(chip)setGraphicHtml(chip,`<span data-student-text>${escapeHtml(name)}</span> · Class ${escapeHtml(student.cls)} · Register No. ${student.reg}`);
+  });
   document.getElementById("howLink").addEventListener("click", (e) => { e.preventDefault(); showBriefing(); });
   document.getElementById("switchLink").addEventListener("click", (e) => { e.preventDefault(); confirmSwitchStudent(); });
   LEVELS.forEach(s => {
@@ -2599,7 +2626,7 @@ function renderReport() {
     <main class="page">
       <div class="block">
         <h1 class="page-title">📊 My learning report</h1>
-        <p class="level-sub">Class ${escapeHtml(student.cls)}, Register No. ${student.reg}</p>
+        <p class="level-sub"><span data-student-text>${escapeHtml(profileName(r))}</span>${profileName(r) ? " · " : ""}Class ${escapeHtml(student.cls)}, Register No. ${student.reg}</p>
       </div>
       <div class="block">
         <ul class="report-levels">
@@ -2934,7 +2961,7 @@ function renderClassResults(body, panel) {
           const q2 = recFirstTry(r, L3_Q2), q34 = recFirstTry(r, L5_MARKED);
           const faces = CONFIDENCE_ROWS.map((row, k) => { const v = recAnswer(r, `s5.q8.${k + 1}`); return typeof v === "number" ? `<span class="confidence-summary" role="img" aria-label="${FACES[v][1]}" title="${FACES[v][1]}">${FACES[v][0]}</span>` : "·"; }).join(" ");
           return `<tr class="student-row" data-i="${i}">
-            <td><button type="button" class="row-link" data-i="${i}">No. ${s.reg}</button>${r ? "" : `<span class="muted"> (cleared)</span>`}</td>
+            <td><button type="button" class="row-link" data-i="${i}"><span data-student-text>${escapeHtml(profileName(r))}</span>${profileName(r) ? " · " : ""}No. ${s.reg}</button>${r ? "" : `<span class="muted"> (cleared)</span>`}</td>
             <td>${r ? recLevelsDone(r) : 0}</td><td>${q2 == null ? "–" : `${q2} / 4`}</td><td>${q34 == null ? "–" : `${q34} / 5`}</td><td class="faces-cell">${faces}</td>
           </tr>`;
         }).join("") || `<tr><td colspan="5">No students yet.</td></tr>`}</tbody>
@@ -2969,7 +2996,7 @@ function renderStudentReport(body, panel) {
   setGraphicHtml(body, `
     <div class="btn-row"><button type="button" class="btn secondary" id="backToClass">← Back to the class</button></div>
     <section class="card student-report" aria-labelledby="stuTitle">
-      <h2 class="section-title" id="stuTitle">Class ${escapeHtml(res.cls)}, Register No. ${s.reg}</h2>
+      <h2 class="section-title" id="stuTitle"><span data-student-text>${escapeHtml(profileName(r))}</span>${profileName(r) ? " · " : ""}Class ${escapeHtml(res.cls)}, Register No. ${s.reg}</h2>
       <p class="muted">Levels done: ${recLevelsDone(r)} of 5${s.lastSaved ? ` · Last saved ${escapeHtml(s.lastSaved)}` : ""}${s.clearedAt ? ` · Work cleared ${escapeHtml(s.clearedAt)}` : ""}</p>
       <h3 class="sum-head">Level 1: stories</h3>
       ${L1_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
@@ -2998,7 +3025,7 @@ function renderStudentReport(body, panel) {
     showModal({
       id: "clearModal",
       title: "Clear this student's work",
-      bodyHtml: `<p>Clear all work for Class ${escapeHtml(res.cls)}, Register No. ${s.reg}? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy.</p>`,
+      bodyHtml: `<p>Clear all work for ${escapeHtml(profileName(r) || "Student")}, Class ${escapeHtml(res.cls)}, Register No. ${s.reg}? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy.</p>`,
       buttons: [
         {
           label: "Clear work", primary: true, onClick: async () => {
@@ -3024,7 +3051,7 @@ function csvCell(v) {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 function downloadClassCsv(res) {
-  const header = ["Class", "Register No.", "Levels done"]
+  const header = ["Class", "Register No.", "Student name", "Levels done"]
     .concat(LEVELS.map(s => `Level ${s.num} finished`))
     .concat(["Q2 first try (/4)", "Q3 and Q4 first try (/5)"])
     .concat(L1_BOXES.map(b => `Level 1 story ${b.num}`))
@@ -3039,7 +3066,7 @@ function downloadClassCsv(res) {
     const r = s.record || {};
     const att = (it, which) => attemptText(it, r[which] && r[which][it.attemptKey]);
     const q2 = recFirstTry(r, L3_Q2), q34 = recFirstTry(r, L5_MARKED);
-    return [res.cls, s.reg, recLevelsDone(r)]
+    return [res.cls, s.reg, profileName(r), recLevelsDone(r)]
       .concat(LEVELS.map(lv => shortDate(recDone(r, lv.num))))
       .concat([q2 == null ? "" : q2, q34 == null ? "" : q34])
       .concat(L1_BOXES.map(b => recAnswer(r, b.key)))
@@ -3162,7 +3189,7 @@ async function syncActiveFromServer() {
   if (String(rec.baseClearedAt || "") > String(reply.clearedAt || "")) return;
   const before = JSON.stringify(rec);
   if (reply.clearedAt && String(rec.baseClearedAt || "") < reply.clearedAt) {
-    rec = freshRecord(student.cls, student.reg, reply.clearedAt);
+    rec = mergeRecords(reply.record, freshRecord(student.cls, student.reg, reply.clearedAt));
     lsRemove(KEYS.rec(key));
   } else {
     rec = mergeRecords(reply.record, rec);

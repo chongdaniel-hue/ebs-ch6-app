@@ -6,7 +6,7 @@ AI tools read an instruction file in the repository before they start: Codex and
 
 ## What the app is
 
-A self-study revision app for Secondary 3 and 4 students (G1 and G2) on EBS Chapter 6: Customer Service. Students open it from a link in SLS, log in with their class and register number (no names), and work through five levels:
+A self-study revision app for Secondary 3 and 4 students (G1 and G2) on EBS Chapter 6: Customer Service. Students open it from a link in SLS, register their name with their class and register number, and work through five levels:
 
 1. Your Customer Service Stories
 2. Learn: Customer Service (notes, the four stages, the Service Recovery Path)
@@ -196,7 +196,7 @@ From `docs/progress.md` (check there for the latest):
 6. **The Uniqlo picture (R03)** contains "Return & Exchange Conditions", an ampersand inside a real screenshot.
 7. **Segmenting:** some Level 2 parts are still longer than one phone screen, where splitting would break a list or separate a picture from its words.
 8. **Storyboard documents:** the "as built" storyboard (`docs/storyboard.md` and `.docx`) now lists the build decisions in Section H. When something changes, update the storyboard (or ask Dan to) as well as `docs/progress.md`.
-9. **Privacy:** confirm with the tutor that storing class and register number in a Google Sheet is acceptable.
+9. **Privacy:** confirm with the tutor that storing the registered name, class, register number and learning work in a Google Sheet is acceptable.
 
 ## What you need from Dan
 

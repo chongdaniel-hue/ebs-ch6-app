@@ -1449,3 +1449,6 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 #studentUnlockModal .field{margin:16px 0;}
 #studentUnlockModal .btn-row + .muted{margin-top:12px;}
 #studentUnlockModal .modal{max-height:90vh;overflow-y:auto;}
+
+#studentUnlockModal [hidden],#progressResetModal [hidden]{display:none !important;}
+#unlockIdentity{overflow-wrap:anywhere;margin-top:8px;}
