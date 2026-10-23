@@ -19,6 +19,10 @@ const vm = require("vm");
 function createAppsScript({ dataDir, teacherCode, resetCode, maxRows }) {
   const startRows = maxRows || 1000;
   const extraRows = {};
+  const propertiesFile=path.join(dataDir,"properties.json");
+  let properties={};
+  try { properties=JSON.parse(fs.readFileSync(propertiesFile,"utf8")); } catch(e) {}
+  const saveProperties=()=>{fs.mkdirSync(dataDir,{recursive:true});fs.writeFileSync(propertiesFile,JSON.stringify(properties));};
   const file = path.join(dataDir, "sheets.json");
   let book = {};
   try { book = JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) { book = {}; }
@@ -112,7 +116,7 @@ function createAppsScript({ dataDir, teacherCode, resetCode, maxRows }) {
     },
     CacheService: { getScriptCache: () => cache },
     PropertiesService: {
-      getScriptProperties: () => ({ getProperty: (k) => (k === "TEACHER_CODE" ? teacherCode || null : k === "RESET_CODE" ? resetCode || null : null) })
+      getScriptProperties: () => ({ getProperty: (k) => (k === "TEACHER_CODE" ? teacherCode || null : k === "RESET_CODE" ? resetCode || null : properties[k] || null), setProperty(k,v) { properties[k]=String(v);saveProperties();return this; } })
     },
     ContentService: {
       MimeType: { JSON: "application/json" },
@@ -150,7 +154,7 @@ function createAppsScript({ dataDir, teacherCode, resetCode, maxRows }) {
       save();
       return out.getContent();
     },
-    reset() { book = {}; cacheStore.clear(); hooks.busy = 0; Object.keys(extraRows).forEach(k => delete extraRows[k]); save(); },
+    reset() { book = {}; properties={};saveProperties(); cacheStore.clear(); hooks.busy = 0; Object.keys(extraRows).forEach(k => delete extraRows[k]); save(); },
     hooks,
     context
   };

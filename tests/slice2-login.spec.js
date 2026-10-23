@@ -28,7 +28,7 @@ test.describe("landing and log-in", () => {
     const errors = watchErrors(page);
     await resetServer(request, []);
     await page.goto("/");
-    await expect(page.locator("#classNote")).toHaveText("Your teacher hasn't added your class yet. Ask your teacher to add it.");
+    await expect(page.locator("#classNote")).toHaveText("No classes are available to select yet. Ask your teacher.");
     await expect(page.locator("#classInput")).toBeDisabled();
     await checkPage(page, testInfo, "slice2-landing-no-classes");
     expect(errors).toEqual([]);
@@ -302,7 +302,7 @@ test.describe("Teacher Mode", () => {
     await page.press("#teacherCode", "Enter");
     await expect(page.locator(".tab.current")).toHaveText("Classes");
     await expect(page.locator(".section-title")).toHaveText("Your classes");
-    await expect(page.locator(".add-class .field-note")).toHaveText("Classes appear in the class dropdown on the home page, in this order.");
+    await expect(page.locator(".add-class .field-note")).toHaveText("Only classes marked Show to students appear in the student class dropdown, in this order. Newly added classes are visible.");
     await expect(page.locator("#newClass")).toHaveAttribute("placeholder", "e.g. 3E1");
 
     const err = page.locator("#classError");

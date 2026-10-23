@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.18";
+const APP_VERSION = "0.6.19";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -898,7 +898,7 @@ function renderLanding() {
   const empty = loaded && classList.length === 0;
   const note = !loaded && classListFailed
     ? "Connect to the internet to load your class list, then refresh this page."
-    : empty ? "Your teacher hasn't added your class yet. Ask your teacher to add it." : "";
+    : empty ? "No classes are available to select yet. Ask your teacher." : "";
   const picked = (document.getElementById("classInput") || {}).value || "";
   const typed = (document.getElementById("regInput") || {}).value || "";
   const typedName = (document.getElementById("nameInput") || {}).value || "";
@@ -946,7 +946,7 @@ async function refreshClassList() {
     const changed = JSON.stringify(fresh) !== JSON.stringify(classList);
     classList = fresh;
     classListFailed = false;
-    if (changed && !student && !window.location.hash) renderLanding();
+    if (changed && !student && !/^#teacher/.test(window.location.hash)) renderLanding();
   } else if (!Array.isArray(classList)) {
     classListFailed = true;
     if (!student && !window.location.hash) renderLanding();
@@ -2746,7 +2746,7 @@ function renderTeacherGate() {
       btn.textContent = "Enter";
       return;
     }
-    teacher = { code, classes: reply.classes || [], removed: reply.removed || [], tab: "classes", results: null, view: null, notice: "" };
+    teacher = { code, classes: reply.classes || [], removed: reply.removed || [], hidden: reply.hidden || [], tab: "classes", results: null, view: null, notice: "" };
     if (/^#teacher-preview-[1-5]$/.test(window.location.hash)) render();
     else renderTeacherHome();
   });
@@ -2757,8 +2757,10 @@ function renderClassesTab(el, message) {
   const list = teacher.classes;
   setGraphicHtml(el, `
     <h2 class="section-title">Your classes</h2>
+    <p>Tick the classes students can choose when logging in. Untick a class to hide it. Saved student profiles and progress stay intact.</p>
     ${list.length ? `<ul class="class-list">${list.map((c, i) => `
       <li class="class-row"><span class="class-name">${escapeHtml(c)}</span>
+        <label class="class-visibility"><input type="checkbox" data-class-visible="${i}" aria-label="Show ${escapeHtml(c)} to students" ${(teacher.hidden || []).includes(c) ? "" : "checked"}>Show to students</label>
         <button type="button" class="btn secondary small" data-remove="${i}">Remove</button></li>`).join("")}</ul>`
       : `<p class="muted">No classes yet.</p>`}
     <div class="card add-class">
@@ -2768,9 +2770,19 @@ function renderClassesTab(el, message) {
         <button class="btn" id="addClassBtn" type="button">Add</button>
       </div>
       <p id="classError" class="form-error" role="alert" ${message ? "" : "hidden"}>${escapeHtml(message || "")}</p>
-      <p class="field-note">Classes appear in the class dropdown on the home page, in this order.</p>
+      <p class="field-note">Only classes marked Show to students appear in the student class dropdown, in this order. Newly added classes are visible.</p>
     </div>
   `);
+  el.querySelectorAll("[data-class-visible]").forEach(box=>box.addEventListener("change",async()=>{
+    const index=Number(box.dataset.classVisible), name=teacher.classes[index], visible=box.checked;
+    el.querySelectorAll("button,input").forEach(control=>{control.disabled=true;});
+    const reply=await teacherCall({action:"setClassVisibility",name,visible});
+    if(!reply.ok){renderClassesTab(el,reply.error === "unknown_action" ? "Class visibility is not set up on the server yet. Ask your teacher to update Apps Script." : teacherErrorText(reply));return;}
+    teacher.classes=reply.classes;teacher.hidden=reply.hidden || [];teacher.removed=reply.removed || [];
+    classList=teacher.classes.filter(c=>!teacher.hidden.includes(c));lsSet(KEYS.classes,classList);
+    renderClassesTab(el);
+    const replacement=el.querySelector(`[data-class-visible="${index}"]`);if(replacement)replacement.focus();
+  }));
   const input = el.querySelector("#newClass");
   const addBtn = el.querySelector("#addClassBtn");
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") addBtn.click(); });
@@ -2792,6 +2804,7 @@ function renderClassesTab(el, message) {
     }
     teacher.classes = reply.classes;
     teacher.removed = reply.removed || [];
+    teacher.hidden = reply.hidden || [];
     renderClassesTab(el);
     el.querySelector("#newClass").focus();
   });
@@ -2808,6 +2821,7 @@ function renderClassesTab(el, message) {
             if (!reply.ok) { renderClassesTab(el, teacherErrorText(reply)); return; }
             teacher.classes = reply.classes;
             teacher.removed = reply.removed || [];
+            teacher.hidden = reply.hidden || [];
             renderClassesTab(el);
           }
         },

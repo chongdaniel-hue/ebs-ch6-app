@@ -77,11 +77,12 @@ function doPost(e) {
     switch (body.action) {
       case "save": return saveStudent(body.record);
       case "resetProgress": return resetOnly(body.code, function () { return clearStudent(body["class"], body.reg); });
-      case "profileClasses": return profileOnly(body.code, body.purpose, function () { return {ok:true,classes:getClassNames()}; });
+      case "profileClasses": return profileOnly(body.code, body.purpose, function () { return {ok:true,classes:classLists().classes}; });
       case "profileList": return profileOnly(body.code, body.purpose, function () { return registeredProfiles(body["class"]); });
       case "unlockStudent": return teacherOnly(body.code, function () { return unlockStudent(body["class"], body.reg, body.levels); });
       case "teacherCheck": return teacherOnly(body.code, function () { return classLists(); });
       case "addClass": return teacherOnly(body.code, function () { return addClass(body.name); });
+      case "setClassVisibility": return teacherOnly(body.code, function () { return setClassVisibility(body.name, body.visible); });
       case "removeClass": return teacherOnly(body.code, function () { return removeClass(body.name); });
       case "results": return teacherOnly(body.code, function () { return classResults(body["class"]); });
       case "clearStudent": return teacherOnly(body.code, function () { return clearStudent(body["class"], body.reg); });
@@ -178,7 +179,8 @@ function getClassNames() {
   var cache = CacheService.getScriptCache();
   var hit = cache.get("classes");
   if (hit) return JSON.parse(hit);
-  var names = readClasses().map(function (c) { return c.name; });
+  var hidden = hiddenClasses();
+  var names = readClasses().filter(function(c){return hidden.indexOf(c.name) === -1;}).map(function (c) { return c.name; });
   cache.put("classes", JSON.stringify(names), CLASSES_CACHE_SECONDS);
   return names;
 }
@@ -192,7 +194,26 @@ function classLists() {
     if (c && names.indexOf(c) === -1 && removed.indexOf(c) === -1) removed.push(c);
   });
   removed.sort();
-  return { ok: true, classes: names, removed: removed };
+  return { ok: true, classes: names, hidden: hiddenClasses().filter(function(c){return names.indexOf(c) !== -1;}), removed: removed };
+}
+
+// Visibility affects the student dropdown only, never saved records or teacher access.
+function hiddenClasses() {
+  var raw=PropertiesService.getScriptProperties().getProperty("HIDDEN_CLASSES");
+  try { var list=JSON.parse(raw || "[]"); return Array.isArray(list) ? list : []; }
+  catch(e) { return []; }
+}
+function setClassVisibility(rawName, visible) {
+  var name=String(rawName == null ? "" : rawName);
+  if (typeof visible !== "boolean") return {ok:false,error:"bad_request"};
+  return withLock(function(){
+    if (!readClasses().some(function(c){return c.name === name;})) return {ok:false,error:"no_class"};
+    var hidden=hiddenClasses().filter(function(c){return c !== name;});
+    if (!visible) hidden.push(name);
+    PropertiesService.getScriptProperties().setProperty("HIDDEN_CLASSES",JSON.stringify(hidden));
+    CacheService.getScriptCache().remove("classes");
+    return classLists();
+  });
 }
 
 function addClass(rawName) {
@@ -207,6 +228,7 @@ function addClass(rawName) {
     var sheet = ensureSheets().classes;
     var row = nextRow(sheet);
     sheet.getRange(row, 1, 1, CLASSES_HEADERS.length).setNumberFormat("@").setValues([[name, String(order), nowText()]]);
+    PropertiesService.getScriptProperties().setProperty("HIDDEN_CLASSES",JSON.stringify(hiddenClasses().filter(function(c){return c !== name;})));
     CacheService.getScriptCache().remove("classes");
     return classLists();
   });
@@ -230,7 +252,7 @@ function checkStudent(cls, reg) {
   var c = String(cls == null ? "" : cls);
   var n = Number(reg);
   if (!(Math.floor(n) === n && n >= MIN_REG && n <= MAX_REG && /^\d+$/.test(String(reg)))) return { error: "bad_reg" };
-  if (getClassNames().indexOf(c) === -1) return { error: "no_class" };
+  if (readClasses().map(function(x){return x.name;}).indexOf(c) === -1) return { error: "no_class" };
   return { cls: c, reg: n };
 }
 

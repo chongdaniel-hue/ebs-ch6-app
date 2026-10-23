@@ -179,3 +179,9 @@ This grants access only. It does not submit answers, mark levels complete, or aw
 Use the same Code.gs replacement and New version deployment steps above. This version adds protected profileClasses/profileList actions and keeps a registered name when resetting progress. Unlock uses TEACHER_CODE; selecting/resetting a profile uses RESET_CODE. Both retain their existing case-insensitive comparison. No new Script Property, Sheet column or deployment URL is required.
 
 Students enter their name at the top of registration. Existing profiles without a saved name can add it at the top of the home page with Save name. From version 0.6.17, saved names are locked: students cannot rename them on the home page or through a later login. Names stay tied to the same class/register-number record and appear alongside progress in reports and the Unlock/Reset selectors. Previously saved profiles without a name remain accessible and are explicitly labelled until the student adds one. A reset clears learning work but keeps the name and registered profile available.
+
+## Student class visibility (version 0.6.19)
+
+After updating Code.gs and deploying a new version of the existing deployment, open Teacher Mode, Classes. Tick Show to students beside each class to include it in student login choices; untick to hide it. Changes save immediately. Students should refresh their login page to load the latest choices. Hiding is not deletion: existing profiles, progress, reports and teacher Unlock/Reset selection remain available, and signed-in students can continue saving.
+
+The script creates and manages HIDDEN_CLASSES in Script Properties automatically. Existing and newly added classes are visible by default. No manual property setup or Sheet column changes are required. Keep the existing deployment URL and access settings.
