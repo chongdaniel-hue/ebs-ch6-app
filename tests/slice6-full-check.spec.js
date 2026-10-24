@@ -129,7 +129,7 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await check(page, testInfo, "landing-no-classes", problems);
   await apiPost(request, { action: "addClass", code: CODE(), name: "3E1" });
   await page.reload();
-  await page.waitForSelector("#classInput:not([disabled])");
+  await expect(page.locator("#classInput")).toHaveValue("3E1");
   await page.click("#startBtn");
   await check(page, testInfo, "landing-error", problems);
   await login(page, "3E1", 30);

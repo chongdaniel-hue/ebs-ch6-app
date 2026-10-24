@@ -1,0 +1,24 @@
+const {test,expect}=require('@playwright/test');
+const {resetServer,apiPost,apiGet,CODE,expectNoSidewaysScroll}=require('./helpers');
+test('teacher-selected class controls registration and independent register numbers',async({page,request,browser},testInfo)=>{
+ await resetServer(request,['3E1','4A']);
+ await page.goto('/#teacher');await page.locator('#teacherCode').fill(CODE());await page.locator('#teacherEnter').click();
+ await page.getByRole('radio',{name:'Show 4A to students',exact:true}).check();
+ await expect.poll(async()=>(await apiGet(request,{action:'classes'})).classes).toEqual(['4A']);
+ await expect(page.getByRole('radio',{name:'Show 3E1 to students',exact:true})).not.toBeChecked();
+ await expectNoSidewaysScroll(page);await page.screenshot({path:`tests/screenshots/active-class-teacher-${testInfo.project.name}.png`,fullPage:true});
+ const ctx=await browser.newContext({viewport:testInfo.project.use.viewport});const student=await ctx.newPage();await student.goto('http://localhost:8788/');
+ await expect(student.locator('.topbar-chip')).toHaveText('4A');await expect(student.locator('#classInput')).toHaveAttribute('readonly','');await expect(student.locator('#regInput option')).toHaveText(['Choose your register number…',...Array.from({length:40},(_,i)=>String(i+1))]);
+ await student.locator('#nameInput').fill('Demo Four');await student.locator('#regInput').selectOption('5');await student.locator('#startBtn').click();await student.locator('#briefing button').click();
+ await expect(student.locator('#studentNameInput')).toHaveAttribute('readonly','');await expect(student.locator('#studentRegisterInput')).toBeDisabled();
+ expect(await student.locator('#studentNameInput').evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(await student.locator('#studentRegisterInput').evaluate(e=>getComputedStyle(e).backgroundColor));
+ await student.locator('#studentNameForm').screenshot({path:`tests/screenshots/grey-profile-${testInfo.project.name}.png`});
+ await expect.poll(async()=>Boolean((await apiGet(request,{action:'load',class:'4A',reg:5})).record)).toBe(true);
+ await page.getByRole('radio',{name:'Show 3E1 to students',exact:true}).check();await expect.poll(async()=>(await apiGet(request,{action:'classes'})).classes).toEqual(['3E1']);
+ await student.goto('http://localhost:8788/#home');await expect(student.locator('.topbar-chip')).toContainText('4A');
+ const second=await browser.newContext({viewport:testInfo.project.use.viewport});const newcomer=await second.newPage();await newcomer.goto('http://localhost:8788/');await expect(newcomer.locator('.topbar-chip')).toHaveText('3E1');
+ await newcomer.locator('#nameInput').fill('Demo Three');await newcomer.locator('#regInput').selectOption('5');await newcomer.screenshot({path:`tests/screenshots/active-class-student-${testInfo.project.name}.png`,fullPage:true});await newcomer.locator('#startBtn').click();await newcomer.locator('#briefing button').click();
+ await expect.poll(async()=>Boolean((await apiGet(request,{action:'load',class:'3E1',reg:5})).record)).toBe(true);
+ expect((await apiGet(request,{action:'load',class:'4A',reg:5})).record.profile.name.v).toBe('Demo Four');expect((await apiGet(request,{action:'load',class:'3E1',reg:5})).record.profile.name.v).toBe('Demo Three');
+ await ctx.close();await second.close();
+});

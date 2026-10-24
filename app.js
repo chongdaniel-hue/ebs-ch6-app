@@ -61,7 +61,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.21";
+const APP_VERSION = "0.6.25";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -555,8 +555,8 @@ function topBarHtml(opts) {
         <div class="topbar-titles">
           <p class="topbar-label">EBS Chapter 6</p>
           <${titleTag} class="topbar-title">Customer Service</${titleTag}>
-          ${o.showSubtitle ? `<p class="topbar-sub">A self-study revision module</p>` : ""}
-          ${o.showChip && student ? `<p class="topbar-chip"><span data-student-text>${escapeHtml(profileName(rec))}</span>${profileName(rec) ? " · " : ""}Class ${escapeHtml(student.cls)} · Register No. ${student.reg}</p>` : ""}
+          ${o.showSubtitle ? `<p class="topbar-sub">A self-study revision module</p>${Array.isArray(classList) && classList.length ? `<p class="topbar-chip">${escapeHtml(classList[0])}</p>` : ""}` : ""}
+          ${o.showChip && student ? `<p class="topbar-chip"><span data-student-text>${escapeHtml(profileName(rec))}</span>${profileName(rec) ? " · " : ""}${escapeHtml(student.cls)} · Register No. ${student.reg}</p>` : ""}
         </div>
         ${o.showHome ? `<a href="#home" class="topbar-home" id="homeBtn">🏠 Home</a>` : ""}
       </div>
@@ -902,7 +902,6 @@ function renderLanding() {
   const note = !loaded && classListFailed
     ? "Connect to the internet to load your class list, then refresh this page."
     : empty ? "No classes are available to select yet. Ask your teacher." : "";
-  const picked = (document.getElementById("classInput") || {}).value || "";
   const typed = (document.getElementById("regInput") || {}).value || "";
   const typedName = (document.getElementById("nameInput") || {}).value || "";
   setGraphicHtml(app, `
@@ -912,14 +911,8 @@ function renderLanding() {
       <div class="block">
         <div class="card login-card">
           <h2 class="card-title">Step 1: Log in</h2>
-          <div class="field">
-            <label for="classInput" class="field-label">Choose your class.</label>
-            <select id="classInput" class="select-input" ${loaded && !empty ? "" : "disabled"}>
-              <option value="" disabled ${picked ? "" : "selected"}>Choose your class…</option>
-              ${(loaded ? classList : []).map(c => `<option value="${escapeHtml(c)}" ${c === picked ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
-            </select>
-            ${note ? `<p class="field-note" id="classNote">${escapeHtml(note)}</p>` : ""}
-          </div>
+          <div class="field"><label for="classInput" class="field-label">Your class</label><input id="classInput" class="text-input" readonly value="${escapeHtml(loaded && !empty ? classList[0] : "")}"></div>
+          ${note ? `<p class="field-note" id="classNote">${escapeHtml(note)}</p>` : ""}
           <div class="field"><label for="nameInput" class="field-label">Your name</label><input type="text" id="nameInput" class="text-input" maxlength="80" autocomplete="name" value="${escapeHtml(typedName)}"><p class="field-note">Use the same name, class and register number each time to find your progress.</p></div>
           <div class="field">
             <label for="regInput" class="field-label">Choose your register number.</label>
@@ -961,7 +954,16 @@ async function startLogin() {
   const btn = document.getElementById("startBtn");
   const showError = (msg) => { errEl.textContent = msg; errEl.hidden = false; };
   errEl.hidden = true;
-  if (!cls) { showError("Please choose your class."); return; }
+  if (!cls) { showError("No registration class is available. Ask your teacher to select a class."); return; }
+  btn.disabled = true;
+  const available = await fetchClasses();
+  btn.disabled = false;
+  if (available && available[0] !== cls) {
+    classList = available; renderLanding();
+    const error = document.getElementById("loginError");
+    error.textContent = "Your teacher changed the registration class. Check the class at the top, then save again.";
+    error.hidden = false; return;
+  }
   if (!regText) { showError("Please choose your register number."); return; }
   const reg = Number(regText);
   if (!/^\d+$/.test(regText) || reg < 1 || reg > 40) { showError("Choose a register number from 1 to 40."); return; }
@@ -1003,7 +1005,7 @@ async function startLogin() {
   const savedName = profileName(record);
   if (savedName && savedName.toLocaleLowerCase() !== name.toLocaleLowerCase()) {
     btn.disabled=false;btn.textContent="Start";
-    showError("This profile already has a saved name. Enter that name to continue; it cannot be changed.");
+    showError("This register number has already been registered to a student profile. Enter the saved name to open that profile; the name and register number cannot be changed.");
     document.getElementById("nameInput").focus();return;
   }
   record.cls = cls;
@@ -1093,7 +1095,7 @@ function renderHome() {
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
       <div class="block landing-banner">${imgHtml("WELCOME", "welcome-activity-banner")}</div>
-      <form class="card block" id="studentNameForm"><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" ${profileName(rec) ? "readonly" : "required"}>${profileName(rec) ? "" : `<div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div>`}<p id="studentNameStatus" role="status">${profileName(rec) ? "Name saved. It cannot be edited." : "Check your name before saving. Once saved, it cannot be edited."}</p></form>
+      <form class="card block" id="studentNameForm"><div class="field home-class-field"><label class="field-label" for="studentClassInput">Your class</label><input class="text-input" id="studentClassInput" readonly value="${escapeHtml(student.cls)}"></div><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" ${profileName(rec) ? "readonly" : "required"}><div class="field home-register-field"><label class="field-label" for="studentRegisterInput">Register number</label><select class="select-input" id="studentRegisterInput" disabled aria-describedby="studentRegisterNote">${student.reg > 40 ? `<option value="${student.reg}" selected>${student.reg}</option>` : ""}${Array.from({length:40},(_,i)=>i+1).map(n=>`<option value="${n}" ${n === Number(student.reg) ? "selected" : ""}>${n}</option>`).join("")}</select><p class="field-note" id="studentRegisterNote">Your register number is tied to this profile and cannot be edited.</p></div>${profileName(rec) ? "" : `<div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div>`}<p id="studentNameStatus" role="status">${profileName(rec) ? "Profile saved. Name and register number cannot be edited." : "Check your name before saving. Once saved, it cannot be edited."}</p></form>
       <div class="block">
         ${done === LEVELS.length ? "" : `<div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p></div>`}
         <p class="home-links">
@@ -1128,10 +1130,10 @@ function renderHome() {
     e.preventDefault();const name=document.getElementById("studentNameInput").value.trim().replace(/\s+/g," ");
     if(!name || profileName(rec))return;
     rec.profile=rec.profile || {};rec.profile.name={v:name,t:nowIso()};queueSave("now");
-    document.getElementById("studentNameStatus").textContent="Name saved. It cannot be edited. It will sync when connected.";
+    document.getElementById("studentNameStatus").textContent="Profile saved. Name and register number cannot be edited. It will sync when connected.";
     document.getElementById("studentNameInput").readOnly=true;
     document.querySelector("#studentNameForm .btn-row").remove();
-    const chip=document.querySelector(".topbar-chip");if(chip)setGraphicHtml(chip,`<span data-student-text>${escapeHtml(name)}</span> · Class ${escapeHtml(student.cls)} · Register No. ${student.reg}`);
+    const chip=document.querySelector(".topbar-chip");if(chip)setGraphicHtml(chip,`<span data-student-text>${escapeHtml(name)}</span> · ${escapeHtml(student.cls)} · Register No. ${student.reg}`);
   });
   document.getElementById("howLink").addEventListener("click", (e) => { e.preventDefault(); showBriefing(); });
   document.getElementById("switchLink").addEventListener("click", (e) => { e.preventDefault(); confirmSwitchStudent(); });
@@ -2759,10 +2761,10 @@ function renderClassesTab(el, message) {
   const list = teacher.classes;
   setGraphicHtml(el, `
     <h2 class="section-title">Your classes</h2>
-    <p>Tick the classes students can choose when logging in. Untick a class to hide it. Saved student profiles and progress stay intact.</p>
+    <p>Select the class students will register under. Only one class is shown to students at a time. Each class has register numbers 1 to 40. Saved profiles stay in their original class.</p>
     ${list.length ? `<ul class="class-list">${list.map((c, i) => `
       <li class="class-row"><span class="class-name">${escapeHtml(c)}</span>
-        <label class="class-visibility"><input type="checkbox" data-class-visible="${i}" aria-label="Show ${escapeHtml(c)} to students" ${(teacher.hidden || []).includes(c) ? "" : "checked"}>Show to students</label>
+        <label class="class-visibility"><input type="radio" name="registrationClass" data-class-visible="${i}" aria-label="Show ${escapeHtml(c)} to students" ${teacher.classes.filter(name=>!(teacher.hidden || []).includes(name))[0] === c ? "checked" : ""}>Show to students</label>
         <button type="button" class="btn secondary small" data-remove="${i}">Remove</button></li>`).join("")}</ul>`
       : `<p class="muted">No classes yet.</p>`}
     <div class="card add-class">
@@ -2772,7 +2774,7 @@ function renderClassesTab(el, message) {
         <button class="btn" id="addClassBtn" type="button">Add</button>
       </div>
       <p id="classError" class="form-error" role="alert" ${message ? "" : "hidden"}>${escapeHtml(message || "")}</p>
-      <p class="field-note">Only classes marked Show to students appear in the student class dropdown, in this order. Newly added classes are visible.</p>
+      <p class="field-note">The selected class appears at the top left of the student sign-in page. New students register in that class. Select another class to change registration.</p>
     </div>
   `);
   el.querySelectorAll("[data-class-visible]").forEach(box=>box.addEventListener("change",async()=>{
@@ -2781,7 +2783,7 @@ function renderClassesTab(el, message) {
     const reply=await teacherCall({action:"setClassVisibility",name,visible});
     if(!reply.ok){renderClassesTab(el,reply.error === "unknown_action" ? "Class visibility is not set up on the server yet. Ask your teacher to update Apps Script." : teacherErrorText(reply));return;}
     teacher.classes=reply.classes;teacher.hidden=reply.hidden || [];teacher.removed=reply.removed || [];
-    classList=teacher.classes.filter(c=>!teacher.hidden.includes(c));lsSet(KEYS.classes,classList);
+    classList=teacher.classes.filter(c=>!teacher.hidden.includes(c)).slice(0,1);lsSet(KEYS.classes,classList);
     renderClassesTab(el);
     const replacement=el.querySelector(`[data-class-visible="${index}"]`);if(replacement)replacement.focus();
   }));

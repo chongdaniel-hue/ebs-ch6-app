@@ -180,7 +180,7 @@ function getClassNames() {
   var hit = cache.get("classes");
   if (hit) return JSON.parse(hit);
   var hidden = hiddenClasses();
-  var names = readClasses().filter(function(c){return hidden.indexOf(c.name) === -1;}).map(function (c) { return c.name; });
+  var names = readClasses().filter(function(c){return hidden.indexOf(c.name) === -1;}).map(function (c) { return c.name; }).slice(0,1);
   cache.put("classes", JSON.stringify(names), CLASSES_CACHE_SECONDS);
   return names;
 }
@@ -208,7 +208,7 @@ function setClassVisibility(rawName, visible) {
   if (typeof visible !== "boolean") return {ok:false,error:"bad_request"};
   return withLock(function(){
     if (!readClasses().some(function(c){return c.name === name;})) return {ok:false,error:"no_class"};
-    var hidden=hiddenClasses().filter(function(c){return c !== name;});
+    var hidden=visible ? readClasses().map(function(c){return c.name;}).filter(function(c){return c !== name;}) : hiddenClasses().filter(function(c){return c !== name;});
     if (!visible) hidden.push(name);
     PropertiesService.getScriptProperties().setProperty("HIDDEN_CLASSES",JSON.stringify(hidden));
     CacheService.getScriptCache().remove("classes");

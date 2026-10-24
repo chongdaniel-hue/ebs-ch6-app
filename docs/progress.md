@@ -344,3 +344,18 @@ Validation: all 116 Playwright checks passed at 1280px and 360px (2 skipped by d
 
 ### Release verification — 24 October 2026
 Merged Dan’s image compression, badge transparency, Read aloud and report refinements with the reviewed welcome artwork, lesson wording, home layout and register-number dropdown changes. Full Playwright suite: 116 passed, 2 intentional skips across laptop and phone. Updated old wording expectations and test register numbers to the approved 1–40 range. Class selector remains until the user specifies the fixed class name.
+
+### Home profile register number (24 October 2026, version 0.6.22 preview)
+- Added a 1–40 register-number dropdown directly below the home name field, showing the active profile number. It uses the same class/register identity as Reset progress and Unlock. Both saved name and register number are locked. Legacy numbers above 40 remain visible for their existing profiles.
+- An occupied class/register number rejects a different name with “This register number has already been registered to a student profile.” Returning students may use their saved name. No records or answers are moved, and no backend changes are required.
+- Validation: 59 related checks passed (one intentional skip); after the locking refinement, all eight profile checks passed at laptop and phone widths. Student-screen accessibility and layout audits passed at both widths. Reviewed both final form screenshots: labels aligned, clear spacing, readable text, 44px controls and no sideways overflow. Local preview opened for review; not published.
+
+### Teacher-selected registration class (24 October 2026, version 0.6.23 preview)
+- User requested grey locked name fields and one teacher-selected registration class. Teacher class controls now select one class at a time; the student sign-in header displays it, without a student class selector. Register options 1–40 belong to each class separately. Registration rechecks the current class before proceeding; existing saved profiles retain their class and progress. The backend class visibility action now selects one class atomically. Dan must redeploy Code.gs before live use.
+
+### Class field and Stylez chatbot (24 October 2026, version 0.6.24 preview)
+- Added a grey, readonly “Your class” field above the name at registration and on the saved profile. New registrations show the teacher-selected class; saved profiles retain their original class. Updated the Stylez/Suzzie chatbot URL to the user-supplied Gemini sharing link.
+- Final verification: complete suite passed 120 checks at 1280px and 360px, with two intentional skips. Includes independent registration under two classes at the same register number, locked-field styling, occupied-register rejection, correct chatbot href, all student and teacher accessibility/contrast/layout checks, profile lists, reset and unlock. Reviewed final registration and profile screenshots at both widths: clear spacing, grey readonly fields, no clipped controls or sideways overflow. Local preview opened; not published.
+
+### Header class label (24 October 2026, version 0.6.25 preview)
+- Removed the added “Class” prefix from the student header chips; show the saved class name exactly as entered.

@@ -4,7 +4,7 @@ const T='2026-10-20T02:00:00.000Z';
 const profileRecord=(reg,name)=>({v:1,cls:'3E1',reg,updatedAt:T,baseClearedAt:'',agreed:T,done:{1:T},submitted:{},reached:{},first:{},second:{},answers:{'s1.q1':{v:'Saved work',t:T}},ui:{},profile:{name:{v:name,t:T}}});
 test('student names register once, lock, sync and identify reports without replacing progress',async({page,request,browser},testInfo)=>{
  await resetServer(request,['3E1']);await page.goto('/');
- await expect(page.locator('#nameInput')).toHaveValue('');await page.locator('#classInput').selectOption('3E1');await page.locator('#regInput').selectOption('5');await page.locator('#startBtn').click();await expect(page.locator('#loginError')).toContainText('name at the top');
+ await expect(page.locator('#nameInput')).toHaveValue('');await expect(page.locator('#classInput')).toHaveValue('3E1');await page.locator('#regInput').selectOption('5');await page.locator('#startBtn').click();await expect(page.locator('#loginError')).toContainText('name at the top');
  await page.locator('#nameInput').fill('  Demo Student Five  ');await page.locator('#startBtn').click();await page.locator('#briefing button').click();
  await expect(page.locator('#studentNameInput')).toHaveValue('Demo Student Five');
  await expect.poll(async()=>{const r=await apiGet(request,{action:'load',class:'3E1',reg:5});return r.record?.profile?.name?.v;}).toBe('Demo Student Five');
@@ -13,7 +13,7 @@ test('student names register once, lock, sync and identify reports without repla
  const loaded=await apiGet(request,{action:'load',class:'3E1',reg:5});
  const attempt=JSON.parse(JSON.stringify(loaded.record));attempt.profile.name={v:'Replacement Name',t:new Date().toISOString()};
  const rejectedRename=await apiPost(request,{action:'save',record:attempt});expect(rejectedRename.record.profile.name.v).toBe('Demo Student Five');
- const ctx=await browser.newContext();const other=await ctx.newPage();await other.goto('http://localhost:8788/');await other.locator('#nameInput').fill('Different Name');await other.locator('#classInput').selectOption('3E1');await other.locator('#regInput').selectOption('5');await other.locator('#startBtn').click();await expect(other.locator('#loginError')).toContainText('cannot be changed');await other.locator('#nameInput').fill('Demo Student Five');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();expect(await other.evaluate(()=>getAnswer('s1.q1'))).toBe('My existing answer');await ctx.close();
+ const ctx=await browser.newContext();const other=await ctx.newPage();await other.goto('http://localhost:8788/');await other.locator('#nameInput').fill('Different Name');await expect(other.locator('#classInput')).toHaveValue('3E1');await other.locator('#regInput').selectOption('5');await other.locator('#startBtn').click();await expect(other.locator('#loginError')).toContainText('already been registered');await other.locator('#nameInput').fill('Demo Student Five');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();expect(await other.evaluate(()=>getAnswer('s1.q1'))).toBe('My existing answer');await ctx.close();
  await page.goto('/#report');await expect(page.locator('.level-sub')).toContainText('Demo Student Five');await expectNoSidewaysScroll(page);
  await page.screenshot({path:`tests/screenshots/named-report-${testInfo.project.name}.png`});
 });
@@ -35,4 +35,17 @@ test('a legacy profile can save its name once and stays locked after reload and 
  await expect.poll(async()=>{const r=await apiGet(request,{action:'load',class:'3E1',reg:9});return r.record?.profile?.name?.v;}).toBe('Demo Legacy Student');
  await page.reload();await expect.poll(()=>page.locator('#studentNameInput').getAttribute('readonly')).toBe('');await expect(page.locator('#studentNameInput')).toHaveValue('Demo Legacy Student');
  const clear=await apiPost(request,{action:'clearStudent',code:CODE(),class:'3E1',reg:9});const attempt={...clear.record,profile:{name:{v:'New Name',t:new Date().toISOString()}}};expect((await apiPost(request,{action:'save',record:attempt})).record.profile.name.v).toBe('Demo Legacy Student');
+});
+
+test('saved home identity is locked and occupied register numbers reject another name',async({page,request},testInfo)=>{
+ await resetServer(request,['3E1']);await apiPost(request,{action:'save',record:profileRecord(5,'Demo Five')});
+ await page.goto('/');await expect(page.locator('#classInput')).toHaveValue('3E1');await page.locator('#nameInput').fill('Another Student');await page.locator('#regInput').selectOption('5');await page.locator('#startBtn').click();
+ await expect(page.locator('#loginError')).toContainText('This register number has already been registered to a student profile.');
+ await page.locator('#nameInput').fill('Demo Five');await page.locator('#startBtn').click();
+ const select=page.locator('#studentRegisterInput');await expect(select).toHaveValue('5');await expect(select).toBeDisabled();await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');
+ await expect(select.locator('option')).toHaveText(Array.from({length:40},(_,i)=>String(i+1)));
+ for(const purpose of ['reset','unlock']){const r=await apiPost(request,{action:'profileList',purpose,code:purpose==='reset'?process.env.TEST_RESET_CODE:CODE(),class:'3E1'});expect(r.students.find(s=>s.name==='Demo Five').reg).toBe(Number(await select.inputValue()));}
+ await page.reload();await expect(select).toBeDisabled();await expect(select).toHaveValue('5');await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');await expectNoSidewaysScroll(page);
+ await page.locator('#studentNameForm').screenshot({path:`tests/screenshots/home-register-${testInfo.project.name}.png`});
+ const r=await apiGet(request,{action:'load',class:'3E1',reg:5});expect(r.record.profile.name.v).toBe('Demo Five');expect(r.record.answers['s1.q1'].v).toBe('Saved work');
 });

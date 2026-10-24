@@ -24,12 +24,12 @@ async function checkPage(page, testInfo, name) {
 }
 
 test.describe("landing and log-in", () => {
-  test("no classes yet: dropdown greyed with a message", async ({ page, request }, testInfo) => {
+  test("no registration class yet: message shown", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
     await resetServer(request, []);
     await page.goto("/");
     await expect(page.locator("#classNote")).toHaveText("No classes are available to select yet. Ask your teacher.");
-    await expect(page.locator("#classInput")).toBeDisabled();
+    await expect(page.locator("#classInput")).toHaveAttribute("readonly", "");
     await checkPage(page, testInfo, "slice2-landing-no-classes");
     expect(errors).toEqual([]);
   });
@@ -39,27 +39,25 @@ test.describe("landing and log-in", () => {
     await page.route("**/api?*", r => r.abort());
     await page.goto("/");
     await expect(page.locator("#classNote")).toHaveText("Connect to the internet to load your class list, then refresh this page.");
-    await expect(page.locator("#classInput")).toBeDisabled();
+    await expect(page.locator("#classInput")).toHaveAttribute("readonly", "");
   });
 
   test("log-in checks, nothing pre-selected", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
     await resetServer(request, ["3E1", "4A"]);
     await page.goto("/");
-    await expect(page.locator("#classInput option")).toHaveText(["Choose your class…", "3E1", "4A"]);
-    expect(await page.locator("#classInput").inputValue()).toBe("");
+    await expect(page.locator("#classInput")).toHaveValue("3E1");
+    expect(await page.locator("#classInput").inputValue()).toBe("3E1");
     expect(await page.locator("#regInput").inputValue()).toBe("");
     await expect(page.locator(".login-card h2")).toHaveText("Step 1: Log in");
-    await expect(page.locator("label[for=classInput]")).toHaveText("Choose your class.");
+    await expect(page.locator(".topbar-chip")).toHaveText("3E1");
     await expect(page.locator("label[for=regInput]")).toHaveText("Choose your register number.");
     await expect(page.locator("#regInput option")).toHaveText(["Choose your register number…",...Array.from({length:40},(_,i)=>String(i+1))]);
     await checkPage(page, testInfo, "slice2-landing");
 
     const err = page.locator("#loginError");
     await page.click("#startBtn");
-    await expect(err).toHaveText("Please choose your class.");
-    await page.selectOption("#classInput", "3E1");
-    await page.click("#startBtn");
+
     await expect(err).toHaveText("Please choose your register number.");
     await page.locator("#regInput").selectOption("40");
     expect(await page.locator("#regInput").inputValue()).toBe("40");
@@ -210,7 +208,7 @@ test.describe("saving and loading", () => {
     expect(keys).not.toContain("ch6_rec_3E1#8");
     expect(keys).not.toContain("ch6_active");
     // Logging in again loads the work from the server.
-    await page.selectOption("#classInput", "3E1");
+    await expect(page.locator("#classInput")).toHaveValue("3E1");
     await page.selectOption("#regInput", "8");
     await page.fill("#nameInput", "Test Student 8");
     await page.click("#startBtn");
@@ -228,7 +226,7 @@ test.describe("saving and loading", () => {
     expect(await page.evaluate(() => !!localStorage.getItem("ch6_rec_3E1#9"))).toBe(true); // unsent, so kept
 
     await page.route("**/api?*", r => r.abort());
-    await page.selectOption("#classInput", "3E1"); // the class list was cached on this device
+    await expect(page.locator("#classInput")).toHaveValue("3E1"); // the class list was cached on this device
     await page.selectOption("#regInput", "9");
     await page.fill("#nameInput", "Test Student 9");
     await page.click("#startBtn");
@@ -271,7 +269,7 @@ test.describe("saving and loading", () => {
     const cleared = await apiPost(request, { action: "clearStudent", code: CODE(), class: "3E1", reg: 11 });
     expect(cleared.ok).toBe(true);
     await page.goto("/");
-    await page.selectOption("#classInput", "3E1");
+    await expect(page.locator("#classInput")).toHaveValue("3E1");
     await page.selectOption("#regInput", "11");
     await page.fill("#nameInput", "Test Student 11");
     await page.click("#startBtn");
@@ -295,7 +293,7 @@ test.describe("Teacher Mode", () => {
     await page.press("#teacherCode", "Enter");
     await expect(page.locator(".tab.current")).toHaveText("Classes");
     await expect(page.locator(".section-title")).toHaveText("Your classes");
-    await expect(page.locator(".add-class .field-note")).toHaveText("Only classes marked Show to students appear in the student class dropdown, in this order. Newly added classes are visible.");
+    await expect(page.locator(".add-class .field-note")).toHaveText("The selected class appears at the top left of the student sign-in page. New students register in that class. Select another class to change registration.");
     await expect(page.locator("#newClass")).toHaveAttribute("placeholder", "e.g. 3E1");
 
     const err = page.locator("#classError");
@@ -327,7 +325,7 @@ test.describe("Teacher Mode", () => {
 
     // Students see the same list, in this order.
     await page.goto("/");
-    await expect(page.locator("#classInput option")).toHaveText(["Choose your class…", "3E1", "3E2"]);
+    await expect(page.locator("#classInput")).toHaveValue("3E1");
     expect(errors).toEqual([]);
   });
 

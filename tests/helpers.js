@@ -66,8 +66,9 @@ async function apiGet(request, params) {
 }
 
 async function login(page, cls, reg) {
+  await apiPost(page.request, {action:"setClassVisibility",code:CODE(),name:cls,visible:true});
   await page.goto("/");
-  await page.locator("#classInput").selectOption(cls);
+  await expect(page.locator("#classInput")).toHaveValue(cls);
   await page.locator("#regInput").selectOption(String(reg));
   await page.locator("#nameInput").fill("Test Student " + reg);
   await page.locator("#startBtn").click();

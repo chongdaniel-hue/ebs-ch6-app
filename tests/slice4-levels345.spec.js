@@ -214,7 +214,7 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await expect(page.locator(".start-box")).toHaveText("You start the conversation. Try: \"Hi, welcome to Stylez! How may I assist you?\"");
     await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.");
     await expect(page.locator(".gem-btn")).toHaveText("Open Suzzie (new tab)");
-    await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/gem/52ae797badcf?usp=sharing");
+    await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/share/d/1H4fljjGGGpMKFUnY-CsTxDrElTGAdMZy?usp=sharing");
     await expect(page.locator(".tick-row")).toHaveText("I have finished serving Suzzie.");
     await expect(page.locator("#nextBtn")).toHaveText("Next: Reflect →");
     await expect(page.locator("#nextBtn")).toBeDisabled();

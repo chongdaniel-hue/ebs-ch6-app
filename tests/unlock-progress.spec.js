@@ -43,7 +43,7 @@ test('footer unlock chooses a profile, selected/all levels, password errors, per
  await page.locator('#studentUnlocked button').click();
  // A new browser context loads the server grants, while other levels stay locked.
  const ctx=await browser.newContext({viewport:testInfo.project.use.viewport});const other=await ctx.newPage();
- await other.goto('http://localhost:8788/');await other.locator('#classInput').selectOption('3E1');await other.locator('#regInput').selectOption('6');await other.locator('#nameInput').fill('Test Student 6');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();
+ await other.goto('http://localhost:8788/');await expect(other.locator('#classInput')).toHaveValue('3E1');await other.locator('#regInput').selectOption('6');await other.locator('#nameInput').fill('Test Student 6');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();
  expect(await other.evaluate(()=>isUnlocked(3))).toBe(true);expect(await other.evaluate(()=>isUnlocked(4))).toBe(false);
  await other.goto('http://localhost:8788/#level3');await expect(other.locator('h1.page-title')).toContainText('Level 3');
  await expect(other.locator('.step-tab[aria-disabled=true]')).toHaveCount(0);expect(await other.evaluate(()=>Object.keys(rec.done))).toEqual([]);
