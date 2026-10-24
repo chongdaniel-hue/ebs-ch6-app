@@ -51,9 +51,8 @@ test.describe("landing and log-in", () => {
     expect(await page.locator("#regInput").inputValue()).toBe("");
     await expect(page.locator(".login-card h2")).toHaveText("Step 1: Log in");
     await expect(page.locator("label[for=classInput]")).toHaveText("Choose your class.");
-    await expect(page.locator("label[for=regInput]")).toHaveText("Key in your register number.");
-    await expect(page.locator("#regInput")).toHaveAttribute("placeholder", "e.g. 12");
-    await expect(page.locator("#regInput")).toHaveAttribute("inputmode", "numeric");
+    await expect(page.locator("label[for=regInput]")).toHaveText("Choose your register number.");
+    await expect(page.locator("#regInput option")).toHaveText(["Choose your register number…",...Array.from({length:40},(_,i)=>String(i+1))]);
     await checkPage(page, testInfo, "slice2-landing");
 
     const err = page.locator("#loginError");
@@ -61,15 +60,9 @@ test.describe("landing and log-in", () => {
     await expect(err).toHaveText("Please choose your class.");
     await page.selectOption("#classInput", "3E1");
     await page.click("#startBtn");
-    await expect(err).toHaveText("Please key in your register number.");
-    for (const bad of ["0", "51", "99"]) {
-      await page.fill("#regInput", bad);
-      await page.click("#startBtn");
-      await expect(err).toHaveText("Register numbers are whole numbers from 1 to 50.");
-    }
-    await page.locator("#regInput").fill("");
-    await page.locator("#regInput").pressSequentially("1.a5");
-    expect(await page.locator("#regInput").inputValue()).toBe("15"); // only digits can be typed
+    await expect(err).toHaveText("Please choose your register number.");
+    await page.locator("#regInput").selectOption("40");
+    expect(await page.locator("#regInput").inputValue()).toBe("40");
     expect(errors).toEqual([]);
   });
 });
@@ -218,7 +211,7 @@ test.describe("saving and loading", () => {
     expect(keys).not.toContain("ch6_active");
     // Logging in again loads the work from the server.
     await page.selectOption("#classInput", "3E1");
-    await page.fill("#regInput", "8");
+    await page.selectOption("#regInput", "8");
     await page.fill("#nameInput", "Test Student 8");
     await page.click("#startBtn");
     await expect(page.locator(".welcome-card")).toBeVisible();
@@ -236,7 +229,7 @@ test.describe("saving and loading", () => {
 
     await page.route("**/api?*", r => r.abort());
     await page.selectOption("#classInput", "3E1"); // the class list was cached on this device
-    await page.fill("#regInput", "9");
+    await page.selectOption("#regInput", "9");
     await page.fill("#nameInput", "Test Student 9");
     await page.click("#startBtn");
     await expect(page.locator(".welcome-card")).toBeVisible();
@@ -279,7 +272,7 @@ test.describe("saving and loading", () => {
     expect(cleared.ok).toBe(true);
     await page.goto("/");
     await page.selectOption("#classInput", "3E1");
-    await page.fill("#regInput", "11");
+    await page.selectOption("#regInput", "11");
     await page.fill("#nameInput", "Test Student 11");
     await page.click("#startBtn");
     await expect(page.locator("#briefing button")).toHaveText("I'm ready"); // starts again

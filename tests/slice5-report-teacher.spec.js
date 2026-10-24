@@ -235,7 +235,7 @@ test.describe("T.4 This device", () => {
     await expect(page.locator(".login-card")).toBeVisible();
     // Logging in again brings the work back from the server.
     await page.selectOption("#classInput", "3E1");
-    await page.fill("#regInput", "8");
+    await page.selectOption("#regInput", "8");
     await page.fill("#nameInput", "Test Student 8");
     await page.click("#startBtn");
     await expect(page.locator(".welcome-card")).toBeVisible();

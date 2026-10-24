@@ -4,7 +4,7 @@ const T='2026-10-20T02:00:00.000Z';
 const profileRecord=(reg,name)=>({v:1,cls:'3E1',reg,updatedAt:T,baseClearedAt:'',agreed:T,done:{1:T},submitted:{},reached:{},first:{},second:{},answers:{'s1.q1':{v:'Saved work',t:T}},ui:{},profile:{name:{v:name,t:T}}});
 test('student names register once, lock, sync and identify reports without replacing progress',async({page,request,browser},testInfo)=>{
  await resetServer(request,['3E1']);await page.goto('/');
- await expect(page.locator('#nameInput')).toHaveValue('');await page.locator('#classInput').selectOption('3E1');await page.locator('#regInput').fill('5');await page.locator('#startBtn').click();await expect(page.locator('#loginError')).toContainText('name at the top');
+ await expect(page.locator('#nameInput')).toHaveValue('');await page.locator('#classInput').selectOption('3E1');await page.locator('#regInput').selectOption('5');await page.locator('#startBtn').click();await expect(page.locator('#loginError')).toContainText('name at the top');
  await page.locator('#nameInput').fill('  Demo Student Five  ');await page.locator('#startBtn').click();await page.locator('#briefing button').click();
  await expect(page.locator('#studentNameInput')).toHaveValue('Demo Student Five');
  await expect.poll(async()=>{const r=await apiGet(request,{action:'load',class:'3E1',reg:5});return r.record?.profile?.name?.v;}).toBe('Demo Student Five');
@@ -13,7 +13,7 @@ test('student names register once, lock, sync and identify reports without repla
  const loaded=await apiGet(request,{action:'load',class:'3E1',reg:5});
  const attempt=JSON.parse(JSON.stringify(loaded.record));attempt.profile.name={v:'Replacement Name',t:new Date().toISOString()};
  const rejectedRename=await apiPost(request,{action:'save',record:attempt});expect(rejectedRename.record.profile.name.v).toBe('Demo Student Five');
- const ctx=await browser.newContext();const other=await ctx.newPage();await other.goto('http://localhost:8788/');await other.locator('#nameInput').fill('Different Name');await other.locator('#classInput').selectOption('3E1');await other.locator('#regInput').fill('5');await other.locator('#startBtn').click();await expect(other.locator('#loginError')).toContainText('cannot be changed');await other.locator('#nameInput').fill('Demo Student Five');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();expect(await other.evaluate(()=>getAnswer('s1.q1'))).toBe('My existing answer');await ctx.close();
+ const ctx=await browser.newContext();const other=await ctx.newPage();await other.goto('http://localhost:8788/');await other.locator('#nameInput').fill('Different Name');await other.locator('#classInput').selectOption('3E1');await other.locator('#regInput').selectOption('5');await other.locator('#startBtn').click();await expect(other.locator('#loginError')).toContainText('cannot be changed');await other.locator('#nameInput').fill('Demo Student Five');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();expect(await other.evaluate(()=>getAnswer('s1.q1'))).toBe('My existing answer');await ctx.close();
  await page.goto('/#report');await expect(page.locator('.level-sub')).toContainText('Demo Student Five');await expectNoSidewaysScroll(page);
  await page.screenshot({path:`tests/screenshots/named-report-${testInfo.project.name}.png`});
 });

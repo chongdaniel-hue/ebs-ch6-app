@@ -58,7 +58,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.20";
+const APP_VERSION = "0.6.21";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -919,8 +919,8 @@ function renderLanding() {
           </div>
           <div class="field"><label for="nameInput" class="field-label">Your name</label><input type="text" id="nameInput" class="text-input" maxlength="80" autocomplete="name" value="${escapeHtml(typedName)}"><p class="field-note">Use the same name, class and register number each time to find your progress.</p></div>
           <div class="field">
-            <label for="regInput" class="field-label">Key in your register number.</label>
-            <input type="text" id="regInput" class="text-input reg-input" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" placeholder="e.g. 12" value="${escapeHtml(typed)}">
+            <label for="regInput" class="field-label">Choose your register number.</label>
+            <select id="regInput" class="select-input reg-input"><option value="" ${typed ? "" : "selected"}>Choose your register number…</option>${Array.from({length:40},(_,i)=>i+1).map(n=>`<option value="${n}" ${String(n)===typed ? "selected" : ""}>${n}</option>`).join("")}</select>
           </div>
           <p id="loginError" class="form-error" role="alert" hidden></p>
           <div class="btn-row"><button class="btn" id="startBtn" type="button">Start</button></div>
@@ -933,9 +933,6 @@ function renderLanding() {
     </main>
     ${footerHtml()}
   `);
-  const reg = document.getElementById("regInput");
-  reg.addEventListener("input", () => { const clean = reg.value.replace(/\D/g, ""); if (clean !== reg.value) reg.value = clean; });
-  reg.addEventListener("keydown", (e) => { if (e.key === "Enter") document.getElementById("startBtn").click(); });
   document.getElementById("startBtn").addEventListener("click", startLogin);
 }
 
@@ -962,9 +959,9 @@ async function startLogin() {
   const showError = (msg) => { errEl.textContent = msg; errEl.hidden = false; };
   errEl.hidden = true;
   if (!cls) { showError("Please choose your class."); return; }
-  if (!regText) { showError("Please key in your register number."); return; }
+  if (!regText) { showError("Please choose your register number."); return; }
   const reg = Number(regText);
-  if (!/^\d+$/.test(regText) || reg < 1 || reg > 50) { showError("Register numbers are whole numbers from 1 to 50."); return; }
+  if (!/^\d+$/.test(regText) || reg < 1 || reg > 40) { showError("Choose a register number from 1 to 40."); return; }
 
   if (!name) { showError("Please key in your name at the top of the page."); document.getElementById("nameInput").focus(); return; }
   btn.disabled = true;
