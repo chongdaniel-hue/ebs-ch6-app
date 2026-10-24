@@ -480,10 +480,10 @@ This storyboard is the single source of truth for the app. It moves the content 
 <p><strong>When to approach:</strong> as soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by making eye contact, smiling and greeting them politely.</p>
 </blockquote>
 <ul>
-<li><p><strong>1. Greeting Approach:</strong> Greet the customer in a friendly way as they enter, e.g. "Good morning!" For a regular customer, use their name: "Good morning, Mr Tan!"</p></li>
-<li><p><strong>2. Service Approach:</strong> Ask a polite question to show you're ready to help, e.g. "How may I assist you?" If a customer comes up to you to ask for something or to pay, serve them as quickly as possible.</p></li>
+<li><p><strong>1. Greeting Approach</strong> Greet the customer in a friendly way as they enter, e.g. "Good morning!" For a regular customer, use their name: "Good morning, Mr Tan!"</p></li>
+<li><p><strong>2. Service Approach</strong> Ask a polite question to show you're ready to help, e.g. "How may I assist you?" If a customer comes up to you to ask for something or to pay, serve them as quickly as possible.</p></li>
 <li><p>You can also combine the greeting and service approaches: "Good morning! How may I assist you?"</p></li>
-<li><p><strong>3. Product Approach:</strong> When a customer is looking closely at a product, ask a question about it to help them go from just being interested to actually buying it, e.g. "This phone has a great camera. Would you like to try it out?"</p></li>
+<li><p><strong>3. Product Approach</strong> When a customer is looking closely at a product, ask a question about it to help them go from just being interested to actually buying it, e.g. "This phone has a great camera. Would you like to try it out?"</p></li>
 </ul>
 <blockquote>
 <p>Whether salespeople use the greeting, service or product approach, the purpose is to:</p>

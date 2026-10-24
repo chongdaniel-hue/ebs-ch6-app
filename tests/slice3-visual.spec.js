@@ -1,4 +1,4 @@
-// Slice 3 visual and Mayer pass: equal cards, images in full, the 🔊 Listen button.
+// Slice 3 visual and Mayer pass: equal cards, images in full, the 🔊 Read aloud button.
 const { test, expect } = require("@playwright/test");
 const { watchErrors, resetServer, login } = require("./helpers");
 
@@ -113,27 +113,27 @@ test("blocks line up: same left and right edges on every page", async ({ page, r
   }
 });
 
-test("Listen reads a block of notes, not the questions, and stops on a second tap", async ({ page, request }) => {
+test("Read aloud reads a block of notes, not the questions, and stops on a second tap", async ({ page, request }) => {
   await page.addInitScript(FAKE_SPEECH);
   const errors = watchErrors(page);
   await student(page, request, 33);
 
   await page.goto("/#terms");
   const termsBtn = page.locator(".head-row .listen-btn");
-  await expect(termsBtn).toHaveText("Listen");
+  await expect(termsBtn).toHaveText("Read aloud");
   await termsBtn.click();
   await expect(termsBtn).toHaveText("Stop");
   await expect(termsBtn).toHaveAttribute("aria-pressed", "true");
   const spoken = (await page.evaluate(() => window.__spoken)).join(" ");
-  expect(spoken).toContain("Customer service: Customer service refers to what businesses do for their customers so that they are happy and satisfied.");
-  expect(spoken).not.toContain("Listen");
+  expect(spoken).toContain("Customer service: Refers to what businesses do for their customers so that they are happy and satisfied.");
+  expect(spoken).not.toContain("Read aloud"); // the button itself is never read out
   expect(await page.evaluate(() => window.__lastUtterance.rate)).toBe(0.9);
   expect(await page.evaluate(() => window.__lastUtterance.lang)).toBe("en-GB");
   await termsBtn.click();
-  await expect(termsBtn).toHaveText("Listen");
+  await expect(termsBtn).toHaveText("Read aloud");
   await expect(termsBtn).toHaveAttribute("aria-pressed", "false");
 
-  // Level 2: one Listen per block of notes; the optional question box is not read.
+  // Level 2: one Read aloud button per block of notes; the optional question box is not read.
   await page.goto("/#level2");
   await page.locator(".step-tab").nth(2).click();
   await expect(page.locator(".part .listen-btn")).toHaveCount(5);
@@ -157,13 +157,13 @@ test("Listen reads a block of notes, not the questions, and stops on a second ta
   expect(skills).toContain("Approachable Friendly and easy to talk to, so customers feel comfortable asking for help");
   await page.locator("#part2 .listen-btn").click();
 
-  // Level 1 is questions only: no Listen button.
+  // Level 1 is questions only: no Read aloud button.
   await page.goto("/#level1");
   await expect(page.locator(".listen-btn")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
-test("no Listen button where the browser has no speech", async ({ page, request }) => {
+test("no Read aloud button where the browser has no speech", async ({ page, request }) => {
   await page.addInitScript(() => { delete window.speechSynthesis; delete window.SpeechSynthesisUtterance; });
   await student(page, request, 34);
   await page.goto("/#terms");

@@ -51,6 +51,9 @@
         GitHub Pages workflow; Code.gs adds rows when the Sheet is full.
    0.6.1 Level 2 cards: capital first letters; skill and returns names on
         their own line above the description.
+   0.6.20 Images resized and compressed (assets/img 40.1 MB to 2.6 MB), unused
+        images removed; "Read aloud" button; report second-try wording;
+        approach titles without colons; Stylez promotions line shortened.
    0.6.7 More vibrant achievement badges and the confirmed Suzzie Gem link.
    0.6.5 Replaced remaining UI emojis with a shared SVG graphic icon set.
    0.6.4 Replaced remaining book symbols with contextual graphic icons.
@@ -1484,7 +1487,7 @@ let speakingBtn = null;
 // The button sits in its heading's row. targetId names the block it reads when that block
 // is not the button's own section (the 4 key terms page).
 function listenButtonHtml(targetId) {
-  return canSpeak ? `<button type="button" class="btn secondary listen-btn" aria-pressed="false" ${targetId ? `data-target="${targetId}"` : ""}>🔊 Listen</button>` : "";
+  return canSpeak ? `<button type="button" class="btn secondary listen-btn" aria-pressed="false" ${targetId ? `data-target="${targetId}"` : ""}>🔊 Read aloud</button>` : "";
 }
 
 function pickVoice() {
@@ -1496,7 +1499,7 @@ function pickVoice() {
 function stopSpeaking() {
   if (!canSpeak) return;
   window.speechSynthesis.cancel();
-  if (speakingBtn) { setGraphicHtml(speakingBtn, "🔊 Listen"); speakingBtn.setAttribute("aria-pressed", "false"); }
+  if (speakingBtn) { setGraphicHtml(speakingBtn, "🔊 Read aloud"); speakingBtn.setAttribute("aria-pressed", "false"); }
   speakingBtn = null;
 }
 
@@ -1746,7 +1749,7 @@ const L2_TABS = [
         <ul class="approach-cards">
           <li class="approach-card">
             <span class="ic-icon" aria-hidden="true">👋</span>
-            <h3 class="approach-name">1. Greeting Approach:</h3>
+            <h3 class="approach-name">1. Greeting Approach</h3>
             <p>Greet the customer in a friendly way as they enter, e.g.</p>
             ${sayHtml("\"Good morning!\"")}
             <p>For a regular customer, use their name:</p>
@@ -1754,7 +1757,7 @@ const L2_TABS = [
           </li>
           <li class="approach-card">
             <span class="ic-icon" aria-hidden="true">🙋</span>
-            <h3 class="approach-name">2. Service Approach:</h3>
+            <h3 class="approach-name">2. Service Approach</h3>
             <p>Ask a polite question to show you're ready to help, e.g.</p>
             ${sayHtml("\"How may I assist you?\"")}
             <p>If a customer comes up to you to ask for something or to pay, serve them as quickly as possible.</p>
@@ -1763,7 +1766,7 @@ const L2_TABS = [
           </li>
           <li class="approach-card">
             <span class="ic-icon" aria-hidden="true">📱</span>
-            <h3 class="approach-name">3. Product Approach:</h3>
+            <h3 class="approach-name">3. Product Approach</h3>
             <p>When a customer is looking closely at a product, ask a question about it to help them go from just being interested to actually buying it, e.g.</p>
             ${sayHtml("\"This phone has a great camera. Would you like to try it out?\"")}
           </li>
@@ -2212,7 +2215,7 @@ const STYLEZ_INFORMATION = [
       ],
       [
         "Promotion condition",
-        "For this practice tool, promotions cannot be combined."
+        "Promotions cannot be combined."
       ]
     ]
   },
@@ -2605,7 +2608,8 @@ function reportMarkedHtml(item, r) {
     : `Q4. A customer at a mobile phone shop says, "This is the third time I've called about the same faulty charger, and nobody has fixed it!" Which response best shows good service recovery? Tap one.`;
   return `<div class="report-marked-answer">${reportAnswerHtml(title, reportChoiceLabel(item, value))}
     <dl class="report-attempts"><dt>First try</dt><dd data-student-text>${escapeHtml(first ? `${reportChoiceLabel(item, first.a)} (${first.ok ? "right" : "wrong"})` : "Not attempted yet")}</dd>
-      <dt>Second try</dt><dd data-student-text>${escapeHtml(second ? `${reportChoiceLabel(item, second.a)} (${second.ok ? "right" : "wrong"})` : "Not attempted")}</dd></dl></div>`;
+      <dt>Second try</dt><dd data-student-text>${escapeHtml(second ? `${reportChoiceLabel(item, second.a)} (${second.ok ? "right" : "wrong"})`
+        : first && first.ok ? "Not needed: right on the first try" : "Not attempted yet")}</dd></dl></div>`;
 }
 
 function learningAnswersHtml(r) {

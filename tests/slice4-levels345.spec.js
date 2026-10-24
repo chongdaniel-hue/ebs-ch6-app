@@ -33,7 +33,7 @@ const STAGE = { approach: "0", present: "1", close: "2", recover: "3" };
 test.describe("Level 3: Chat with Alex", () => {
   test("chat tab, tick box unlocks Next, Q1 and Q2 with hint, retry and reveal", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
-    await studentAt(page, request, 41, 3);
+    await studentAt(page, request, 21, 3);
     await page.click("#levelCard3");
     await expect(page.locator("h1.page-title")).toHaveText("Level 3: Chat with Alex");
     await expect(page.locator(".level-sub")).toHaveText("Be the customer. Chat with Nexora's customer service officer.");
@@ -163,12 +163,12 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(page.locator(".status-pill").nth(3)).toHaveText("Not started");
 
     // The server has both attempts; the readable Q2 column shows the first try.
-    const row = await apiGet(request, { action: "load", class: "3E1", reg: "41" });
+    const row = await apiGet(request, { action: "load", class: "3E1", reg: "21" });
     expect(row.record.first["s3q2.Q"]).toMatchObject({ a: 0, ok: false });
     expect(row.record.second["s3q2.Q"]).toMatchObject({ a: 1, ok: true });
     expect(row.record.first["s3q2.P"].ok).toBe(true);
     const sheet = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), "ebs-ch6-playwright-data", "sheets.json"), "utf8"));
-    const studentRow = sheet.Students.find(r => r[0] === "3E1#41");
+    const studentRow = sheet.Students.find(r => r[0] === "3E1#21");
     expect(studentRow[4]).toBe("2 / 4");
 
     // A first attempt cannot be overwritten from another copy.
@@ -194,7 +194,7 @@ test.describe("Level 3: Chat with Alex", () => {
 test.describe("Level 4: Serve Suzzie at Stylez", () => {
   test("roleplay tab, Stylez document reference, reflect, recap, badge", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
-    await studentAt(page, request, 42, 4);
+    await studentAt(page, request, 22, 4);
     await page.click("#levelCard4");
     await expect(page.locator("h1.page-title")).toHaveText("Level 4: Serve Suzzie at Stylez");
     await expect(page.locator(".intro-with-pic p")).toHaveText("Now switch roles. You are a customer service officer at Stylez, a retail store. The AI plays Suzzie, a customer with a question or a problem.");
@@ -206,7 +206,7 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await expect(page).toHaveURL(/#stylez$/);
     await expect(page.locator("h1")).toHaveText("Stylez store information");
     await expect(page.locator(".stylez-fact")).toHaveCount(17);
-    await expect(page.locator(".stylez-fact dd")).toHaveText(["Casual clothing retailer for teenagers and young adults; sells affordable everyday clothing in-store and online.", "T-shirts, jeans, hoodies, dresses, shorts and accessories.", "XS to XL.", "$18 each.", "$39 each.", "$35 each.", "Buy 2 Basic T-shirts for $30.", "Stylez members get 10% off regular-priced items.", "STYLE10 gives 10% off the first online order.", "For this practice tool, promotions cannot be combined.", "Exchange within 14 days with receipt.", "Item must be unworn, unwashed and have its original tags.", "No exchange.", "Customer may bring the item and receipt to the store for assistance.", "Cash, cards and common mobile payment methods.", "Free delivery for orders of $60 or more.", "Available in-store or through Stylez online chat."]);
+    await expect(page.locator(".stylez-fact dd")).toHaveText(["Casual clothing retailer for teenagers and young adults; sells affordable everyday clothing in-store and online.", "T-shirts, jeans, hoodies, dresses, shorts and accessories.", "XS to XL.", "$18 each.", "$39 each.", "$35 each.", "Buy 2 Basic T-shirts for $30.", "Stylez members get 10% off regular-priced items.", "STYLE10 gives 10% off the first online order.", "Promotions cannot be combined.", "Exchange within 14 days with receipt.", "Item must be unworn, unwashed and have its original tags.", "No exchange.", "Customer may bring the item and receipt to the store for assistance.", "Cash, cards and common mobile payment methods.", "Free delivery for orders of $60 or more.", "Available in-store or through Stylez online chat."]);
     await checkPage(page, testInfo, "slice4-stylez-information");
     await page.click("#stylezBack");
     await expect(page).toHaveURL(/#level4$/);
@@ -252,7 +252,7 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
 test.describe("Level 5: Check and Exit Ticket", () => {
   test("Q3 to Q5 feedback, Next held back, exit ticket, Completion Champion", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
-    await studentAt(page, request, 43, 5);
+    await studentAt(page, request, 23, 5);
     await page.click("#levelCard5");
     await expect(page.locator("h1.page-title")).toHaveText("Level 5: Check and Exit Ticket");
     await expect(page.locator(".step-label")).toHaveText(["Check", "Exit ticket (locked)"]);
@@ -377,7 +377,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
 
     // Readable columns in the Sheet: Q3 and Q4 first try (2 of 5 right) and confidence.
     const sheet = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), "ebs-ch6-playwright-data", "sheets.json"), "utf8"));
-    const r = sheet.Students.find(x => x[0] === "3E1#43");
+    const r = sheet.Students.find(x => x[0] === "3E1#23");
     expect(r[3]).toBe("5");
     expect(r[5]).toBe("2 / 5");
     expect(r.slice(6, 10)).toEqual(["Confident", "Very confident", "A little", "Not yet"]);
@@ -392,7 +392,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
   });
 
   test("all right first time: no Check again, Next straight away", async ({ page, request }) => {
-    await studentAt(page, request, 44, 5);
+    await studentAt(page, request, 24, 5);
     await page.goto("/#level5");
     for (const [id, label] of [["i", "False"], ["ii", "True"], ["iii", "False"], ["iv", "True"]]) {
       await page.locator(`.tf-item[data-key="s5.q3.${id}"] .tf-btn`, { hasText: label }).click();

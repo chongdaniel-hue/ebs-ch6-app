@@ -189,7 +189,7 @@ test.describe("Level 2", () => {
     await checkPage(page, testInfo, "slice3-level2-tab2");
     await page.click("#continueBtn");
     await expect(page.locator("#part1 h2")).toHaveText("Approaching customers: 3 approaches");
-    await expect(page.locator("#part1 .approach-name")).toHaveText(["1. Greeting Approach:", "2. Service Approach:", "3. Product Approach:"]);
+    await expect(page.locator("#part1 .approach-name")).toHaveText(["1. Greeting Approach", "2. Service Approach", "3. Product Approach"]);
     // Part 3 (new Continue point): the purpose of approaching, with the comic.
     await page.click("#continueBtn");
     await expect(page.locator("#part2 .head-row p")).toHaveText("Whether salespeople use the greeting, service or product approach, the purpose is to:");

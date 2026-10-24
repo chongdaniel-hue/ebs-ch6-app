@@ -45,7 +45,9 @@ test.describe("6.1 My learning report", () => {
   test("levels, first-try scores, Look at these again, confidence", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
     await resetServer(request, ["3E1"]);
-    expect((await apiPost(request, { action: "save", record: finishedRecord(5, { wrong: ["s3q2.R", "s5q3.iii", "s5q4", "s5q3.i"] }) })).ok).toBe(true);
+    const record = finishedRecord(5, { wrong: ["s3q2.R", "s5q3.iii", "s5q4", "s5q3.i"] });
+    delete record.second["s5q4"]; // Q4: wrong on the first try, no second try yet
+    expect((await apiPost(request, { action: "save", record })).ok).toBe(true);
     await login(page, "3E1", 5);
     await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
     await expect(page.locator(".home-learning-report a.btn")).toHaveText("My learning report");
@@ -69,6 +71,12 @@ test.describe("6.1 My learning report", () => {
     ]);
     await expect(page.locator("#confTitle")).toHaveText("How confident you felt");
     await expect(page.locator(".conf-row .conf-face")).toHaveText(["Confident", "Very confident", "A little", "Not yet"]);
+    // Second try: not needed when the first try was right; not attempted yet when it was wrong.
+    const secondTry = i => page.locator(".report-marked-answer").nth(i).locator(".report-attempts dd").nth(1);
+    await expect(secondTry(0)).toHaveText("Not needed: right on the first try"); // Q2 P
+    await expect(secondTry(2)).toHaveText("Closing the customer experience positively (right)"); // Q2 R, put right on the second try
+    await expect(secondTry(8)).toHaveText("Not attempted yet"); // Q4
+    await expect(page.locator(".report-attempts", { hasText: /Not attempted$/ })).toHaveCount(0);
     await expect(page.locator("#reportBack")).toHaveText("Back to my route");
     await checkPage(page, testInfo, "slice5-report");
     await page.click("#reportBack");
