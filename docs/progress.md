@@ -359,3 +359,7 @@ Merged Dan’s image compression, badge transparency, Read aloud and report refi
 
 ### Header class label (24 October 2026, version 0.6.25 preview)
 - Removed the added “Class” prefix from the student header chips; show the saved class name exactly as entered.
+
+### Reset releases student identity (24 October 2026, version 0.6.26 preview)
+- User requested reset also clear the name and free the register number. Reset now leaves only the server reset marker, removes the profile from Reset and Unlock lists, and returns an affected active device to registration. Students can register again with any available number 1–40 in the teacher-selected class. Stale saves remain blocked, including on another device. Dan must redeploy Code.gs for live use.
+- Verification: full suite passed 120 checks (two intentional skips) at laptop and phone widths. Reset clears the registered identity, permits a new name at the same number, leaves other profiles intact, and rejects stale saves. Reviewed the cleared registration form on both widths. Backend responses now report version 0.6.26 for deployment verification.

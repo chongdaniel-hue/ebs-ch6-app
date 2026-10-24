@@ -188,3 +188,7 @@ The script creates and manages HIDDEN_CLASSES in Script Properties automatically
 
 ## Teacher-selected registration class (version 0.6.24)
 Replace the existing Apps Script source with the current `apps-script/Code.gs`, save, and deploy a new version of the existing deployment (keep its URL). The existing `setClassVisibility` action now selects one student registration class at a time. Teachers select **Show to students** beside a class. New students see that class above their name and register number, and each class has its own register numbers 1–40. Existing profiles remain under their original class. No new Script Properties or sheet columns are required.
+
+## Reset releases identity (version 0.6.26)
+Redeploy the updated `apps-script/Code.gs` as a new version of the existing deployment. Reset now clears the name and profile and makes the register number available for registration again. A reset marker is retained internally to reject older queued saves. No new Script Properties or columns are needed.
+After redeployment, the public `?action=classes` response should report `version: "0.6.26"`, allowing this backend update to be verified without changing student data.

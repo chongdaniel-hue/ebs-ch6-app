@@ -86,7 +86,7 @@ test.describe("new student", () => {
     await expect(page.locator("#briefing")).toHaveCount(0);
     expect(page.url()).toMatch(/#home$/);
 
-    await expect(page.locator(".topbar-chip")).toHaveText("Test Student 12 · Class 3E1 · Register No. 12");
+    await expect(page.locator(".topbar-chip")).toHaveText("Test Student 12 · 3E1 · Register No. 12");
     await expect(page.locator(".welcome-text")).toHaveText("Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!");
     await expect(page.locator(".notice")).toHaveCount(0);
     await expect(page.locator("#howLink")).toHaveText("How this works");

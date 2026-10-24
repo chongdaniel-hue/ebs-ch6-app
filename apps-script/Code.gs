@@ -27,7 +27,7 @@
    JavaScript that Apps Script accepts (no ?. or ?? operators).
    ============================================================ */
 
-var SCRIPT_VERSION = "1";
+var SCRIPT_VERSION = "0.6.26";
 
 var CLASSES_SHEET = "Classes";
 var STUDENTS_SHEET = "Students";
@@ -363,9 +363,8 @@ function clearStudent(cls, reg) {
       // Preserve sortable local-time markers, with a strictly newer suffix.
       clearedAt = previous + "1";
     }
-    var profile = previousStudent.record && previousStudent.record.profile;
-    var blank = profile && profile.name ? {v:1,cls:name,reg:n,updatedAt:nowIso(),baseClearedAt:clearedAt,agreed:null,
-      profile:profile,done:{},submitted:{},reached:{},first:{},second:{},answers:{},ui:{},unlockedLevels:{}} : null;
+    // Keep the reset marker to reject stale saves, but release the registered identity.
+    var blank = null;
     sheet.getRange(row, 1, 1, STUDENTS_HEADERS.length).setNumberFormat("@")
       .setValues([studentRowValues(key, blank, "", clearedAt, blank ? JSON.stringify(blank) : "")]);
     return { ok: true, clearedAt: clearedAt, record:blank };

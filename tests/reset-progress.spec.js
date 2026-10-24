@@ -41,24 +41,18 @@ test("password, cancel, keyboard focus, server reset, reload and other students"
   await input.fill("  "+resetCode().toLowerCase()+"  ");
   await modal.getByRole("button",{name:"Reset progress",exact:true}).click();
   await expect(modal).toHaveCount(0);
-  await expect(page.locator("#briefing")).toBeVisible();
-  const loaded=await apiGet(request,{action:"load",class:"3E1",reg:5});
-  expect(loaded.record.done).toEqual({});
-  expect(loaded.record.profile.name.v).toBe("Test Student 5");
-  expect(loaded.clearedAt).toBeTruthy();
-  const local=await page.evaluate(()=>JSON.parse(localStorage.getItem("ch6_rec_3E1#5")));
-  for(const section of ["done","submitted","reached","first","second","answers","ui"]) expect(local[section]).toEqual({});
-  expect(local.agreed).toBeNull();
-  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("ch6_queue")) || {})).not.toHaveProperty("3E1#5");
-  expect((await apiGet(request,{action:"load",class:"3E1",reg:6})).record.done[5]).toBe(T);
-  expect((await apiPost(request,{action:"save",record:record()})).error).toBe("cleared");
-  await page.reload();
-  await expect(page.locator("#briefing")).toBeVisible();
-  expect(await page.evaluate(()=>Object.keys(rec.done).length)).toBe(0);
-  await page.locator("#briefing button").click();
-  await page.evaluate(()=>queueSave("now"));
-  await expect.poll(async()=>!!(await apiGet(request,{action:"load",class:"3E1",reg:5})).record?.agreed).toBe(true);
-  expect((await apiGet(request,{action:"load",class:"3E1",reg:5})).record.done).toEqual({});
+  await expect(page.locator('#nameInput')).toBeEditable();
+  await expect(page.locator('#nameInput')).toHaveValue('');await expect(page.locator('#regInput')).toHaveValue('');
+  const loaded=await apiGet(request,{action:'load',class:'3E1',reg:5});expect(loaded.record).toBeNull();expect(loaded.clearedAt).toBeTruthy();
+  expect(await page.evaluate(()=>localStorage.getItem('ch6_rec_3E1#5'))).toBeNull();
+  expect((await apiGet(request,{action:'load',class:'3E1',reg:6})).record.done[5]).toBe(T);
+  expect((await apiPost(request,{action:'save',record:record()})).error).toBe('cleared');
+  await page.reload();await expect(page.locator('#nameInput')).toBeEditable();
+  await page.screenshot({path:`tests/screenshots/reset-registration-${testInfo.project.name}.png`,fullPage:true});
+  await page.locator('#nameInput').fill('New Demo Student');await page.locator('#regInput').selectOption('5');await page.locator('#startBtn').click();await page.locator('#briefing button').click();
+  await expect(page.locator('#studentNameInput')).toHaveValue('New Demo Student');
+  await expect.poll(async()=>(await apiGet(request,{action:'load',class:'3E1',reg:5})).record?.profile?.name?.v).toBe('New Demo Student');
+  expect((await apiGet(request,{action:'load',class:'3E1',reg:5})).record.done).toEqual({});
 });
 
 test("offline reset preserves progress; delayed saves cannot revive cleared answers",async({page,request})=>{
@@ -92,15 +86,16 @@ test("offline reset preserves progress; delayed saves cannot revive cleared answ
   await caught;
   await page.locator("#progressResetPassword").fill(resetCode().toUpperCase());
   await page.locator("#progressResetModal button[type=submit]").click();
-  await expect(page.locator("#briefing")).toBeVisible();
+  await expect(page.locator("#nameInput")).toBeEditable();
   release();
   await expect.poll(()=>page.evaluate(()=>flushing)).toBe(false);
-  expect(await page.evaluate(()=>Object.keys(rec.done).length)).toBe(0);
-  expect(await page.evaluate(()=>Object.keys(rec.answers).length)).toBe(0);
+  expect(await page.evaluate(()=>rec)).toBeNull();
+  expect(await page.evaluate(()=>student)).toBeNull();
 });
 
 test("server enforces password, independent lockout and successive reset epochs",async({request})=>{
   await resetServer(request,["3E1"]);
+  expect((await apiGet(request,{action:"classes"})).version).toBe("0.6.26");
   await apiPost(request,{action:"save",record:record()});
   for(const code of ["",process.env.TEST_TEACHER_CODE,"wrong-test-password"])
     expect((await apiPost(request,{action:"resetProgress",code,class:"3E1",reg:5})).error).toBe("bad_code");

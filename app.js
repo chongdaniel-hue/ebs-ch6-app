@@ -61,7 +61,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.25";
+const APP_VERSION = "0.6.26";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -434,6 +434,20 @@ function dropFromQueue(key) {
   if (entry && entry.forget && key !== activeKey()) lsRemove(KEYS.rec(key));
 }
 
+function releaseResetProfile(key) {
+  if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+  lastTypingSend = 0;
+  dropFromQueue(key);
+  lsRemove(KEYS.rec(key));
+  lsRemove(KEYS.active);
+  lsRemove(KEYS.unlockAll);
+  student = null;
+  rec = null;
+  history.replaceState(null, "", window.location.pathname);
+  render();
+  refreshClassList();
+}
+
 function handleSaveReply(key, sent, reply) {
   const current = lsGet(KEYS.rec(key));
   if (reply && (reply.ok || reply.error === "cleared") && current && String(current.baseClearedAt || "") > String(reply.clearedAt || "")) return;
@@ -445,12 +459,7 @@ function handleSaveReply(key, sent, reply) {
     // A teacher cleared this student's work: this device's older copy is thrown away.
     lsRemove(KEYS.rec(key));
     dropFromQueue(key);
-    if (key === activeKey()) {
-      rec = mergeRecords(reply.record, freshRecord(student.cls, student.reg, reply.clearedAt));
-      saveLocal();
-      window.location.hash = "#home";
-      render();
-    }
+    if (key === activeKey()) releaseResetProfile(key);
     return;
   }
   if (!reply.ok) {
@@ -620,7 +629,7 @@ function showProgressReset(selectedStudent, verifiedCode) {
   setGraphicHtml(wrap, `
     <form class="modal" role="dialog" aria-modal="true" aria-labelledby="progressResetTitle" aria-describedby="progressResetDescription">
       <h2 class="modal-title" id="progressResetTitle">Reset progress</h2>
-      <p id="progressResetDescription">Clear all answers, badges and progress for ${escapeHtml(target.name || "Student")}, Class ${escapeHtml(target.cls)}, Register No. ${target.reg}, on this device and the server. This cannot be undone. The student name and registered profile will remain. Other students' work will stay intact.</p>
+      <p id="progressResetDescription">Clear all answers, badges and progress for ${escapeHtml(target.name || "Student")}, Class ${escapeHtml(target.cls)}, Register No. ${target.reg}, on this device and the server. This cannot be undone. The saved name will be removed and the register number freed for registration again. Other students' work will stay intact.</p>
       <div ${verifiedCode ? "hidden" : ""}><label for="progressResetPassword" class="field-label">Key in the reset password.</label>
       <input type="password" class="text-input" id="progressResetPassword" autocomplete="off" ${verifiedCode ? "" : "required"}></div>
       <p class="form-error" role="alert" id="progressResetError" hidden></p>
@@ -666,18 +675,12 @@ function showProgressReset(selectedStudent, verifiedCode) {
       resetGenerations.set(key, (resetGenerations.get(key) || 0) + 1);
       dropFromQueue(key);
       if (key === activeKey()) {
-        if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
-        lastTypingSend = 0;
-        rec = mergeRecords(reply.record, freshRecord(target.cls, target.reg, reply.clearedAt));
-        saveLocal();
-        lsRemove(KEYS.unlockAll);
         close();
-        window.location.hash = "#home";
-        render();
+        releaseResetProfile(key);
       } else {
-        lsSet(KEYS.rec(key), mergeRecords(reply.record, freshRecord(target.cls, target.reg, reply.clearedAt)));
+        lsRemove(KEYS.rec(key));
         close();
-        showModal({id:"studentResetComplete",title:"Progress reset",bodyHtml:`<p>${escapeHtml(target.name || "Student")}, Class ${escapeHtml(target.cls)}, Register No. ${target.reg}: progress has been cleared. The registered name has been kept.</p>`,buttons:[{label:"Close",primary:true,onClick:()=>{const b=document.querySelector("[data-reset-progress]");if(b)b.focus();}}]});
+        showModal({id:"studentResetComplete",title:"Profile reset",bodyHtml:`<p>${escapeHtml(target.name || "Student")}, ${escapeHtml(target.cls)}, Register No. ${target.reg}: the name, answers, badges and progress have been cleared. The register number is available again. The student can register with a new name or register number.</p>`,buttons:[{label:"Close",primary:true,onClick:()=>{const b=document.querySelector("[data-reset-progress]");if(b)b.focus();}}]});
       }
       updateNetBanner();
     } else {
@@ -3216,8 +3219,8 @@ async function syncActiveFromServer() {
   if (String(rec.baseClearedAt || "") > String(reply.clearedAt || "")) return;
   const before = JSON.stringify(rec);
   if (reply.clearedAt && String(rec.baseClearedAt || "") < reply.clearedAt) {
-    rec = mergeRecords(reply.record, freshRecord(student.cls, student.reg, reply.clearedAt));
-    lsRemove(KEYS.rec(key));
+    releaseResetProfile(key);
+    return;
   } else {
     rec = mergeRecords(reply.record, rec);
     rec.baseClearedAt = reply.clearedAt || rec.baseClearedAt;
