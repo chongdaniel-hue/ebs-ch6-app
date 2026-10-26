@@ -21,7 +21,7 @@ async function newStudent(page, request, reg) {
 
 async function finishLevel1(page) {
   await page.goto("/#level1");
-  for (const [i, text] of ["Staff smiled and helped me.", "The order was wrong.", "Good when staff care."].entries()) {
+  for (const [i, text] of ["Staff smiled and helped me.", "The staff brought me the wrong order.", "Good when staff care."].entries()) {
     await page.fill(`textarea[data-answer="s1.q${i + 1}"]`, text);
   }
   await page.click("#submitL1");
@@ -51,7 +51,7 @@ test.describe("Level 1", () => {
       await expect(boxes.nth(i)).toHaveAttribute("placeholder", hint);
       await expect(boxes.nth(i)).toHaveValue(""); // nothing pre-filled
     }
-    await expect(part.locator("p", { hasText: "Type at least one sentence" })).toHaveText("Type at least one sentence in each box, then tap Submit.");
+    await expect(part.locator("p", { hasText: "Type at least one sentence" })).toHaveText("Type at least one sentence (at least 20 characters) in each box, then tap Submit.");
     await checkPage(page, testInfo, "slice3-level1");
 
     // Box 2 empty: Not finished yet, listed by name, with Go back and Submit anyway.
@@ -60,17 +60,17 @@ test.describe("Level 1", () => {
     await page.click("#submitL1");
     const modal = page.locator("#notFinished");
     await expect(modal.locator("h2")).toHaveText("Not finished yet");
-    await expect(modal.locator(".missing-list li")).toHaveText(["✗ Box 2"]);
-    await expect(modal.locator("button")).toHaveText(["Go back", "Submit anyway"]);
+    await expect(modal.locator(".missing-list li")).toHaveText(["✗ Box 2: write at least 20 characters"]);
+    await expect(modal.locator("button")).toHaveText(["Go back"]);
     await expect(page.locator('[data-key="s1.q2"]')).toHaveClass(/incomplete/);
     await checkPage(page, testInfo, "slice3-level1-not-finished");
     await modal.locator("button", { hasText: "Go back" }).click();
-    await boxes.nth(1).fill("The order was wrong.");
+    await boxes.nth(1).fill("The staff brought me the wrong order.");
     await expect(page.locator('[data-key="s1.q2"]')).not.toHaveClass(/incomplete/);
 
     // Typing is saved on the device straight away; reload keeps it.
     await page.reload();
-    await expect(page.locator('textarea[data-answer="s1.q2"]')).toHaveValue("The order was wrong.");
+    await expect(page.locator('textarea[data-answer="s1.q2"]')).toHaveValue("The staff brought me the wrong order.");
 
     await page.click("#submitL1");
     await expect(page.locator(".recap-card .recap-title")).toHaveText("Remember this");
@@ -96,7 +96,7 @@ test.describe("Level 1", () => {
 
     // The server has the stories, the submit time and the finished level.
     const row = await apiGet(request, { action: "load", class: "3E1", reg: "21" });
-    expect(row.record.answers["s1.q2"].v).toBe("The order was wrong.");
+    expect(row.record.answers["s1.q2"].v).toBe("The staff brought me the wrong order.");
     expect(row.record.done["1"]).toBeTruthy();
 
     // Revisiting a finished level: read-only, recap shown, no Finish button.
@@ -107,13 +107,23 @@ test.describe("Level 1", () => {
     expect(errors).toEqual([]);
   });
 
-  test("Submit anyway works with an empty box", async ({ page, request }) => {
-    await newStudent(page, request, 22);
+  test("blank and short responses cannot be submitted or locked", async ({page,request}) => {
+    await newStudent(page,request,22);
     await page.goto("/#level1");
+    await page.locator('textarea[data-answer="s1.q1"]').fill("ok");
     await page.click("#submitL1");
-    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Box 1", "✗ Box 2", "✗ Box 3"]);
-    await page.locator("#notFinished button", { hasText: "Submit anyway" }).click();
-    await expect(page.locator(".recap-card")).toBeVisible();
+    await expect(page.locator("#notFinished .missing-list li")).toHaveCount(3);
+    await expect(page.getByRole("button",{name:"Submit anyway"})).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#notFinished")).toHaveCount(0);
+    await expect(page.locator('textarea[data-answer="s1.q1"]')).toBeEditable();
+    await expect(page.locator(".recap-card")).toHaveCount(0);
+    // Repair the previously allowed submitted-with-a-blank state without discarding answers.
+    await page.evaluate(()=>{setAnswer('s1.q1','The staff listened carefully and helped me.');setAnswer('s1.q2','The staff ignored my request for help.');rec.submitted.s1=new Date().toISOString();rec.done[1]=rec.submitted.s1;saveLocal();renderLevel(1);});
+    await expect(page.locator('textarea[data-answer="s1.q3"]')).toBeEditable();
+    await page.locator('textarea[data-answer="s1.q3"]').fill('Good service means listening carefully and helping.');
+    await page.click('#submitL1');await expect(page.locator('.recap-card')).toBeVisible();
+    await expect(page.locator('textarea[data-answer="s1.q1"]')).toHaveValue('The staff listened carefully and helped me.');
   });
 });
 
@@ -315,7 +325,7 @@ test.describe("Level 2", () => {
     await newStudent(page, request, 25);
     await finishLevel1(page);
     await page.goto("/#level2");
-    await page.evaluate(() => { localStorage.setItem("ch6_unlock_all", "true");setAnswer("s2.video","Alex greeted June.");setUi("s2.video.saved",rec.answers["s2.video"].t);saveLocal(); });
+    await page.evaluate(() => { localStorage.setItem("ch6_unlock_all", "true");setAnswer("s2.video","Alex greeted June warmly.");setUi("s2.video.saved",rec.answers["s2.video"].t);saveLocal(); });
     await page.reload();
     await page.locator(".step-tab").nth(2).click();
     await page.click("#continueBtn"); // the path is the second part of Tab 3

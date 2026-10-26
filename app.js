@@ -61,7 +61,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.30";
+const APP_VERSION = "0.6.31";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -316,6 +316,14 @@ async function api(method, data, timeoutMs) {
   }
 }
 
+// Older Google deployments accept load only over GET. Both paths include the name;
+// updated deployments enforce the same name check on either method.
+async function loadStudentRecord(cls, reg, name) {
+  const data = { action: "load", "class": cls, reg: String(reg), name };
+  const reply = await api("POST", data, 10000);
+  return reply.error === "unknown_action" ? api("GET", data, 10000) : reply;
+}
+
 /* ---------------- Saving to the server: queue and retries ----------------
    Ported from V45's offline queue. V45 queued one submission per section; here
    the queue holds one entry per student, and each send carries that student's
@@ -331,7 +339,7 @@ async function api(method, data, timeoutMs) {
 const SOON_MS = 10000;
 const TYPING_MS = 30000;
 const RETRY_MS = [5000, 10000, 20000, 40000, 80000, 160000, 300000];
-const PERMANENT_ERRORS = ["no_class", "bad_reg", "too_big", "bad_request", "unknown_action", "bad_name"];
+const PERMANENT_ERRORS = ["no_class", "bad_reg", "too_big", "bad_request", "unknown_action", "bad_name", "name_required", "name_mismatch", "profile_setup_required"];
 
 function jitter(ms) { return Math.floor(Math.random() * ms); }
 function loadQueue() { return lsGet(KEYS.queue) || {}; }
@@ -402,7 +410,7 @@ async function flushQueue() {
       if (!record) { delete q[key]; saveQueue(q); continue; }
       const generation = resetGenerations.get(key) || 0;
       let reply = null;
-      try { reply = await api("POST", { action: "save", record }, 20000); }
+      try { reply = await api("POST", { action: "save", record, name: profileName(record) }, 20000); }
       catch (e) { networkDown = true; }
       if (generation === (resetGenerations.get(key) || 0)) handleSaveReply(key, record, reply);
     }
@@ -463,6 +471,7 @@ function handleSaveReply(key, sent, reply) {
     return;
   }
   if (!reply.ok) {
+    if(["name_required","name_mismatch","profile_setup_required"].includes(reply.error) && key === activeKey()){releaseResetProfile(key);return;}
     console.warn(`Save for ${key} refused (${reply.error}); not retrying.`);
     dropFromQueue(key);
     return;
@@ -486,7 +495,7 @@ function sendBeaconNow() {
   if (!student || !rec || activeKey() === resettingKey || !navigator.sendBeacon || !apiUrl()) return;
   if (!loadQueue()[activeKey()]) return;
   try {
-    navigator.sendBeacon(apiUrl(), new Blob([JSON.stringify({ action: "save", record: rec })], { type: "text/plain" }));
+    navigator.sendBeacon(apiUrl(), new Blob([JSON.stringify({ action: "save", record: rec, name: profileName(rec) })], { type: "text/plain" }));
   } catch (e) { /* the queue will send it next time */ }
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") sendBeaconNow(); });
@@ -598,10 +607,12 @@ function showModal({ id, title, bodyHtml, buttons, className }) {
         ${buttons.map((b, i) => `<button type="button" class="btn ${b.primary ? "" : "secondary"}" data-i="${i}">${escapeHtml(b.label)}</button>`).join("")}
       </div>
     </div>`);
+  const previousFocus=document.activeElement;
   document.body.appendChild(wrap);
   const btns = Array.from(wrap.querySelectorAll("button"));
   btns.forEach((el, i) => el.addEventListener("click", () => { wrap.remove(); if (buttons[i].onClick) buttons[i].onClick(); }));
   wrap.addEventListener("keydown", (e) => {
+    if(e.key === "Escape"){e.preventDefault();wrap.remove();if(previousFocus && previousFocus.isConnected)previousFocus.focus();return;}
     if (e.key !== "Tab") return;
     const controls = Array.from(wrap.querySelectorAll("button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href]"));
     const first = controls[0], last = controls[controls.length - 1];
@@ -977,7 +988,7 @@ async function startLogin() {
   const key = studentKey(cls, reg);
   let local = lsGet(KEYS.rec(key));
   let reply = null;
-  try { reply = await api("GET", { action: "load", "class": cls, reg: String(reg) }, 10000); }
+  try { reply = await loadStudentRecord(cls, reg, name); }
   catch (e) { reply = null; }
 
   if (reply && !reply.ok && reply.error === "no_class") {
@@ -991,6 +1002,11 @@ async function startLogin() {
     return;
   }
 
+  if(reply && !reply.ok){
+    btn.disabled=false;btn.textContent="Start";
+    showError(reply.error === "profile_setup_required" ? "Ask your teacher to set up the name for this existing profile." : "This register number has already been registered to a student profile. Check the class, register number and saved name.");
+    return;
+  }
   let returning;
   let record;
   if (reply && reply.ok) {
@@ -1385,20 +1401,23 @@ function wireAnswerBoxes(el) {
     box.addEventListener("input", () => setAnswer(box.getAttribute("data-answer"), box.value, "typing"));
   });
 }
+const MIN_RESPONSE_CHARS = 20;
+function responseLongEnough(key){return String(getAnswer(key) || "").trim().length >= MIN_RESPONSE_CHARS;}
 const REFLECTION_KEYS = ["s2.video", "s2.think1", "s2.think2"];
 function reflectionSaved(key) {
-  return !isBlank(key) && getUi(`${key}.saved`) === (rec.answers[key] || {}).t;
+  return responseLongEnough(key) && getUi(`${key}.saved`) === (rec.answers[key] || {}).t;
 }
 function reflectionHtml(key, label) {
   return `<div class="card think-card" data-reflection="${key}"><h3 class="think-title">${hIcon("🤔")}Think about it</h3>
-    ${answerBoxHtml(key,{label,hint:"Type your thoughts here...",readOnly:isDone(2) && reflectionSaved(key)})}
+    ${answerBoxHtml(key,{label,hint:`Write at least ${MIN_RESPONSE_CHARS} characters...`,readOnly:isDone(2) && reflectionSaved(key)})}
     <div class="btn-row"><button type="button" class="btn secondary" data-save-reflection="${key}" ${isDone(2) && reflectionSaved(key) ? "disabled" : ""}>Save</button></div>
     <p class="field-note" role="status" data-reflection-status>${reflectionSaved(key) ? "Saved." : "Enter your thoughts and select Save before continuing."}</p></div>`;
 }
 function requireReflections(keys) {
   const missing=keys.filter(key=>!reflectionSaved(key));
   if(!missing.length)return true;
-  showModal({id:"reflectionRequired",title:"Complete all questions",bodyHtml:"<p>Please complete all questions and select Save before moving on.</p>",buttons:[{label:"Back to questions",primary:true,onClick:()=>{let box=document.getElementById(`ans_${cssId(missing[0])}`);if(!box){const target=missing[0] === "s2.video" ? [0,2] : missing[0] === "s2.think1" ? [2,3] : [2,5];setUi("s2.tab",target[0]);raiseReached(`s2.t${target[0]}`,target[1]);queueSave("soon");renderLevel(2);box=document.getElementById(`ans_${cssId(missing[0])}`);}if(box)box.focus();}}]});
+  const short=missing.some(key=>!isBlank(key) && !responseLongEnough(key));
+  showModal({id:"reflectionRequired",title:short ? "Answer too short" : "Complete all questions",bodyHtml:`<p>${short ? `Your answer is too short. Write at least ${MIN_RESPONSE_CHARS} characters in each answer, then select Save.` : `Please complete all questions with at least ${MIN_RESPONSE_CHARS} characters per answer and select Save before moving on.`}</p>`,buttons:[{label:"Back to questions",primary:true,onClick:()=>{let box=document.getElementById(`ans_${cssId(missing[0])}`);if(!box){const target=missing[0] === "s2.video" ? [0,2] : missing[0] === "s2.think1" ? [2,3] : [2,5];setUi("s2.tab",target[0]);raiseReached(`s2.t${target[0]}`,target[1]);queueSave("soon");renderLevel(2);box=document.getElementById(`ans_${cssId(missing[0])}`);}if(box)box.focus();}}]});
   return false;
 }
 function visibleReflectionKeys() { return Array.from(document.querySelectorAll('#levelMain [data-reflection]')).map(el=>el.dataset.reflection); }
@@ -1408,7 +1427,7 @@ function wireReflections(el) {
     const key=card.dataset.reflection,box=card.querySelector('textarea'),status=card.querySelector('[data-reflection-status]');
     box.addEventListener('input',()=>{status.textContent=reflectionSaved(key) ? 'Saved.' : 'Changes not saved. Select Save before continuing.';});
     card.querySelector('[data-save-reflection]').addEventListener('click',()=>{
-      if(isBlank(key)){requireReflections([key]);return;}
+      if(!responseLongEnough(key)){requireReflections([key]);return;}
       setUi(`${key}.saved`,rec.answers[key].t);queueSave('now');status.textContent='Saved.';
     });
   });
@@ -1433,6 +1452,7 @@ function wireFinish(el, n) {
 }
 
 function finishLevel(n) {
+  if(n === 1 && !L1_BOXES.every(b=>responseLongEnough(b.key))){renderLevel(1);return;}
   if(n === 2 && !requireReflections(REFLECTION_KEYS))return;
   if (!rec.done[n]) rec.done[n] = nowIso();
   queueSave("now");
@@ -1456,7 +1476,7 @@ function showBadgePopup(n) {
    missing: [{el, name}]. Each is outlined in red with "✗ Not done yet" and listed by
    name in the pop-up. Only Level 1 offers "Submit anyway"; required questions only
    offer "Go back". */
-function showNotFinished(missing, onSubmitAnyway) {
+function showNotFinished(missing) {
   missing.forEach(m => m.el.classList.add("incomplete"));
   const count = missing.length;
   showModal({
@@ -1464,11 +1484,10 @@ function showNotFinished(missing, onSubmitAnyway) {
     title: "⚠️ Not finished yet",
     bodyHtml: `
       <p>${count} ${count === 1 ? "item is" : "items are"} not done. ${count === 1 ? "It is" : "They are"} marked in <strong class="red-text">red</strong>.</p>
-      <ul class="missing-list">${missing.map(m => `<li>✗ ${escapeHtml(m.name)}</li>`).join("")}</ul>
-      ${onSubmitAnyway ? `<p>Do you want to go back and finish, or submit anyway?</p>` : ""}`,
+      <ul class="missing-list">${missing.map(m => `<li>✗ ${escapeHtml(m.name)}</li>`).join("")}</ul>`,
     buttons: [
       { label: "Go back", primary: true, onClick: () => revealFocus(missing[0].el) }
-    ].concat(onSubmitAnyway ? [{ label: "Submit anyway", onClick: onSubmitAnyway }] : [])
+    ]
   });
 }
 // The red mark goes as soon as the student fills that item in (V45).
@@ -1545,7 +1564,7 @@ function stopSpeaking() {
 // The words of a block, without buttons, answer boxes, questions or icons.
 function blockSpeechText(block) {
   const copy = block.cloneNode(true);
-  copy.querySelectorAll("button, textarea, input, select, video, .think-card, .listen-row, [aria-hidden='true'], .nav-row").forEach(x => x.remove());
+  copy.querySelectorAll("button, textarea, input, select, video, .video-transcript, .think-card, .listen-row, [aria-hidden='true'], .nav-row").forEach(x => x.remove());
   copy.querySelectorAll("p, li, h2, h3, h4, th, td, div").forEach(x => x.append(" "));
   copy.querySelectorAll("img").forEach(x => x.remove());
   return copy.textContent.replace(/\s+/g, " ").trim();
@@ -1587,7 +1606,7 @@ const L1_BOXES = [
 
 const L1_PART = {
   html: (ctx) => {
-    const submitted = !!rec.submitted.s1;
+    const submitted = !!rec.submitted.s1 && L1_BOXES.every(b=>responseLongEnough(b.key));
     return `
       <h2 class="visually-hidden">Your stories</h2>
       <p>Think about your own experiences as a customer. There are no right or wrong answers.</p>
@@ -1601,7 +1620,7 @@ const L1_PART = {
       ${submitted ? `
         ${recapHtml("Keep your stories in mind. In Level 2, see whether your ideas match what businesses call quality customer service.")}
         ${finishButtonHtml(1)}` : `
-        <p>Type at least one sentence in each box, then tap Submit.</p>
+        <p>Type at least one sentence (at least 20 characters) in each box, then tap Submit.</p>
         <div class="btn-row"><button type="button" class="btn" id="submitL1">Submit</button></div>`}`;
   },
   wire: (el) => {
@@ -1616,9 +1635,9 @@ const L1_PART = {
       revealFocus(document.querySelector(".recap-card"));
     };
     btn.addEventListener("click", () => {
-      const missing = L1_BOXES.filter(b => isBlank(b.key))
-        .map(b => ({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}` }));
-      if (missing.length) showNotFinished(missing, submit);
+      const missing = L1_BOXES.filter(b => !responseLongEnough(b.key))
+        .map(b => ({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}: write at least ${MIN_RESPONSE_CHARS} characters` }));
+      if (missing.length) showNotFinished(missing);
       else submit();
     });
   }
@@ -1752,8 +1771,8 @@ const L2_TABS = [
         ${imgHtml("C01", "comic-img")}
         <section class="lesson-video" aria-labelledby="nexoraVideoTitle">
           <h3 id="nexoraVideoTitle">Watch: A better welcome at Nexora</h3>
-          <p id="nexoraVideoPrompt">Watch both versions. Notice what Alex does differently and how June responds.</p>
-          <video controls playsinline preload="metadata" aria-label="A better welcome at Nexora" aria-describedby="nexoraVideoPrompt" poster="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.poster)}"><source src="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.file)}" type="video/mp4">Your browser cannot play this video. <a href="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.file)}">Open the Nexora video</a>.</video>
+          <p id="nexoraVideoPrompt">Watch this video showing poor and good service. Notice what Alex does differently and how June responds.</p>
+          <video controls playsinline preload="metadata" aria-label="A better welcome at Nexora" aria-describedby="nexoraVideoPrompt" poster="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.poster)}"><source src="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.file)}" type="video/mp4"><track kind="captions" src="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.captions)}" srclang="en" label="English">Your browser cannot play this video. <a href="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.file)}">Open the Nexora video</a>.</video><details class="video-transcript"><summary>Read the video transcript</summary><p>Nexora Shop. Episode 1: Welcome to Nexora!</p><p>June enters the shop. Alex is looking at his phone.</p><p>JUNE: Um... hello?</p><p>ALEX: Hmm... later.</p><p>Service fail!</p><p>Pause! Alex ignored June. What did he do wrong?</p><p>ALEX: Good morning! Welcome to Nexora! How may I help you?</p><p>JUNE: I’m just browsing, thanks!</p><p>ALEX: Sure, take your time!</p><p>Pause! June likes a phone. What should Alex say?</p><p>ALEX: That one has a great camera! Wanna try?</p><p>JUNE: Ooh, yes please!</p><p>Service win!</p><p>ALEX: Welcome back, June!</p><p>JUNE: Hi Alex! My friend needs a new phone too!</p><p>Three ways to approach customers: Greeting: “Good morning!” Service: “How may I help you?” Product: “Want to try it?” Make customers feel welcome so they come back!</p></details>
           ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}
         </section>`),
       notesPart(() => `
@@ -1904,7 +1923,7 @@ function wirePath(el, ctx) {
 }
 
 /* ---------------- Marked questions: hint, one retry, then the answer ----------------
-   Level 3 Q2 and Level 5 Q3 and Q4. Submit records the first attempt (never
+   Level 3 Q2 and Level 5 Q1 and Q2. Submit records the first attempt (never
    overwritten). Each wrong item shows its own hint and can be changed once, then
    "Check again" records the second attempt. Still wrong: the right answer with its
    reason. Feedback sits directly under its item, with ✓ or ✗ (never colour alone).
@@ -1985,8 +2004,8 @@ function itemControlHtml(item) {
     </div>`;
   }
   return `<div class="mcq-options" role="group" aria-label="Choose one answer">
-    ${item.options.map(o => { const m = marks(o.letter); return `<button type="button" class="choice-btn mcq-btn ${v === o.letter ? "picked" : ""} ${m.cls}" data-item="${item.id}" data-value="${o.letter}" aria-pressed="${v === o.letter}" ${off ? "disabled" : ""}>
-      <span class="mcq-letter" aria-hidden="true">${o.letter}</span><span class="mcq-text"><span class="visually-hidden">${o.letter}. </span>${escapeHtml(o.text)}${m.tag ? `<span class="mcq-tag">${m.tag}</span>` : ""}</span></button>`; }).join("")}
+    ${item.options.map(o => { const m = marks(o.letter); return `<button type="button" class="choice-btn mcq-btn ${v === o.letter ? "picked" : ""} ${m.cls}" data-item="${item.id}" data-value="${o.letter}" aria-label="${escapeHtml(`${o.letter}. ${o.text}${m.cls === "correct-answer" ? " Correct answer." : m.cls === "wrong-pick" ? " Your answer, not correct." : ""}`)}" aria-pressed="${v === o.letter}" ${off ? "disabled" : ""}>
+      <span class="mcq-letter" aria-hidden="true">${o.letter}</span><span class="mcq-text">${escapeHtml(o.text)}${m.tag ? `<span class="mcq-tag">${m.tag}</span>` : ""}</span></button>`; }).join("")}
   </div>`;
 }
 
@@ -2128,7 +2147,7 @@ const L3_TABS = [
           </div>
         </details>
         <p>Watch how Alex starts the chat, presents information, and responds when something has gone wrong.</p>
-        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.alex, "💬 Open Alex (new tab) ↗")}
+        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.alex, "💬 Open chat with Alex (new tab) ↗")}
         ${tickHtml("s3.tick", "I have finished chatting with Alex.", ctx.readOnly)}`,
       wire: (el, ctx) => wireTick(el, 3, 0, "s3.tick")
     }]
@@ -2345,11 +2364,11 @@ const L4_TABS = [
           <div class="btn-row"><a href="#stylez" class="btn secondary" id="stylezInfoBtn">View all Stylez information</a></div>
         </section>
         <div class="start-box">
-          <p><strong>You start the conversation.</strong> Try:</p>
+          <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
           ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
         </div>
         <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.</span></p>
-        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open Suzzie (new tab) ↗")}
+        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open chat with Suzzie (new tab) ↗")}
         ${tickHtml("s4.tick", "I have finished serving Suzzie.", ctx.readOnly)}`,
       wire: (el) => wireTick(el, 4, 0, "s4.tick")
     }]
@@ -2447,7 +2466,7 @@ const L5_TABS = [
           <h2 class="visually-hidden">Check your understanding</h2>
           <p>Try these without going back to the notes. It is okay to get some wrong!</p>
           <section class="question card" data-q="q3" aria-labelledby="l5q3">
-            <h3 class="q-title" id="l5q3"><span class="q-num">Q3.</span> True or false? Tap True or False for each.</h3>
+            <h3 class="q-title" id="l5q3"><span class="q-num">Q1.</span> True or false? Tap True or False for each.</h3>
             <ol class="tf-list">
               ${L5_Q3.map(it => `
                 <li class="tf-item" data-key="${it.answerKey}">
@@ -2458,14 +2477,14 @@ const L5_TABS = [
             </ol>
           </section>
           <section class="question card" data-q="q4" aria-labelledby="l5q4">
-            <h3 class="q-title" id="l5q4"><span class="q-num">Q4.</span> A customer at a mobile phone shop says, "This is the third time I've called about the same faulty charger, and nobody has fixed it!" Which response best shows good service recovery? Tap one.</h3>
+            <h3 class="q-title" id="l5q4"><span class="q-num">Q2.</span> A customer at a mobile phone shop says, "This is the third time I've called about the same faulty charger, and nobody has fixed it!" Which response best shows good service recovery? Tap one.</h3>
             <div class="mcq-item" data-key="s5.q4">
               ${itemControlHtml(L5_Q4[0])}
               ${itemFeedbackHtml(L5_Q4[0])}
             </div>
           </section>
           <section class="question card" data-q="q5" aria-labelledby="l5q5">
-            <h3 class="q-title" id="l5q5"><span class="q-num">Q5.</span> Explain why quality customer service matters to a business. Give ONE reason.</h3>
+            <h3 class="q-title" id="l5q5"><span class="q-num">Q3.</span> Explain why quality customer service matters to a business. Give ONE reason.</h3>
             ${answerBoxHtml("s5.q5", { label: "Quality customer service matters because", readOnly: submitted || ctx.readOnly, rows: 3 })}
             ${submitted ? checkNoteHtml("Check your answer: did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?") : ""}
           </section>
@@ -2479,9 +2498,9 @@ const L5_TABS = [
         const submit = el.querySelector("#submitL5");
         if (submit) submit.addEventListener("click", () => {
           const missing = [];
-          L5_Q3.forEach(it => { if (getAnswer(it.answerKey) === undefined) missing.push({ el: el.querySelector(`[data-key="${it.answerKey}"]`), name: `Q3 ${it.id}` }); });
-          if (getAnswer("s5.q4") === undefined) missing.push({ el: el.querySelector('[data-key="s5.q4"]'), name: "Q4" });
-          if (isBlank("s5.q5")) missing.push({ el: el.querySelector('[data-key="s5.q5"]'), name: "Q5" });
+          L5_Q3.forEach(it => { if (getAnswer(it.answerKey) === undefined) missing.push({ el: el.querySelector(`[data-key="${it.answerKey}"]`), name: `Q1 ${it.id}` }); });
+          if (getAnswer("s5.q4") === undefined) missing.push({ el: el.querySelector('[data-key="s5.q4"]'), name: "Q2" });
+          if (isBlank("s5.q5")) missing.push({ el: el.querySelector('[data-key="s5.q5"]'), name: "Q3" });
           if (missing.length) { showNotFinished(missing); return; }
           recordAttempts(L5_MARKED, "first");
           rec.submitted["s5.check"] = nowIso();
@@ -2509,13 +2528,13 @@ const L5_TABS = [
         return `
           <h2 class="visually-hidden">Exit ticket</h2>
           <section class="question card" data-q="q6" aria-labelledby="l5q6">
-            ${answerBoxHtml("s5.q6", { labelHtml: `<span class="q-num">Q6.</span> What is one thing you have learnt about customer service?`, hint: "One thing I learnt is...", readOnly: ro, rows: 3 })}
+            ${answerBoxHtml("s5.q6", { labelHtml: `<span class="q-num">Q4.</span> What is one thing you have learnt about customer service?`, hint: "One thing I learnt is...", readOnly: ro, rows: 3 })}
           </section>
           <section class="question card" data-q="q7" aria-labelledby="l5q7">
-            ${answerBoxHtml("s5.q7", { labelHtml: `<span class="q-num">Q7.</span> What is one question you still have about this chapter?`, hint: "I am still not sure about...", readOnly: ro, rows: 3 })}
+            ${answerBoxHtml("s5.q7", { labelHtml: `<span class="q-num">Q5.</span> What is one question you still have about this chapter?`, hint: "I am still not sure about...", readOnly: ro, rows: 3 })}
           </section>
           <section class="question card" data-q="q8" aria-labelledby="l5q8">
-            <h3 class="q-title" id="l5q8"><span class="q-num">Q8.</span> How confident are you that you can do each of these? Tap one face for each.</h3>
+            <h3 class="q-title" id="l5q8"><span class="q-num">Q6.</span> How confident are you that you can do each of these? Tap one face for each.</h3>
             ${CONFIDENCE_ROWS.map((row, r) => {
               const key = `s5.q8.${r + 1}`;
               const v = getAnswer(key);
@@ -2542,9 +2561,9 @@ const L5_TABS = [
         const submit = el.querySelector("#submitExit");
         if (submit) submit.addEventListener("click", () => {
           const missing = [];
-          if (isBlank("s5.q6")) missing.push({ el: el.querySelector('[data-key="s5.q6"]'), name: "Q6" });
-          if (isBlank("s5.q7")) missing.push({ el: el.querySelector('[data-key="s5.q7"]'), name: "Q7" });
-          CONFIDENCE_ROWS.forEach((row, r) => { const key = `s5.q8.${r + 1}`; if (getAnswer(key) === undefined) missing.push({ el: el.querySelector(`.face-row[data-key="${key}"]`), name: `Q8 (row ${r + 1})` }); });
+          if (isBlank("s5.q6")) missing.push({ el: el.querySelector('[data-key="s5.q6"]'), name: "Q4" });
+          if (isBlank("s5.q7")) missing.push({ el: el.querySelector('[data-key="s5.q7"]'), name: "Q5" });
+          CONFIDENCE_ROWS.forEach((row, r) => { const key = `s5.q8.${r + 1}`; if (getAnswer(key) === undefined) missing.push({ el: el.querySelector(`.face-row[data-key="${key}"]`), name: `Q6 (row ${r + 1})` }); });
           if (missing.length) { showNotFinished(missing); return; }
           rec.submitted["s5.exit"] = nowIso();
           if (!rec.done[5]) rec.done[5] = nowIso();
@@ -2643,8 +2662,8 @@ function reportMarkedHtml(item, r) {
   let value = recAnswer(r, item.answerKey);
   if (value === undefined) value = second ? second.a : first ? first.a : undefined;
   const title = item.type === "select" ? `Q2 ${item.id}. ${item.quote}`
-    : item.type === "tf" ? `Q3 ${item.id}. ${item.text}`
-    : `Q4. A customer at a mobile phone shop says, "This is the third time I've called about the same faulty charger, and nobody has fixed it!" Which response best shows good service recovery? Tap one.`;
+    : item.type === "tf" ? `Q1 ${item.id}. ${item.text}`
+    : `Q2. A customer at a mobile phone shop says, "This is the third time I've called about the same faulty charger, and nobody has fixed it!" Which response best shows good service recovery? Tap one.`;
   return `<div class="report-marked-answer">${reportAnswerHtml(title, reportChoiceLabel(item, value))}
     <dl class="report-attempts"><dt>First try</dt><dd data-student-text>${escapeHtml(first ? `${reportChoiceLabel(item, first.a)} (${first.ok ? "right" : "wrong"})` : "Not attempted yet")}</dd>
       <dt>Second try</dt><dd data-student-text>${escapeHtml(second ? `${reportChoiceLabel(item, second.a)} (${second.ok ? "right" : "wrong"})`
@@ -2659,7 +2678,7 @@ function learningAnswersHtml(r) {
     qa("What did Alex do to make June feel welcome? Why did she bring her friend back?","s2.video") + qa("Was this good service recovery? Which of the 8 steps above were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
     reportAnswerHtml("I have finished chatting with Alex.",tick("s3.tick")) + qa("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed. Skill or quality:","s3.q1a") + qa("This is important to customers because","s3.q1b") + L3_Q2.map(it=>reportMarkedHtml(it,r)).join(""),
     reportAnswerHtml("I have finished serving Suzzie.",tick("s4.tick")) + L4_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
-    L5_MARKED.map(it=>reportMarkedHtml(it,r)).join("") + qa("Q5. Quality customer service matters because","s5.q5") + qa("Q6. What is one thing you have learnt about customer service?","s5.q6") + qa("Q7. What is one question you still have about this chapter?","s5.q7") + CONFIDENCE_ROWS.map((row,i)=>{const v=recAnswer(r,`s5.q8.${i+1}`);return reportAnswerHtml(`Q8. ${row}`,typeof v==="number" && FACES[v] ? FACES[v][1] : undefined);}).join("")
+    L5_MARKED.map(it=>reportMarkedHtml(it,r)).join("") + qa("Q3. Quality customer service matters because","s5.q5") + qa("Q4. What is one thing you have learnt about customer service?","s5.q6") + qa("Q5. What is one question you still have about this chapter?","s5.q7") + CONFIDENCE_ROWS.map((row,i)=>{const v=recAnswer(r,`s5.q8.${i+1}`);return reportAnswerHtml(`Q6. ${row}`,typeof v==="number" && FACES[v] ? FACES[v][1] : undefined);}).join("")
   ];
   return groups.map((html,i)=>`<section class="card report-answer-level" aria-labelledby="answerLevel${i+1}"><h3 class="section-title" id="answerLevel${i+1}">Level ${i+1}: ${escapeHtml(LEVELS[i].title)}</h3>${html}</section>`).join("");
 }
@@ -2697,7 +2716,7 @@ function renderReport() {
       <div class="block">
         ${iconCardsHtml([
           { icon: "🎯", html: `Level 3, Q2: first try <strong>${q2 == null ? "–" : q2} / 4</strong>.` },
-          { icon: "🎯", html: `Level 5, Q3 and Q4: first try <strong>${q34 == null ? "–" : q34} / 5</strong>.` }
+          { icon: "🎯", html: `Level 5, Q1 and Q2: first try <strong>${q34 == null ? "–" : q34} / 5</strong>.` }
         ], "cols-2 report-scores")}
       </div>
       <section class="block" aria-labelledby="lookTitle">
@@ -2945,8 +2964,8 @@ function renderTeacherHome() {
 
 function itemTeacherLabel(it) {
   if (it.type === "select") return `Q2 ${it.id} (answer: ${it.answerLabel})`;
-  if (it.type === "tf") return `Q3 ${it.id}: ${it.text} (answer: ${it.answerLabel})`;
-  return `Q4 (answer: ${it.answerLabel})`;
+  if (it.type === "tf") return `Q1 ${it.id}: ${it.text} (answer: ${it.answerLabel})`;
+  return `Q2 (answer: ${it.answerLabel})`;
 }
 
 async function loadResults(cls) {
@@ -3012,14 +3031,14 @@ function renderClassResults(body, panel) {
         <thead><tr><th scope="col">Statement</th>${FACES.map(f => `<th scope="col"><span aria-hidden="true">${f[0]}</span> ${f[1]}</th>`).join("")}</tr></thead>
         <tbody>${CONFIDENCE_ROWS.map((row, i) => `<tr><th scope="row">${escapeHtml(row)}</th>${FACES.map((f, v) => `<td>${withWork.filter(x => recAnswer(x.record, `s5.q8.${i + 1}`) === v).length}</td>`).join("")}</tr>`).join("")}</tbody>
       </table></div>
-      <h3 class="sum-head">Q7: one question I still have</h3>
+      <h3 class="sum-head">Q5: one question I still have</h3>
       ${q7.length ? `<ul class="sum-list">${q7.map(x => `<li><strong>No. ${x.reg}:</strong> <span data-student-text>${escapeHtml(x.v)}</span></li>`).join("")}</ul>` : `<p class="muted">No answers yet.</p>`}
     </section>
     <section class="card" aria-labelledby="tableTitle">
       <h2 class="section-title" id="tableTitle">Students</h2>
       <p class="muted">Tap a row to open the student's full report.</p>
       <div class="table-wrap"><table class="results-table students-table">
-        <thead><tr><th scope="col">Register No.</th><th scope="col">Levels done</th><th scope="col">Q2 first try</th><th scope="col">Q3 and Q4 first try</th><th scope="col">Confidence</th></tr></thead>
+        <thead><tr><th scope="col">Register No.</th><th scope="col">Levels done</th><th scope="col">Q2 first try</th><th scope="col">Q1 and Q2 first try</th><th scope="col">Confidence</th></tr></thead>
         <tbody>${students.map((s, i) => {
           const r = s.record;
           const q2 = recFirstTry(r, L3_Q2), q34 = recFirstTry(r, L5_MARKED);
@@ -3046,7 +3065,7 @@ function qa(label, value) {
 function attemptsTable(items, firstCol) {
   return `<div class="table-wrap"><table class="results-table">
     <thead><tr><th scope="col">${firstCol}</th><th scope="col">First try</th><th scope="col">Second try</th></tr></thead>
-    <tbody>${items.map(it => `<tr><th scope="row">${escapeHtml(it.type === "select" ? `${it.id}. ${it.quote}` : it.type === "tf" ? `${it.id}. ${it.text}` : "Q4. Best service recovery response")}</th>
+    <tbody>${items.map(it => `<tr><th scope="row">${escapeHtml(it.type === "select" ? `${it.id}. ${it.quote}` : it.type === "tf" ? `${it.id}. ${it.text}` : "Q2. Best service recovery response")}</th>
       <td>${escapeHtml(attemptText(it, it._r.first && it._r.first[it.attemptKey]) || "–")}</td>
       <td>${escapeHtml(attemptText(it, it._r.second && it._r.second[it.attemptKey]) || "–")}</td></tr>`).join("")}</tbody>
   </table></div>`;
@@ -3075,12 +3094,12 @@ function renderStudentReport(body, panel) {
       ${attemptsTable(withR(L3_Q2), "Line")}
       <h3 class="sum-head">Level 4: reflections</h3>
       ${L4_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
-      <h3 class="sum-head">Level 5: Q3 and Q4</h3>
+      <h3 class="sum-head">Level 5: Q1 and Q2</h3>
       ${attemptsTable(withR(L5_MARKED), "Item")}
-      ${qa("Q5. Quality customer service matters because", recAnswer(r, "s5.q5"))}
+      ${qa("Q3. Quality customer service matters because", recAnswer(r, "s5.q5"))}
       <h3 class="sum-head">Exit ticket</h3>
-      ${qa("Q6. What is one thing you have learnt about customer service?", recAnswer(r, "s5.q6"))}
-      ${qa("Q7. What is one question you still have about this chapter?", recAnswer(r, "s5.q7"))}
+      ${qa("Q4. What is one thing you have learnt about customer service?", recAnswer(r, "s5.q6"))}
+      ${qa("Q5. What is one question you still have about this chapter?", recAnswer(r, "s5.q7"))}
       <ul class="conf-list">${CONFIDENCE_ROWS.map((row, i) => { const v = recAnswer(r, `s5.q8.${i + 1}`); return `<li class="conf-row"><span class="conf-text">${escapeHtml(row)}</span><span class="conf-face">${typeof v === "number" ? `<span aria-hidden="true">${FACES[v][0]}</span> ${FACES[v][1]}` : "–"}</span></li>`; }).join("")}</ul>
     </section>
     <div class="btn-row"><button type="button" class="btn secondary danger" id="clearStudent">Clear this student's work</button></div>
@@ -3118,14 +3137,14 @@ function csvCell(v) {
 function downloadClassCsv(res) {
   const header = ["Class", "Register No.", "Student name", "Levels done"]
     .concat(LEVELS.map(s => `Level ${s.num} finished`))
-    .concat(["Q2 first try (/4)", "Q3 and Q4 first try (/5)"])
+    .concat(["Q2 first try (/4)", "Q1 and Q2 first try (/5)"])
     .concat(L1_BOXES.map(b => `Level 1 story ${b.num}`))
     .concat(["Level 2 Video reflection", "Level 2 Think about it 1", "Level 2 Think about it 2", "Level 3 Q1 skill or quality", "Level 3 Q1 why important"])
     .concat(L3_Q2.reduce((a, it) => a.concat([`Q2 ${it.id} first try`, `Q2 ${it.id} second try`]), []))
     .concat(L4_BOXES.map(b => `Level 4 reflection ${b.num}`))
-    .concat(L5_Q3.reduce((a, it) => a.concat([`Q3 ${it.id} first try`, `Q3 ${it.id} second try`]), []))
-    .concat(["Q4 first try", "Q4 second try", "Q5", "Q6", "Q7"])
-    .concat(CONFIDENCE_ROWS.map((row, i) => `Q8 confidence ${i + 1}: ${row}`))
+    .concat(L5_Q3.reduce((a, it) => a.concat([`Q1 ${it.id} first try`, `Q1 ${it.id} second try`]), []))
+    .concat(["Q2 first try", "Q2 second try", "Q3", "Q4", "Q5"])
+    .concat(CONFIDENCE_ROWS.map((row, i) => `Q6 confidence ${i + 1}: ${row}`))
     .concat(["Last saved", "Cleared at"]);
   const rows = res.students.map(s => {
     const r = s.record || {};
@@ -3199,9 +3218,10 @@ async function syncActiveFromServer() {
   const key = activeKey();
   const generation = resetGenerations.get(key) || 0;
   let reply;
-  try { reply = await api("GET", { action: "load", "class": student.cls, reg: String(student.reg) }, 10000); }
+  try { reply = await loadStudentRecord(student.cls, student.reg, profileName(rec)); }
   catch (e) { serverUnreachable = true; updateNetBanner(); return; }
-  if (!reply.ok || key !== activeKey() || generation !== (resetGenerations.get(key) || 0)) return;
+  if(key !== activeKey() || generation !== (resetGenerations.get(key) || 0))return;
+  if(!reply.ok){if(["name_required","name_mismatch","profile_setup_required"].includes(reply.error))releaseResetProfile(key);return;}
   if (String(rec.baseClearedAt || "") > String(reply.clearedAt || "")) return;
   const before = JSON.stringify(rec);
   if (reply.clearedAt && String(rec.baseClearedAt || "") < reply.clearedAt) {

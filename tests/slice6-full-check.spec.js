@@ -148,7 +148,9 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await check(page, testInfo, "level1", problems);
   await page.click("#submitL1");
   await check(page, testInfo, "level1-not-finished", problems);
-  await page.locator("#notFinished button", { hasText: "Submit anyway" }).click();
+  await page.locator("#notFinished button", { hasText: "Go back" }).click();
+  for (let i=1;i<=3;i++) await page.locator(`textarea[data-answer="s1.q${i}"]`).fill("The staff listened carefully and helped the customer.");
+  await page.click("#submitL1");
   await check(page, testInfo, "level1-recap", problems);
   await page.click("#finishBtn");
   await check(page, testInfo, "badge-popup", problems);
@@ -289,7 +291,7 @@ test("Code.gs keeps saving when the Students tab is full", async ({}, testInfo) 
   const script = createAppsScript({ dataDir: fs.mkdtempSync(path.join(os.tmpdir(), "ch6-rows-")), teacherCode: "T1", maxRows: 5 });
   expect(JSON.parse(script.doPost(JSON.stringify({ action: "addClass", code: "T1", name: "3E1" }))).ok).toBe(true);
   for (let reg = 1; reg <= 12; reg++) {
-    const reply = JSON.parse(script.doPost(JSON.stringify({ action: "save", record: { cls: "3E1", reg } })));
+    const reply = JSON.parse(script.doPost(JSON.stringify({ action: "save", name:"Test Student " + reg, record: { cls: "3E1", reg, profile:{name:{v:"Test Student " + reg,t:new Date().toISOString()}} } })));
     expect(reply.ok, `save ${reg}`).toBe(true);
   }
   const results = JSON.parse(script.doPost(JSON.stringify({ action: "results", code: "T1", class: "3E1" })));

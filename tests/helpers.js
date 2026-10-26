@@ -58,10 +58,21 @@ async function resetServer(request, classes) {
   }
 }
 
+// Test fixtures supply the same identity as the registration form. Security tests use raw requests.
 async function apiPost(request, body) {
+  if (body.action === "save" && body.record) {
+    body = structuredClone(body);
+    body.record.profile ||= {name:{v:"Test Student " + body.record.reg,t:new Date().toISOString()}};
+    body.name ??= body.record.profile.name.v;
+  }
   return (await request.post("/api", { data: JSON.stringify(body), headers: { "Content-Type": "text/plain" } })).json();
 }
 async function apiGet(request, params) {
+  if (params.action === "load" && params.name === undefined) {
+    const rows = await apiPost(request,{action:"results",code:CODE(),class:params.class});
+    const row = (rows.students || []).find(s => Number(s.reg) === Number(params.reg));
+    params = {...params,name:row?.record?.profile?.name?.v || "Test Student " + params.reg};
+  }
   return (await request.get("/api?" + new URLSearchParams(params))).json();
 }
 

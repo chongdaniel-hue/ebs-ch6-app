@@ -192,3 +192,15 @@ Replace the existing Apps Script source with the current `apps-script/Code.gs`, 
 ## Reset releases identity (version 0.6.26)
 Redeploy the updated `apps-script/Code.gs` as a new version of the existing deployment. Reset now clears the name and profile and makes the register number available for registration again. A reset marker is retained internally to reject older queued saves. No new Script Properties or columns are needed.
 After redeployment, the public `?action=classes` response should report `version: "0.6.26"`, allowing this backend update to be verified without changing student data.
+
+## Privacy update (version 0.6.31 — supersedes earlier unnamed-profile access)
+
+Both student `load` and `save` now require the registered name and compare it on the server, ignoring capitalisation and repeated spaces. Missing or mismatched names return an error without any student record. The website sends these requests using POST. Names identify a profile; they are not strong authentication secrets.
+
+Deploy the current `apps-script/Code.gs` as a new version of the existing web-app deployment **before publishing the matching website update**. Keep the same deployment URL and existing Script Properties. The privacy fix is not active on Google until this deployment is updated. Confirm the public `classes` response reports version `0.6.31`.
+
+Legacy records containing answers but no saved profile name are deliberately blocked from student access (`profile_setup_required`). Their answers remain available through password-protected Teacher Mode. Do not let an arbitrary student claim an unnamed record. The teacher should verify ownership before correcting that record's saved profile name in the Sheet's Record JSON, or export the answers and reset the profile for fresh registration. Back up the Sheet before a manual correction. This restriction supersedes the older instructions above that allowed students to add a name to an existing unnamed profile.
+
+For a safe check, use a new test class/profile with fictional answers: loading or saving with no name or the wrong name must fail without returning a record; the matching saved name must load normally. Never probe other students' records.
+
+Production compatibility: if the older backend replies `unknown_action` to POST load, the frontend retries GET load with the supplied name. An explicit name error is never retried. This permits a frontend-first rollout on the existing version-1 backend, but does not fix the older server's privacy weakness. Complete the Google deployment update as soon as possible; version 0.6.31 enforces the same name validation for both request methods.

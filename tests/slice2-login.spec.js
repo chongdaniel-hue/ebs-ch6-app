@@ -250,7 +250,7 @@ test.describe("saving and loading", () => {
     await resetServer(request, ["3E1"]);
     await login(page, "3E1", 10);
     await request.post("/__test/busy?n=1");
-    const busyReply = page.waitForResponse(r => r.url().endsWith("/api") && r.request().method() === "POST", { timeout: 25000 });
+    const busyReply = page.waitForResponse(r => r.url().endsWith("/api") && r.request().method() === "POST" && JSON.parse(r.request().postData()).action === "save", { timeout: 25000 });
     await page.click("#briefing button");
     expect((await (await busyReply).json()).error).toBe("busy");
     await expect(page.locator("#netBanner")).toHaveText("Your answers have not been sent yet. They are safe on this device. We will keep trying.", { timeout: 5000 });

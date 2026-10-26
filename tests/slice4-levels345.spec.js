@@ -54,7 +54,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(tip.locator(".say")).toHaveText(["\"How much does the Nexora Core cost?\"", "\"Why is the Nexora Prime so expensive?\"", "\"My phone's screen stopped working. What can I do?\""]);
     await expect(page.locator("#part0 > p", { hasText: "Watch how" })).toHaveText("Watch how Alex starts the chat, presents information, and responds when something has gone wrong.");
     const gem = page.locator(".gem-btn");
-    await expect(gem).toHaveText("Open Alex (new tab)");
+    await expect(gem).toHaveText("Open chat with Alex (new tab)");
     await expect(gem).toHaveAttribute("href", "https://gemini.google.com/share/d/11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8?usp=sharing");
     await expect(gem).toHaveAttribute("target", "_blank");
     const tick = page.locator(".tick-input");
@@ -211,10 +211,10 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await page.click("#stylezBack");
     await expect(page).toHaveURL(/#level4$/);
     await expect(page.locator("#nextBtn")).toBeDisabled();
-    await expect(page.locator(".start-box")).toHaveText("You start the conversation. Try: \"Hi, welcome to Stylez! How may I assist you?\"");
+    await expect(page.locator(".start-box")).toHaveText("You are the customer service officer. Suzzie is your customer. In a fresh chat, greet Suzzie to begin. Try: \"Hi, welcome to Stylez! How may I assist you?\"");
     await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.");
-    await expect(page.locator(".gem-btn")).toHaveText("Open Suzzie (new tab)");
-    await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/share/d/1H4fljjGGGpMKFUnY-CsTxDrElTGAdMZy?usp=sharing");
+    await expect(page.locator(".gem-btn")).toHaveText("Open chat with Suzzie (new tab)");
+    await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/share/d/1D1h2fvX3L6KnSJHjCGQSm1ZkVWUnu8E3?usp=sharing");
     await expect(page.locator(".tick-row")).toHaveText("I have finished serving Suzzie.");
     await expect(page.locator("#nextBtn")).toHaveText("Next: Reflect →");
     await expect(page.locator("#nextBtn")).toBeDisabled();
@@ -250,35 +250,35 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
 });
 
 test.describe("Level 5: Check and Exit Ticket", () => {
-  test("Q3 to Q5 feedback, Next held back, exit ticket, Completion Champion", async ({ page, request }, testInfo) => {
+  test("Q1 to Q3 feedback, Next held back, exit ticket, Completion Champion", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
     await studentAt(page, request, 23, 5);
     await page.click("#levelCard5");
     await expect(page.locator("h1.page-title")).toHaveText("Level 5: Check and Exit Ticket");
     await expect(page.locator(".step-label")).toHaveText(["Check", "Exit ticket (locked)"]);
     await expect(page.locator("#part0 > p").first()).toHaveText("Try these without going back to the notes. It is okay to get some wrong!");
-    await expect(page.locator("#l5q3")).toHaveText("Q3. True or false? Tap True or False for each.");
+    await expect(page.locator("#l5q3")).toHaveText("Q1. True or false? Tap True or False for each.");
     await expect(page.locator(".tf-text")).toHaveText([
       "i. Customer service ends once the customer has paid.",
       "ii. Good product knowledge helps a customer service officer answer customer questions confidently.",
       "iii. Service recovery is complete once the staff member has apologised.",
       "iv. A service breakdown occurs when customers make a complaint about a product or service."
     ]);
-    await expect(page.locator("#l5q4")).toHaveText("Q4. A customer at a mobile phone shop says, \"This is the third time I've called about the same faulty charger, and nobody has fixed it!\" Which response best shows good service recovery? Tap one.");
+    await expect(page.locator("#l5q4")).toHaveText("Q2. A customer at a mobile phone shop says, \"This is the third time I've called about the same faulty charger, and nobody has fixed it!\" Which response best shows good service recovery? Tap one.");
     await expect(page.locator(".mcq-btn .mcq-text")).toHaveText([
-      "A. \"I'm sorry about that. Our chargers usually work fine, so it may be your phone.\"",
-      "B. \"I'm sorry you've had to call so many times. Let me personally make sure this gets fixed today.\"",
-      "C. \"I'm sorry about that. Please call our hotline again tomorrow, and they will check it for you.\"",
-      "D. \"Thank you for telling us about this. I'll pass your feedback on to our team.\""
+      "\"I'm sorry about that. Our chargers usually work fine, so it may be your phone.\"",
+      "\"I'm sorry you've had to call so many times. Let me personally make sure this gets fixed today.\"",
+      "\"I'm sorry about that. Please call our hotline again tomorrow, and they will check it for you.\"",
+      "\"Thank you for telling us about this. I'll pass your feedback on to our team.\""
     ]);
-    await expect(page.locator("#l5q5")).toHaveText("Q5. Explain why quality customer service matters to a business. Give ONE reason.");
+    await expect(page.locator("#l5q5")).toHaveText("Q3. Explain why quality customer service matters to a business. Give ONE reason.");
     await expect(page.locator('[data-q="q5"] .field-label')).toHaveText("Quality customer service matters because");
     await expect(page.locator(".choice-btn.picked")).toHaveCount(0); // nothing pre-selected
     await expect(page.locator("#nextBtn")).toHaveCount(0);
     await checkPage(page, testInfo, "slice4-level5-check");
 
     await page.click("#submitL5");
-    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Q3 i", "✗ Q3 ii", "✗ Q3 iii", "✗ Q3 iv", "✗ Q4", "✗ Q5"]);
+    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Q1 i", "✗ Q1 ii", "✗ Q1 iii", "✗ Q1 iv", "✗ Q2", "✗ Q3"]);
     await page.locator("#notFinished button").click();
 
     const tf = (id, label) => page.locator(`.tf-item[data-key="s5.q3.${id}"] .tf-btn`, { hasText: label });
@@ -307,7 +307,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
       const b = document.getElementById("checkAgainBtn"), q5 = document.querySelector('[data-q="q5"]');
       return !!(q5.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
     })).toBe(true);
-    // Q3: i fixed, iii left (still wrong). Q4: changed to D (still wrong). One tap checks them all.
+    // Q1: i fixed, iii left (still wrong). Q2: changed to D (still wrong). One tap checks them all.
     await tf("i", "False").click();
     await expect(page.locator('[data-key="s5.q3.i"] .check-prompt')).toHaveText("Tap Check again to see if you're right.");
     await page.locator(".mcq-btn", { hasText: "pass your feedback on" }).click();
@@ -325,7 +325,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(page.locator(".mcq-btn.correct-answer .mcq-letter")).toHaveText("B");
     await expect(page.locator(".mcq-btn.correct-answer .right-tag")).toHaveText("✓ Correct answer");
     await expect(page.locator(".mcq-btn.wrong-pick .mcq-letter")).toHaveText("D");
-    // Summary card: i, iii and Q4 were wrong on the first try (iii and Q4 share a line).
+    // Summary card: i, iii and Q2 were wrong on the first try (iii and Q2 share a line).
     const card = page.locator(".missed-card");
     await expect(card.locator("h3")).toHaveText("Let's learn from these");
     await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
@@ -338,11 +338,11 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await page.click("#nextBtn");
 
     // Exit ticket.
-    await expect(page.locator('[data-q="q6"] .field-label')).toHaveText("Q6. What is one thing you have learnt about customer service?");
-    await expect(page.locator('[data-q="q7"] .field-label')).toHaveText("Q7. What is one question you still have about this chapter?");
+    await expect(page.locator('[data-q="q6"] .field-label')).toHaveText("Q4. What is one thing you have learnt about customer service?");
+    await expect(page.locator('[data-q="q7"] .field-label')).toHaveText("Q5. What is one question you still have about this chapter?");
     await expect(page.locator('textarea[data-answer="s5.q6"]')).toHaveAttribute("placeholder", "One thing I learnt is...");
     await expect(page.locator('textarea[data-answer="s5.q7"]')).toHaveAttribute("placeholder", "I am still not sure about...");
-    await expect(page.locator("#l5q8")).toHaveText("Q8. How confident are you that you can do each of these? Tap one face for each.");
+    await expect(page.locator("#l5q8")).toHaveText("Q6. How confident are you that you can do each of these? Tap one face for each.");
     await expect(page.locator(".face-statement")).toHaveText([
       "I can explain why quality customer service matters to a business",
       "I can name the skills and qualities a good customer service employee needs",
@@ -355,7 +355,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await page.fill('textarea[data-answer="s5.q6"]', "Service recovery has 8 steps.");
     await page.locator('.face-btn[data-key="s5.q8.1"][data-value="2"]').click();
     await page.click("#submitExit");
-    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Q7", "✗ Q8 (row 2)", "✗ Q8 (row 3)", "✗ Q8 (row 4)"]);
+    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Q5", "✗ Q6 (row 2)", "✗ Q6 (row 3)", "✗ Q6 (row 4)"]);
     await page.locator("#notFinished button").click();
     await page.fill('textarea[data-answer="s5.q7"]', "How do I close positively?");
     for (const [r, v] of [[2, 3], [3, 1], [4, 0]]) await page.locator(`.face-btn[data-key="s5.q8.${r}"][data-value="${v}"]`).click();
@@ -375,7 +375,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(page.locator(".welcome-card a.btn")).toHaveText("My learning report"); // inside the welcome card
     await expect(page.locator("a.btn", { hasText: "My learning report" })).toHaveCount(1);
 
-    // Readable columns in the Sheet: Q3 and Q4 first try (2 of 5 right) and confidence.
+    // Readable columns in the Sheet: Q1 and Q2 first try (2 of 5 right) and confidence.
     const sheet = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), "ebs-ch6-playwright-data", "sheets.json"), "utf8"));
     const r = sheet.Students.find(x => x[0] === "3E1#23");
     expect(r[3]).toBe("5");

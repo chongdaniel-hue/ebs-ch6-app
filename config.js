@@ -17,12 +17,12 @@ window.APP_CONFIG = {
 
   /* ---------- 2. Chatbot links (open in a new tab) ---------- */
   VIDEOS: {
-    nexoraWelcome: {file:"assets/video/nexora-welcome.mp4",poster:"assets/video/nexora-welcome-poster.jpg"}
+    nexoraWelcome: {file:"assets/video/nexora-welcome.mp4",poster:"assets/video/nexora-welcome-poster.jpg",captions:"assets/video/nexora-welcome.en.vtt"}
   },
 
   GEMS: {
     alex: "https://gemini.google.com/share/d/11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8?usp=sharing",
-    suzzie: "https://gemini.google.com/share/d/1H4fljjGGGpMKFUnY-CsTxDrElTGAdMZy?usp=sharing"
+    suzzie: "https://gemini.google.com/share/d/1D1h2fvX3L6KnSJHjCGQSm1ZkVWUnu8E3?usp=sharing"
   },
 
   /* ---------- 3. Images ----------

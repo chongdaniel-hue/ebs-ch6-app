@@ -10,9 +10,9 @@
 
    One web app URL handles every request:
      GET  ?action=classes                      list of classes (anyone)
-     GET  ?action=load&class=3E1&reg=12        one student's saved work
+     POST {action:"load", class, reg, name}     name-checked student work
      POST {action:"resetProgress", code, class, reg} protected by RESET_CODE
-     POST {action:"save", record}              save one student's work
+     POST {action:"save", record, name}        name-checked save
      POST {action:"teacherCheck", code}        check the teacher code
      POST {action:"addClass", code, name}
      POST {action:"removeClass", code, name}
@@ -27,7 +27,7 @@
    JavaScript that Apps Script accepts (no ?. or ?? operators).
    ============================================================ */
 
-var SCRIPT_VERSION = "0.6.26";
+var SCRIPT_VERSION = "0.6.31";
 
 var CLASSES_SHEET = "Classes";
 var STUDENTS_SHEET = "Students";
@@ -60,7 +60,7 @@ function doGet(e) {
   var p = (e && e.parameter) || {};
   return respond(safely(function () {
     if (p.action === "classes") return { ok: true, classes: getClassNames() };
-    if (p.action === "load") return loadStudent(p["class"], p.reg);
+    if (p.action === "load") return loadStudent(p["class"], p.reg, p.name);
     return { ok: false, error: "unknown_action" };
   }));
 }
@@ -75,7 +75,8 @@ function doPost(e) {
   if (!body || typeof body !== "object") return respond({ ok: false, error: "bad_request" });
   return respond(safely(function () {
     switch (body.action) {
-      case "save": return saveStudent(body.record);
+      case "load": return loadStudent(body["class"], body.reg, body.name);
+      case "save": return saveStudent(body.record, body.name);
       case "resetProgress": return resetOnly(body.code, function () { return clearStudent(body["class"], body.reg); });
       case "profileClasses": return profileOnly(body.code, body.purpose, function () { return {ok:true,classes:classLists().classes}; });
       case "profileList": return profileOnly(body.code, body.purpose, function () { return registeredProfiles(body["class"]); });
@@ -271,17 +272,31 @@ function readStudent(sheet, row) {
   return { record: record, clearedAt: String(r[COL.clearedAt] || ""), lastSaved: String(r[COL.lastSaved] || "") };
 }
 
-function loadStudent(cls, reg) {
+function normalizedStudentName(name) {
+  return typeof name === "string" ? name.trim().replace(/\s+/g," ").toLowerCase() : "";
+}
+function studentNameError(record, name) {
+  if (!normalizedStudentName(name) || String(name).length > 80) return {ok:false,error:"name_required"};
+  if (!record) return null;
+  var saved = record.profile && record.profile.name && record.profile.name.v;
+  if (!normalizedStudentName(saved)) return {ok:false,error:"profile_setup_required"};
+  return normalizedStudentName(saved) === normalizedStudentName(name) ? null : {ok:false,error:"name_mismatch"};
+}
+function loadStudent(cls, reg, name) {
+  var requiredName=studentNameError(null,name);
+  if(requiredName)return requiredName;
   var who = checkStudent(cls, reg);
   if (who.error) return { ok: false, error: who.error };
   var sheet = ensureSheets().students;
   var row = findStudentRow(sheet, studentKey(who.cls, who.reg));
   if (row === -1) return { ok: true, record: null, clearedAt: "" };
   var s = readStudent(sheet, row);
+  var denied=studentNameError(s.record,name);if(denied)return denied;
   return { ok: true, record: s.record, clearedAt: s.clearedAt };
 }
 
-function saveStudent(record) {
+function saveStudent(record, name) {
+  var requiredName=studentNameError(null,name);if(requiredName)return requiredName;
   if (!record || typeof record !== "object") return { ok: false, error: "bad_request" };
   var who = checkStudent(record.cls, record.reg);
   if (who.error) return { ok: false, error: who.error };
@@ -291,6 +306,9 @@ function saveStudent(record) {
     var key = studentKey(who.cls, who.reg);
     var row = findStudentRow(sheet, key);
     var stored = row === -1 ? { record: null, clearedAt: "" } : readStudent(sheet, row);
+    var denied=studentNameError(stored.record,name);if(denied)return denied;
+    var incomingName=record.profile && record.profile.name && record.profile.name.v;
+    if(normalizedStudentName(incomingName) !== normalizedStudentName(name))return {ok:false,error:"name_mismatch"};
     // Work cleared by a teacher after this copy was loaded is thrown away.
     if (stored.clearedAt && String(record.baseClearedAt || "") < stored.clearedAt) {
       return { ok: false, error: "cleared", clearedAt: stored.clearedAt, record: stored.record };

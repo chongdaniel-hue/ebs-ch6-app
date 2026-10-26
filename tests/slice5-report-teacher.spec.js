@@ -46,7 +46,7 @@ test.describe("6.1 My learning report", () => {
     const errors = watchErrors(page);
     await resetServer(request, ["3E1"]);
     const record = finishedRecord(5, { wrong: ["s3q2.R", "s5q3.iii", "s5q4", "s5q3.i"] });
-    delete record.second["s5q4"]; // Q4: wrong on the first try, no second try yet
+    delete record.second["s5q4"]; // Q2: wrong on the first try, no second try yet
     expect((await apiPost(request, { action: "save", record })).ok).toBe(true);
     await login(page, "3E1", 5);
     await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
@@ -62,7 +62,7 @@ test.describe("6.1 My learning report", () => {
     ]);
     await expect(page.locator(".report-level-when").first()).toHaveText("20 Oct 2026");
     await expect(page.locator(".report-level-badge")).toHaveText(["Story Sharer", "Service Scholar", "Service Spotter", "Service Star", "Completion Champion"]);
-    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 3 / 4.", "Level 5, Q3 and Q4: first try 2 / 5."]);
+    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 3 / 4.", "Level 5, Q1 and Q2: first try 2 / 5."]);
     await expect(page.locator("#lookTitle")).toHaveText("Look at these again");
     await expect(page.locator(".look-list li")).toHaveText([
       "Closing the customer experience positively (Level 2, The Four Stages)",
@@ -75,7 +75,7 @@ test.describe("6.1 My learning report", () => {
     const secondTry = i => page.locator(".report-marked-answer").nth(i).locator(".report-attempts dd").nth(1);
     await expect(secondTry(0)).toHaveText("Not needed: right on the first try"); // Q2 P
     await expect(secondTry(2)).toHaveText("Closing the customer experience positively (right)"); // Q2 R, put right on the second try
-    await expect(secondTry(8)).toHaveText("Not attempted yet"); // Q4
+    await expect(secondTry(8)).toHaveText("Not attempted yet"); // Q2
     await expect(page.locator(".report-attempts", { hasText: /Not attempted$/ })).toHaveCount(0);
     await expect(page.locator("#reportBack")).toHaveText("Back to my route");
     await checkPage(page, testInfo, "slice5-report");
@@ -99,7 +99,7 @@ test.describe("6.1 My learning report", () => {
     await page.locator("#badgeModal button", { hasText: "See my learning report" }).click();
     await expect(page).toHaveURL(/#report$/);
     await expect(page.locator(".look-none")).toHaveText("Nothing to look at again. You got everything right on the first try!");
-    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 4 / 4.", "Level 5, Q3 and Q4: first try 5 / 5."]);
+    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 4 / 4.", "Level 5, Q1 and Q2: first try 5 / 5."]);
     await checkPage(page, testInfo, "slice5-report-allright");
   });
 });
@@ -140,15 +140,15 @@ test.describe("T.3 Results", () => {
     await expect(sum.locator("#sumTitle")).toHaveText("Class summary: 3E1");
     await expect(sum.locator(".sum-list").first().locator("li")).toHaveText(["Level 1: 3 of 3", "Level 2: 3 of 3", "Level 3: 2 of 3", "Level 4: 2 of 3", "Level 5: 2 of 3"]);
     await expect(sum.locator(".sum-list").nth(1).locator("li").first()).toHaveText("Q2 R (answer: Closing the customer experience positively): wrong for 2 of 2");
-    await expect(sum.locator(".sum-list").nth(1).locator("li").nth(1)).toHaveText("Q4 (answer: B): wrong for 1 of 2");
+    await expect(sum.locator(".sum-list").nth(1).locator("li").nth(1)).toHaveText("Q2 (answer: B): wrong for 1 of 2");
     // Confidence spread, row 1: Confident for students 1 and 3, Very confident for student 2.
     await expect(sum.locator("tbody tr").first().locator("td")).toHaveText(["0", "0", "2", "1"]);
     await expect(sum.locator(".sum-list").last().locator("li")).toHaveText(["No. 1: How do I close positively?"]);
 
     const rows = page.locator(".students-table tbody tr");
     await expect(rows).toHaveCount(3);
-    await expect(rows.nth(0).locator("td")).toHaveText(["No. 1", "5", "3 / 4", "5 / 5", ""]);
-    await expect(rows.nth(2).locator("td")).toHaveText(["No. 3", "2", "–", "–", ""]);
+    await expect(rows.nth(0).locator("td")).toHaveText(["Test Student 1 · No. 1", "5", "3 / 4", "5 / 5", ""]);
+    await expect(rows.nth(2).locator("td")).toHaveText(["Test Student 3 · No. 3", "2", "–", "–", ""]);
     await checkPage(page, testInfo, "slice5-results");
 
     // CSV for the chosen class, named with the Singapore date (1:30am on 20 Oct in Singapore).
@@ -160,24 +160,24 @@ test.describe("T.3 Results", () => {
     expect(lines).toHaveLength(4);
     expect(lines[0]).toContain("Register No.,Student name,Levels done,Level 1 finished");
     expect(lines[0]).toContain("Q2 R first try,Q2 R second try");
-    expect(lines[1]).toContain("3E1,1,,5,");
+    expect(lines[1]).toContain("3E1,1,Test Student 1,5,");
     expect(lines[1]).toContain("Closing the customer experience positively (right)");
     expect(lines[1]).toContain("How do I close positively?");
 
     // A student's full report.
     await rows.nth(1).click();
-    await expect(page.locator("#stuTitle")).toHaveText("Class 3E1, Register No. 2");
+    await expect(page.locator("#stuTitle")).toHaveText("Test Student 2 · Class 3E1, Register No. 2");
     await expect(page.locator(".qa").first()).toHaveText("1. Think of a time you got GOOD customer service (e.g. at a bubble tea shop, a hawker stall, or when ordering on GrabFood). What did the staff do?Good story 2");
     const q2Row = page.locator(".student-report table").first().locator("tbody tr").nth(2);
     await expect(q2Row.locator("td")).toHaveText(["Performing service recovery (wrong)", "Closing the customer experience positively (right)"]);
     await expect(page.locator(".qa", { hasText: "Was this good service recovery" }).locator(".qa-a")).toHaveText("No, no solution was offered.");
-    await expect(page.locator(".student-report table").nth(1).locator("tbody tr").last().locator("th")).toHaveText("Q4. Best service recovery response");
+    await expect(page.locator(".student-report table").nth(1).locator("tbody tr").last().locator("th")).toHaveText("Q2. Best service recovery response");
     await expect(page.locator(".qa", { hasText: "Name ONE item Uniqlo" }).locator(".qa-a")).toHaveText("(blank)");
     await checkPage(page, testInfo, "slice5-student-report");
 
     // Clear this student's work.
     await page.click("#clearStudent");
-    await expect(page.locator("#clearModal p")).toHaveText("Clear all work for Student, Class 3E1, Register No. 2? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy.");
+    await expect(page.locator("#clearModal p")).toHaveText("Clear all work for Test Student 2, Class 3E1, Register No. 2? This deletes their answers, first attempts, badges and progress, and cannot be undone. Download the CSV first if you want a copy.");
     await expect(page.locator("#clearModal button")).toHaveText(["Clear work", "Cancel"]);
     await checkPage(page, testInfo, "slice5-clear-popup");
     await page.locator("#clearModal button", { hasText: "Cancel" }).click();

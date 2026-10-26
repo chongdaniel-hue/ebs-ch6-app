@@ -40,7 +40,8 @@ const MIME = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
   ".svg": "image/svg+xml",
-  ".mp4": "video/mp4"
+  ".mp4": "video/mp4",
+  ".vtt": "text/vtt; charset=utf-8"
 };
 
 // The same files Vercel publishes (see .vercelignore).

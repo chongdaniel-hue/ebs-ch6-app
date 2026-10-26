@@ -12,7 +12,7 @@ test('student names register once, lock, sync and identify reports without repla
  await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');await expect(page.locator('#studentNameForm button')).toHaveCount(0);
  const loaded=await apiGet(request,{action:'load',class:'3E1',reg:5});
  const attempt=JSON.parse(JSON.stringify(loaded.record));attempt.profile.name={v:'Replacement Name',t:new Date().toISOString()};
- const rejectedRename=await apiPost(request,{action:'save',record:attempt});expect(rejectedRename.record.profile.name.v).toBe('Demo Student Five');
+ const rejectedRename=await apiPost(request,{action:'save',record:attempt});expect(rejectedRename.error).toBe('name_mismatch');expect(rejectedRename).not.toHaveProperty('record');
  const ctx=await browser.newContext();const other=await ctx.newPage();await other.goto('http://localhost:8788/');await other.locator('#nameInput').fill('Different Name');await expect(other.locator('#classInput')).toHaveValue('3E1');await other.locator('#regInput').selectOption('5');await other.locator('#startBtn').click();await expect(other.locator('#loginError')).toContainText('already been registered');await other.locator('#nameInput').fill('Demo Student Five');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();expect(await other.evaluate(()=>getAnswer('s1.q1'))).toBe('My existing answer');await ctx.close();
  await page.goto('/#report');await expect(page.locator('.level-sub')).toContainText('Demo Student Five');await expectNoSidewaysScroll(page);
  await page.screenshot({path:`tests/screenshots/named-report-${testInfo.project.name}.png`});
@@ -28,15 +28,16 @@ test('both selectors list actual registered names, protect access, distinguish d
 });
 
 
-test('a legacy profile can save its name once and stays locked after reload until reset',async({page,request})=>{
- await resetServer(request,['3E1']);const legacy=profileRecord(9,'');delete legacy.profile;await apiPost(request,{action:'save',record:legacy});
- await page.addInitScript(r=>{localStorage.setItem('ch6_active',JSON.stringify({cls:r.cls,reg:r.reg}));localStorage.setItem('ch6_rec_3E1#9',JSON.stringify(r));},legacy);
- await page.goto('/#home');await expect(page.locator('#studentNameInput')).toBeEditable();await page.locator('#studentNameInput').fill('Demo Legacy Student');await page.locator('#studentNameForm button').click();await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');await expect(page.locator('#studentNameForm button')).toHaveCount(0);
- await expect.poll(async()=>{const r=await apiGet(request,{action:'load',class:'3E1',reg:9});return r.record?.profile?.name?.v;}).toBe('Demo Legacy Student');
- await page.reload();await expect.poll(()=>page.locator('#studentNameInput').getAttribute('readonly')).toBe('');await expect(page.locator('#studentNameInput')).toHaveValue('Demo Legacy Student');
- const clear=await apiPost(request,{action:'clearStudent',code:CODE(),class:'3E1',reg:9});expect(clear.record).toBeNull();
- await page.reload();await expect(page.locator('#nameInput')).toBeEditable();await expect(page.locator('#regInput')).toHaveValue('');
-
+test('legacy unnamed records fail closed without losing teacher access',async()=>{
+ const {createAppsScript}=require('../server/apps-script-mock');const fs=require('fs'),os=require('os'),path=require('path');
+ const script=createAppsScript({dataDir:fs.mkdtempSync(path.join(os.tmpdir(),'ebs-legacy-')),teacherCode:'Test Teacher'});
+ const post=b=>JSON.parse(script.doPost(JSON.stringify(b)));
+ post({action:'addClass',code:'Test Teacher',name:'3E1'});
+ const record=profileRecord(9,'Known Student');expect(post({action:'save',name:'Known Student',record}).ok).toBe(true);
+ const sheet=script.context.ensureSheets().students;
+ const values=sheet.getRange(2,1,1,13).getValues();const old=JSON.parse(values[0][12]);delete old.profile;values[0][12]=JSON.stringify(old);sheet.getRange(2,1,1,13).setValues(values);
+ const denied=post({action:'load',class:'3E1',reg:9,name:'Any Student'});expect(denied.error).toBe('profile_setup_required');expect(denied).not.toHaveProperty('record');
+ expect(post({action:'results',class:'3E1',code:'Test Teacher'}).students[0].record.answers['s1.q1'].v).toBe('Saved work');
 });
 
 test('saved home identity is locked and occupied register numbers reject another name',async({page,request},testInfo)=>{

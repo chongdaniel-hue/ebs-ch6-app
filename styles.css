@@ -1480,3 +1480,6 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .lesson-video .think-card{margin-top:16px;}
 
 .lesson-video video, .lesson-video video a{color:#FFFFFF;}
+
+/* Caption transcript remains easy to open on touch screens. */
+.video-transcript summary { min-height: 44px; padding: 10px 0; cursor: pointer; }
