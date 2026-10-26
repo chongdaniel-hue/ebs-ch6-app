@@ -14,7 +14,7 @@ test("landing page shell", async ({ page }, testInfo) => {
   await expect.poll(() => banner.evaluate(el => el.complete && el.naturalWidth > 0)).toBe(true);
   await expect(banner).toHaveAttribute("alt", "Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity.");
   await expect(page.locator(".credits")).toContainText("A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)");
-  await expect(page.locator(".credits")).toContainText("Version 0.6.27");
+  await expect(page.locator(".credits")).toContainText("Version 0.6.28");
   await expect(page.locator(".credits a.teacher-link")).toHaveText("Teacher Mode");
   // Zoom allowed.
   const vp = await page.locator('meta[name="viewport"]').getAttribute("content");

@@ -221,33 +221,19 @@ test.describe("T.4 This device", () => {
     await expect(page.locator(".status-pill").nth(4)).toHaveText("Locked");
   });
 
-  test("Reset this device asks for the code again and keeps the work on the server", async ({ page, request }) => {
+  test("Reset this device uses the shared protected profile reset and releases identity", async ({ page, request }, testInfo) => {
     await resetServer(request, ["3E1"]);
-    await login(page, "3E1", 8);
-    await page.click("#briefing button");
-    await page.evaluate(() => { setAnswer("s1.q1", "My story", "now"); });
-    await expect.poll(async () => (await apiGet(request, { action: "load", class: "3E1", reg: "8" })).record?.answers?.["s1.q1"]?.v, { timeout: 15000 }).toBe("My story");
-    await teacherSignIn(page);
-    await page.click("#tab_device");
-    await page.click("#resetDevice");
-    await page.fill("#resetCode", "not-the-code");
-    await page.locator("#resetModal .modal-btns .btn", { hasText: "Reset" }).click();
-    await expect(page.locator("#resetModal .form-error")).toHaveText("Incorrect code.");
-    await page.fill("#resetCode", CODE().toLowerCase());
-    await page.locator("#resetModal .modal-btns .btn", { hasText: "Reset" }).click();
-    await expect(page.locator(".device-card").first().locator("xpath=..").locator("> .notice")).toHaveText("Device reset. It is ready for the next student.");
-    const keys = await page.evaluate(() => Object.keys(localStorage));
-    expect(keys.filter(k => k.startsWith("ch6_rec_"))).toEqual([]);
-    expect(keys).not.toContain("ch6_active");
-    await page.goto("/");
-    await expect(page.locator(".login-card")).toBeVisible();
-    // Logging in again brings the work back from the server.
-    await expect(page.locator("#classInput")).toHaveValue("3E1");
-    await page.selectOption("#regInput", "8");
-    await page.fill("#nameInput", "Test Student 8");
-    await page.click("#startBtn");
-    await expect(page.locator(".welcome-card")).toBeVisible();
-    await page.goto("/#level1");
-    await expect(page.locator('textarea[data-answer="s1.q1"]')).toHaveValue("My story");
+    await login(page, "3E1", 8);await page.click("#briefing button");
+    await page.evaluate(() => setAnswer("s1.q1", "My story", "now"));
+    await expect.poll(async () => (await apiGet(request,{action:"load",class:"3E1",reg:8})).record?.answers?.["s1.q1"]?.v).toBe("My story");
+    await teacherSignIn(page);await page.click("#tab_device");await page.click("#resetDevice");
+    const modal=page.locator('#studentUnlockModal');await expect(modal).toContainText('Reset student progress');
+    await modal.locator('#unlockPassword').fill('wrong-test-code');await modal.getByRole('button',{name:'Continue',exact:true}).click();await expect(modal.locator('#unlockError')).toContainText('Incorrect passcode');
+    await modal.locator('#unlockPassword').fill(process.env.TEST_RESET_CODE.toLowerCase());await modal.getByRole('button',{name:'Continue',exact:true}).click();
+    await modal.locator('#unlockClass').selectOption('3E1');await modal.locator('#unlockStudent').selectOption('8');await modal.locator('#applyUnlock').click();
+    await expect(page.locator('#progressResetDescription')).toContainText('register number freed');await shot(page,testInfo,'teacher-shared-reset-confirm');
+    await page.locator('#progressResetModal button[type=submit]').click();await expect(page.locator('#nameInput')).toHaveValue('');await expect(page.locator('#regInput')).toHaveValue('');
+    expect((await apiGet(request,{action:'load',class:'3E1',reg:8})).record).toBeNull();
+    expect((await apiPost(request,{action:'profileList',purpose:'reset',code:process.env.TEST_RESET_CODE,class:'3E1'})).students).toEqual([]);
   });
 });

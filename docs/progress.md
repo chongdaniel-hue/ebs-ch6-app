@@ -367,3 +367,6 @@ Merged Dan’s image compression, badge transparency, Read aloud and report refi
 ### Nexora chatbot link (26 October 2026, version 0.6.27 preview)
 - Updated Alex/Nexora chatbot to the Gemini sharing URL supplied by the user. Local preview only; no backend changes required.
 - Replaced the preview Nexora link with the user’s newer Gemini share link ending in 11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8.
+
+### Shared Teacher Mode reset (26 October 2026, version 0.6.28 preview)
+- “Reset this device” now opens the exact same reset-passcode, class/profile selection and confirmation flow as footer “Reset progress”. Removed the old device-only reset logic. Both entry points clear the selected server profile, name, answers, badges and progress, freeing its register number. Requires the existing 0.6.26 Apps Script backend; no additional backend change.

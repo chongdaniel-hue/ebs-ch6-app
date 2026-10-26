@@ -61,7 +61,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.27";
+const APP_VERSION = "0.6.28";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -3133,7 +3133,7 @@ function renderDeviceTab(el, message) {
     </section>
     <section class="card device-card" aria-labelledby="resetTitle">
       <h2 class="section-title" id="resetTitle">${hIcon("🧹")}Reset this device</h2>
-      <p>Logs out the student and clears the copy of their work on this device. Their work stays saved on the server.</p>
+      <p>Use the same reset as Reset progress: enter the reset passcode, choose a registered student profile and confirm. The saved name, answers, badges and progress will be cleared, and the register number will be available again.</p>
       <div class="btn-row"><button type="button" class="btn secondary" id="resetDevice">Reset this device</button></div>
     </section>
   `);
@@ -3141,56 +3141,7 @@ function renderDeviceTab(el, message) {
     if (on) lsRemove(KEYS.unlockAll); else lsSet(KEYS.unlockAll, true);
     renderDeviceTab(el);
   });
-  el.querySelector("#resetDevice").addEventListener("click", () => askCodeThenReset(el));
-}
-
-// Reset this device: asks for the teacher code again (as in the LJ), then clears every
-// student's copy on this device. Work not yet sent stays until it reaches the server.
-function askCodeThenReset(el, error) {
-  let code = "";
-  const wrap = showModal({
-    id: "resetModal",
-    title: "Reset this device",
-    bodyHtml: `<label for="resetCode" class="field-label">Key in the teacher code.</label>
-      <input type="password" id="resetCode" class="text-input" autocomplete="off">
-      ${error ? `<p class="form-error" role="alert">${escapeHtml(error)}</p>` : ""}`,
-    buttons: [
-      {
-        label: "Reset", primary: true, onClick: async () => {
-          let reply;
-          try { reply = await api("POST", { action: "teacherCheck", code }, 20000); }
-          catch (e) { reply = { ok: false, error: "server" }; }
-          if (!reply.ok) { askCodeThenReset(el, teacherErrorText(reply)); return; }
-          renderDeviceTab(el, resetThisDevice());
-        }
-      },
-      { label: "Cancel" }
-    ]
-  });
-  if (!wrap) return;
-  const input = wrap.querySelector("#resetCode");
-  input.addEventListener("input", () => { code = input.value; });
-  input.addEventListener("keydown", (e) => { if (e.key === "Enter") wrap.querySelector(".modal-btns .btn").click(); });
-  input.focus();
-}
-
-function resetThisDevice() {
-  const q = loadQueue();
-  let kept = 0;
-  Object.keys(localStorage).filter(k => k.indexOf("ch6_rec_") === 0).forEach(k => {
-    const key = k.slice("ch6_rec_".length);
-    if (q[key]) { q[key].forget = true; kept++; } // sent later, then deleted
-    else lsRemove(k);
-  });
-  saveQueue(q);
-  lsRemove(KEYS.active);
-  student = null;
-  rec = null;
-  serverUnreachable = false;
-  flushQueue();
-  return kept
-    ? `Device reset. Work for ${kept} student${kept === 1 ? " has" : "s have"} not been sent yet. It has been kept on this device and will be sent when the device is online.`
-    : "Device reset. It is ready for the next student.";
+  el.querySelector("#resetDevice").addEventListener("click", () => showStudentUnlock("reset"));
 }
 
 /* ---------------- Start ---------------- */
