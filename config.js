@@ -159,10 +159,8 @@ window.APP_CONFIG = {
       alt: "Two-panel comic. Left, \"GOOD SERVICE\": a smiling Nexora staff member offers, \"Hi! Would you like to take a look at our newest phone model available?\" The customer replies, \"Sure! Let me test it out.\" Right, \"POOR SERVICE\": a staff member looks at his own phone with arms crossed while the customer says, \"Excuse me... I need some help.\" He replies, \"...\""
     },
     C02: {
-      file: "assets/img/C02-four-stages.jpg",
-      emoji: "🖼️",
-      label: "Four stages comic",
-      alt: "Four-panel comic at a Nexora store. 1, \"APPROACHING\": the staff member says, \"Hi! Welcome to Nexora!\" and the customer says, \"Hi!\" 2, \"PRESENTING\": \"Since you like taking photos, this model's camera is perfect for you!\" The customer: \"Wow! That looks great!\" 3, \"CLOSING\": \"Great choice! Thank you for purchasing with Nexora.\" The customer: \"Thank you so much! I'm excited to use it!\" 4, \"SERVICE RECOVERY\": the customer says, \"I'm really upset. The screen cracked even though I was using it carefully.\" The staff member: \"I'm sorry. Let me check this for you and see how I can help.\""
+      file: "assets/img/C02-five-stages.png", emoji: "🖼️", label: "Five stages comic",
+      alt: "Five-panel Nexora comic: blue Approach, welcome the customer; orange Present, match the camera to an interest in photos; green Close, thank the customer; teal Support, explain warranty, repairs and help in store, by phone and online; purple Recovery, apologise and help solve a damaged-phone problem."
     },
     C03: {
       file: "assets/img/C03-three-approaches.jpg",

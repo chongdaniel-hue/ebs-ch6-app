@@ -7,6 +7,7 @@ async function openKnowledge(page,request){
   await login(page,"3E1",5);
   await expect(page.locator(".welcome-card")).toBeVisible();
   await page.goto("/#level2");
+  await page.evaluate(()=>{setUi("s2.card",2);renderLevel(2);});
   await expect(page.locator(".product-knowledge-card")).toHaveCount(5);
 }
 

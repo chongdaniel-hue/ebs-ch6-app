@@ -204,3 +204,11 @@ Legacy records containing answers but no saved profile name are deliberately blo
 For a safe check, use a new test class/profile with fictional answers: loading or saving with no name or the wrong name must fail without returning a record; the matching saved name must load normally. Never probe other students' records.
 
 Production compatibility: if the older backend replies `unknown_action` to POST load, the frontend retries GET load with the supplied name. An explicit name error is never retried. This permits a frontend-first rollout on the existing version-1 backend, but does not fix the older server's privacy weakness. Complete the Google deployment update as soon as possible; version 0.6.31 enforces the same name validation for both request methods.
+
+## Backend conversation-link checks (version 0.6.32)
+
+Replace Code.gs with the current file, save, run `setup` in the editor to approve any newly requested Google permission for external requests, and update the existing web app through Deploy > Manage deployments > Edit > New version > Deploy. Keep the existing URL and Script Properties. UrlFetchApp requires Google’s external-request scope; if an explicit manifest scope list is used, include `https://www.googleapis.com/auth/script.external_request`.
+
+This release adds validateConversationLink. It accepts only HTTPS Gemini public conversation-share URLs (including the g.co/gemini/share shortcut), checks the student name, and requests only the canonical Gemini URL without following redirects. Invalid URLs, missing/deleted pages and restricted/unverifiable responses prevent completion. Brief caching and a per-profile request limit reduce repeated requests. The checker verifies URL format and HTTP availability/error signals; a Google page returning a generic HTML shell does not independently prove the conversation content or ownership. Redirects/sign-in restrictions and network failures return “could not verify”, rather than claiming an invalid URL is valid.
+
+The local preview uses a deterministic stand-in for UrlFetchApp and does not fetch any student’s conversation. The real fetch must be tested after Google deployment with a teacher-owned test share link. Older deployed backends that lack this action show an explicit “ask your teacher to update” message; there is no browser-only fallback that marks a chat complete.

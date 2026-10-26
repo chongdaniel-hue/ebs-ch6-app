@@ -95,7 +95,7 @@ test("offline reset preserves progress; delayed saves cannot revive cleared answ
 
 test("server enforces password, independent lockout and successive reset epochs",async({request})=>{
   await resetServer(request,["3E1"]);
-  expect((await apiGet(request,{action:"classes"})).version).toBe("0.6.31");
+  expect((await apiGet(request,{action:"classes"})).version).toBe("0.6.32");
   await apiPost(request,{action:"save",record:record()});
   for(const code of ["",process.env.TEST_TEACHER_CODE,"wrong-test-password"])
     expect((await apiPost(request,{action:"resetProgress",code,class:"3E1",reg:5})).error).toBe("bad_code");

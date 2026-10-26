@@ -27,7 +27,7 @@
    JavaScript that Apps Script accepts (no ?. or ?? operators).
    ============================================================ */
 
-var SCRIPT_VERSION = "0.6.31";
+var SCRIPT_VERSION = "0.6.32";
 
 var CLASSES_SHEET = "Classes";
 var STUDENTS_SHEET = "Students";
@@ -75,6 +75,7 @@ function doPost(e) {
   if (!body || typeof body !== "object") return respond({ ok: false, error: "bad_request" });
   return respond(safely(function () {
     switch (body.action) {
+      case "validateConversationLink": return validateConversationLink(body["class"],body.reg,body.name,body.url);
       case "load": return loadStudent(body["class"], body.reg, body.name);
       case "save": return saveStudent(body.record, body.name);
       case "resetProgress": return resetOnly(body.code, function () { return clearStudent(body["class"], body.reg); });
@@ -90,6 +91,30 @@ function doPost(e) {
       default: return { ok: false, error: "unknown_action" };
     }
   }));
+}
+
+// Only public Gemini share URLs are fetched. Redirects are never followed.
+function validateConversationLink(cls,reg,name,raw) {
+  if(typeof raw !== "string" || raw.length>512)return {ok:false,error:"invalid_link"};
+  raw=raw.trim().replace(/^https:\/\/g\.co\/gemini\/share\//,"https://gemini.google.com/share/");
+  var match=raw.match(/^https:\/\/gemini\.google\.com(\/share\/(?:d\/)?[A-Za-z0-9_-]{6,200})\/?(?:\?[^\s#]{0,200})?(?:#[^\s]{0,100})?$/);
+  if(!match)return {ok:false,error:"invalid_link"};
+  var owner=loadStudent(cls,reg,name);if(!owner.ok)return {ok:false,error:owner.error};
+  var url="https://gemini.google.com"+match[1];
+  var cache=CacheService.getScriptCache(),key="chatlink:"+url;
+  if(cache.get(key)==="valid")return {ok:true,url:url};
+  var rateKey="chatlink-rate:"+studentKey(cls,reg),count=Number(cache.get(rateKey)||0);
+  if(count>=12)return {ok:false,error:"link_check_rate_limited"};cache.put(rateKey,String(count+1),60);
+  try {
+    var response=UrlFetchApp.fetch(url,{followRedirects:false,muteHttpExceptions:true});
+    var status=response.getResponseCode();
+    if(status===404 || status===410)return {ok:false,error:"invalid_link"};
+    if(status!==200)return {ok:false,error:"link_check_unavailable"};
+    var text=response.getContentText().slice(0,300000);
+    if(/(?:conversation|chat|shared (?:page|link)) (?:was |is )?(?:not found|unavailable|deleted|no longer available)|this (?:conversation|chat) (?:(?:does not|doesn't) exist|no longer exists)/i.test(text))return {ok:false,error:"invalid_link"};
+    if(/<title[^>]*>[^<]*(?:sign in|sign-in)/i.test(text) || !/gemini/i.test(text))return {ok:false,error:"link_check_unavailable"};
+    cache.put(key,"valid",300);return {ok:true,url:url};
+  } catch(error){return {ok:false,error:"link_check_unavailable"};}
 }
 
 // Run once from the editor (select "setup", then Run). It creates the two tabs

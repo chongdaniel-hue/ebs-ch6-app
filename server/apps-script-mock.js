@@ -16,7 +16,7 @@ const vm = require("vm");
 
 // maxRows: how many rows a new tab has (1,000 in Google Sheets); writing past it fails,
 // as in Google Sheets, until rows are added with insertRowsAfter.
-function createAppsScript({ dataDir, teacherCode, resetCode, maxRows }) {
+function createAppsScript({ dataDir, teacherCode, resetCode, maxRows, urlFetch }) {
   const startRows = maxRows || 1000;
   const extraRows = {};
   const propertiesFile=path.join(dataDir,"properties.json");
@@ -114,6 +114,11 @@ function createAppsScript({ dataDir, teacherCode, resetCode, maxRows }) {
         releaseLock() {}
       })
     },
+    // Deterministic stand-in: local previews/tests never fetch student conversations.
+    UrlFetchApp: {fetch(url,options){
+      const response=urlFetch ? urlFetch(url,options) : {status:200,text:"<html><title>Gemini shared conversation</title></html>"};
+      return {getResponseCode:()=>response.status,getContentText:()=>response.text || ""};
+    }},
     CacheService: { getScriptCache: () => cache },
     PropertiesService: {
       getScriptProperties: () => ({ getProperty: (k) => (k === "TEACHER_CODE" ? teacherCode || null : k === "RESET_CODE" ? resetCode || null : properties[k] || null), setProperty(k,v) { properties[k]=String(v);saveProperties();return this; } })

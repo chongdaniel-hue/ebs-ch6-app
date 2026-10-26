@@ -61,7 +61,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.31";
+const APP_VERSION = "0.6.32";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -168,7 +168,7 @@ function levelIconHtml(level) {
 
 const LEVELS = [
   { num: 1, icon: "📝", title: "Your Customer Service Stories", desc: "Think about your own experiences as a customer.", badge: "Story Sharer", badgeImg: "BADGE1" },
-  { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the four stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
+  { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the five stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
   { num: 3, icon: "💬", title: "Chat with Alex", desc: "Be the customer. Chat with Nexora's customer service officer.", badge: "Service Spotter", badgeImg: "BADGE3" },
   { num: 4, icon: "🛍️", title: "Serve Suzzie at Stylez", desc: "Switch roles. Now you're the customer service officer.", badge: "Service Star", badgeImg: "BADGE4" },
   { num: 5, icon: "✅", title: "Check and Exit Ticket", desc: "Check what you've learnt and tell your teacher how confident you feel.", badge: "Completion Champion", badgeImg: "BADGE5" }
@@ -576,7 +576,7 @@ function topBarHtml(opts) {
           ${o.showSubtitle ? `<p class="topbar-sub">A self-study revision module</p>${Array.isArray(classList) && classList.length ? `<p class="topbar-chip">${escapeHtml(classList[0])}</p>` : ""}` : ""}
           ${o.showChip && student ? `<p class="topbar-chip"><span data-student-text>${escapeHtml(profileName(rec))}</span>${profileName(rec) ? " · " : ""}${escapeHtml(student.cls)} · Register No. ${student.reg}</p>` : ""}
         </div>
-        ${o.showHome ? `<a href="#home" class="topbar-home" id="homeBtn">🏠 Home</a>` : ""}
+        ${o.showHome ? `<a href="#home" class="topbar-home" id="homeBtn" onclick="event.preventDefault();backToRoute('route')">🏠 Home</a>` : ""}
       </div>
     </header>`;
 }
@@ -877,7 +877,94 @@ function showBriefing() {
   });
 }
 
+const STAGE_COLOURS = ["#2563eb","#c2410c","#15803d","#0f766e","#7c3aed"];
+function moodFaceHtml(i) {
+  const fills=["#ef4444","#f87171","#fb923c","#fdba74","#fde68a","#bef264","#86efac","#22c55e"];
+  const mouth=i<3?'<path d="M10 23 Q16 16 22 23" fill="none"/>':i<5?'<path d="M11 21 H21"/>':i<7?'<path d="M10 19 Q16 26 22 19" fill="none"/>':'<path d="M9 18 Q16 30 23 18 Z" fill="#42202a"/><path d="M12 24 Q16 20 20 24" stroke="#fb7185"/>';
+  const eyes=i===7?'<path d="M9 13 Q11 9 13 13 M19 13 Q21 9 23 13" fill="none"/>':'<circle cx="11" cy="14" r="1.3" fill="#42202a"/><circle cx="21" cy="14" r="1.3" fill="#42202a"/>';
+  return `<svg class="mood-graphic mood-${i}" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="${fills[i]}" stroke="#42202a" stroke-width="1.5"/><g stroke="#42202a" stroke-width="1.8" stroke-linecap="round">${eyes}${i<2?'<path d="M8 9 L13 11 M19 11 L24 9"/>':""}${mouth}</g></svg>`;
+}
+function conversationUrl(raw) {
+  try {const text=String(raw||"").trim().replace(/^https:\/\/g\.co\/gemini\/share\//,"https://gemini.google.com/share/");const u=new URL(text);return u.protocol==="https:" && u.hostname==="gemini.google.com" && /^\/share\/(?:d\/)?[A-Za-z0-9_-]{6,}\/?$/.test(u.pathname) && !u.username && !u.password ? u.href : null;} catch(e){return null;}
+}
+function conversationReady(n){const url=conversationUrl(getAnswer(`s${n}.link`));return !!url && getAnswer(`s${n}.linkVerified`)===url;}
+function conversationLinkHtml(n,readOnly) {
+  return `<section class="card conversation-share" aria-label="Your conversation link"><label class="field-label" for="conversationLink${n}">Paste your Gemini conversation share link</label><p class="field-note" id="conversationHelp${n}">Use Share in Gemini and copy the conversation link then paste it below.</p><input class="text-input" type="url" id="conversationLink${n}" value="${escapeHtml(getAnswer(`s${n}.link`)||"")}" placeholder="https://gemini.google.com/share/..." aria-describedby="conversationHelp${n} conversationError${n}" ${readOnly?"readonly":""}><p class="field-note" id="conversationError${n}" role="status"></p></section>`;
+}
+function conversationErrorText(error){
+  if(error==="invalid_link")return "The link you pasted is invalid. Please paste a valid Gemini conversation share link.";
+  if(error==="unknown_action")return "Link checking is not available yet. Ask your teacher to update the app's connection, then try again.";
+  if(error==="link_check_rate_limited")return "Please wait a minute before checking another conversation link.";
+  if(error==="name_mismatch" || error==="name_required")return "Your profile could not be verified. Please sign in again with your saved name.";
+  return "We could not verify this link. Check that it is shared and accessible, then try again.";
+}
+function wireConversationLink(el,n){
+  const input=el.querySelector(`#conversationLink${n}`);if(!input)return;
+  const status=el.querySelector(`#conversationError${n}`),tick=el.querySelector('.tick-input');let timer=null,generation=0,pending=null;
+  function update(){const next=document.getElementById('nextBtn');if(next)next.disabled=!(getAnswer(`s${n}.tick`)===true && conversationReady(n));}
+  el.validateConversation=async()=>{
+    const raw=input.value.trim(),url=conversationUrl(raw),key=activeKey(),current=generation;
+    if(pending && pending.raw===raw)return pending.promise;
+    const promise=(async()=>{
+      status.textContent="Checking your conversation link…";
+      let reply;try{reply=await api("POST",{action:"validateConversationLink",class:student.cls,reg:student.reg,name:profileName(rec),url:raw},15000);}catch(e){reply={ok:false,error:"link_check_unavailable"};}
+      if(current!==generation || key!==activeKey() || !input.isConnected)return {ok:false,error:"changed"};
+      if(reply.ok && url){setAnswer(`s${n}.linkVerified`,url,"soon");status.textContent="Conversation link checked.";}else{setAnswer(`s${n}.linkVerified`,null,"soon");reply.ok=false;status.textContent=conversationErrorText(reply.error);}
+      update();return reply;
+    })();pending={raw,promise};try{return await promise;}finally{if(pending?.promise===promise)pending=null;}
+  };
+  input.addEventListener('input',()=>{generation++;clearTimeout(timer);setAnswer(`s${n}.link`,input.value.trim(),'typing');setAnswer(`s${n}.linkVerified`,null,'soon');setAnswer(`s${n}.tick`,false,'soon');tick.checked=false;tick.disabled=input.readOnly;status.textContent='';update();timer=setTimeout(()=>{if(input.isConnected && input.value.trim())el.validateConversation();},650);});
+  input.addEventListener('change',()=>{clearTimeout(timer);if(input.value.trim())el.validateConversation();});update();
+}
+
+const ROLEPLAY_STAGE_LABELS=["Approach","Present","Close","Support","Recovery"];
+function roleplayStagesHtml(readOnly){const chosen=getAnswer('s4.stages')||[];return `<fieldset class="card roleplay-stages"><legend class="field-label">1. Which stages did you do?</legend><p>Select every stage you used: Approach, Present, Close, Support, Recovery.</p><div class="stage-checklist">${ROLEPLAY_STAGE_LABELS.map((name,i)=>`<label class="stage-chip" style="--stage-colour:${STAGE_COLOURS[i]}"><input type="checkbox" data-roleplay-stage="${name}" ${chosen.includes(name)?'checked':''} ${readOnly?'disabled':''}>${uiGraphicHtml(STAGES[i].icon)} ${name}</label>`).join('')}</div></fieldset>`;}
+function wireRoleplayStages(el){el.querySelectorAll('[data-roleplay-stage]').forEach(x=>x.addEventListener('change',()=>setAnswer('s4.stages',Array.from(el.querySelectorAll('[data-roleplay-stage]:checked')).map(x=>x.dataset.roleplayStage),'soon')));}
+function popConfetti(){
+  if(reducedMotion())return;
+  document.querySelector('.confetti-burst')?.remove();const layer=document.createElement('div');layer.className='confetti-burst';layer.setAttribute('aria-hidden','true');
+  for(let i=0;i<48;i++){const piece=document.createElement('i');piece.style.cssText=`--x:${(i*37)%100}%;--drift:${(i%2?-1:1)*(30+i%90)}px;--delay:${i%8*0.06}s;background:${STAGE_COLOURS[i%5]}`;layer.appendChild(piece);}document.body.appendChild(layer);setTimeout(()=>layer.remove(),2600);
+}
+function lessonCards(){
+  const groups=[
+    {label:"Customer service",parts:[[0,0]]},
+    {label:"Why good service matters",parts:[[0,1]],key:"s2.video"},
+    {label:"Skills and product knowledge",parts:[[0,2],[0,3]]},
+    {label:"The Five Stages",parts:[[1,0]]},
+    {label:"Approaching customers",parts:[[1,1],[1,2]]},
+    {label:"Presenting and supporting",parts:[[1,3],[1,4]]},
+    {label:"Breakdown and recovery",parts:[[2,0]]},
+    {label:"The eight recovery steps",recovery:true,parts:[[2,1]]},
+    {label:"Learning from poor recovery",parts:[[2,2]],key:"s2.think1"},
+    {label:"Returns and exchanges",parts:[[2,3],[2,4]],key:"s2.think2"}
+  ];
+  return groups.map(group=>({...group,t:group.parts[0][0],p:group.parts[0][1],
+    html:ctx=>group.recovery ? recoveryLessonHtml() : group.parts.map(([t,p],i)=>`<div class="lesson-subsection" data-subpart="${i}">${L2_TABS[t].parts[p].html(ctx)}</div>`).join(""),
+    wire:(el,ctx)=>{if(group.recovery){wireRecoveryLesson(el);return;}group.parts.forEach(([t,p],i)=>{const section=el.querySelector(`[data-subpart="${i}"]`);L2_TABS[t].parts[p].wire?.(section,ctx);wireReflections(section);});}
+  }));
+}
+function recoveryLessonHtml(){
+  return `<div class="head-row"><h2>The eight service recovery steps</h2>${listenButtonHtml()}</div><p>To perform service recovery, follow these 8 steps:</p><p>Follow Nexora's staff member as he handles a customer whose new phone screen has cracked.</p>${recoveryPathHtml(8,false)}${afterPathHtml()}`;
+}
+function wireRecoveryLesson(el){raiseReached("s2.path",8);saveLocal();wireListen(el);}
+
+function renderLessonCard(){
+  stopSpeaking();setUi('route.level',2);
+  const cards=lessonCards();
+  if(getUi('s2.cardLayout')!=="compact10"){const map=[0,1,2,2,3,4,4,5,5,6,7,7,7,7,7,7,7,7,8,9,9];const old=Number(getUi('s2.card'))||0;setUi('s2.card',map[old]??0);if(old>=10 && old<=17)setUi('s2.recoveryStep',old-10);setUi('s2.cardLayout','compact10');saveLocal();}
+  let pos=Number(getUi('s2.card'))||0;pos=Math.max(0,Math.min(pos,cards.length-1));const card=cards[pos];
+  const ctx={n:2,t:card.t,readOnly:isDone(2),fresh:true};
+  setGraphicHtml(app,`${topBarHtml({showHome:true,showChip:true})}<main class="page level-page lesson-single" id="levelMain"><h1 class="page-title">Level 2: Learn: Customer Service</h1><div class="lesson-card-progress"><p id="lessonProgressText">${pos+1} of ${cards.length} · ${escapeHtml(card.label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${cards.length}" aria-valuenow="${pos+1}"><div class="progress-fill" style="width:${(pos+1)/cards.length*100}%"></div></div></div><section class="card lesson-card" id="lessonCard">${card.html(ctx)}</section><div class="btn-row lesson-card-nav"><button class="btn secondary" id="lessonBack" ${pos===0?'disabled':''}>Back</button><button class="btn" id="lessonNext">${pos===cards.length-1?'Finish Level 2':'Next →'}</button></div></main>${footerHtml()}`);
+  syncStickyOffsets();const el=document.getElementById('lessonCard');el.querySelector('#finishBtn')?.remove();card.wire(el,ctx);
+  if(rec.agreed && !isStarted(2))raiseReached('s2.t0',1);
+  document.getElementById('lessonBack').onclick=()=>{setUi('s2.card',pos-1);queueSave('now');renderLessonCard();revealFocus(document.getElementById('lessonCard'));};
+  document.getElementById('lessonNext').onclick=()=>{if(!requireReflections(card.key?[card.key]:[]))return;if(pos===cards.length-1){finishLevel(2);return;}setUi('s2.card',pos+1);raiseReached('s2.cardReached',pos+1);raiseReached(`s2.t${card.t}`,card.p+1);queueSave('now');renderLessonCard();revealFocus(document.getElementById('lessonCard'));};
+}
+
 /* ---------------- Router ---------------- */
+
+let routeReturnLevel = null;
+function backToRoute(n){routeReturnLevel=n || Number(getUi("route.level")) || 1;if(location.hash === "#home")render();else location.hash="#home";}
 
 function render() {
   const hash = window.location.hash;
@@ -900,7 +987,9 @@ function render() {
     if (hash !== "#home" && hash !== "") { history.replaceState(null, "", "#home"); }
     renderHome();
   }
+  syncStickyOffsets();
   window.scrollTo(0, 0);
+  if((hash === "#home" || hash === "") && routeReturnLevel){const target=routeReturnLevel==="route"?document.getElementById("routeProgress"):document.getElementById(`levelCard${routeReturnLevel}`);routeReturnLevel=null;requestAnimationFrame(()=>revealFocus(target));}
   if (rec && !rec.agreed && !document.getElementById("briefing")) showBriefing();
 }
 window.addEventListener("hashchange", render);
@@ -1131,7 +1220,7 @@ function renderHome() {
       </div>
       <section class="block" aria-labelledby="routeTitle">
         <h2 class="section-title" id="routeTitle">Your route</h2>
-        <div class="journey-progress">
+        <div class="journey-progress" id="routeProgress">
           <p class="journey-count">${done} of 5 levels done</p>
           <div class="progress-track" role="progressbar" aria-label="Levels done" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${done}"><div class="progress-fill" style="width:${done / 5 * 100}%"></div></div>
         </div>
@@ -1225,7 +1314,7 @@ function renderTerms() {
             ${KEY_TERMS.map(t => `<li><div class="definition term-definition term-${t.tone}" role="note"><span class="term-graphic" aria-hidden="true">${imgHtml(t.icon)}</span><div class="def-body"><p><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.text)}</p></div></div></li>`).join("")}
           </ul>
         </section>
-        <div class="btn-row"><a href="#home" class="btn" id="termsDone">Got it, back to my route</a></div>
+        <div class="btn-row"><a href="#home" class="btn" id="termsDone" onclick="event.preventDefault();backToRoute()">Got it, back to my route</a></div>
       </div>
     </main>
     ${footerHtml()}
@@ -1300,6 +1389,8 @@ function tabBarHtml(n, current) {
 
 // Draws the level page: arriving at a level, switching tab, or after Next or Submit.
 function renderLevel(n) {
+  if(n === 2){renderLessonCard();return;}
+  setUi("route.level",n);
   pathShownNow = 0; // arriving at a level: the path works out again how much to show
   const s = lvl(n);
   const content = LEVEL_CONTENT[n];
@@ -1370,6 +1461,7 @@ function drawTab(n, t, tab, o) {
   });
   const next = document.getElementById("nextBtn");
   if (next) next.addEventListener("click", () => {
+    if(n===5 && t===0 && isBlank("s5.q5")){showNotFinished([{el:main.querySelector('[data-key="s5.q5"]'),name:"Q3"}]);return;}
     if(n === 2 && !requireReflections([...visibleReflectionKeys(), ...(t > 0 ? ["s2.video"] : [])]))return;
     raiseReached(`s${n}.tabs`, t + 1);
     setUi(`s${n}.tab`, t + 1);
@@ -1405,33 +1497,24 @@ const MIN_RESPONSE_CHARS = 20;
 function responseLongEnough(key){return String(getAnswer(key) || "").trim().length >= MIN_RESPONSE_CHARS;}
 const REFLECTION_KEYS = ["s2.video", "s2.think1", "s2.think2"];
 function reflectionSaved(key) {
-  return responseLongEnough(key) && getUi(`${key}.saved`) === (rec.answers[key] || {}).t;
+  return responseLongEnough(key);
 }
 function reflectionHtml(key, label) {
   return `<div class="card think-card" data-reflection="${key}"><h3 class="think-title">${hIcon("🤔")}Think about it</h3>
     ${answerBoxHtml(key,{label,hint:`Write at least ${MIN_RESPONSE_CHARS} characters...`,readOnly:isDone(2) && reflectionSaved(key)})}
-    <div class="btn-row"><button type="button" class="btn secondary" data-save-reflection="${key}" ${isDone(2) && reflectionSaved(key) ? "disabled" : ""}>Save</button></div>
-    <p class="field-note" role="status" data-reflection-status>${reflectionSaved(key) ? "Saved." : "Enter your thoughts and select Save before continuing."}</p></div>`;
+    <p class="field-note" role="status" data-reflection-status>Your progress saves automatically. Next saves your answer.</p></div>`;
 }
 function requireReflections(keys) {
-  const missing=keys.filter(key=>!reflectionSaved(key));
-  if(!missing.length)return true;
-  const short=missing.some(key=>!isBlank(key) && !responseLongEnough(key));
-  showModal({id:"reflectionRequired",title:short ? "Answer too short" : "Complete all questions",bodyHtml:`<p>${short ? `Your answer is too short. Write at least ${MIN_RESPONSE_CHARS} characters in each answer, then select Save.` : `Please complete all questions with at least ${MIN_RESPONSE_CHARS} characters per answer and select Save before moving on.`}</p>`,buttons:[{label:"Back to questions",primary:true,onClick:()=>{let box=document.getElementById(`ans_${cssId(missing[0])}`);if(!box){const target=missing[0] === "s2.video" ? [0,2] : missing[0] === "s2.think1" ? [2,3] : [2,5];setUi("s2.tab",target[0]);raiseReached(`s2.t${target[0]}`,target[1]);queueSave("soon");renderLevel(2);box=document.getElementById(`ans_${cssId(missing[0])}`);}if(box)box.focus();}}]});
-  return false;
+  const missing=keys.filter(key=>!responseLongEnough(key));
+  if(!missing.length){keys.forEach(key=>{if(rec.answers[key])setUi(`${key}.saved`,rec.answers[key].t);});queueSave("now");return true;}
+  const short=missing.some(key=>!isBlank(key));
+  showModal({id:"reflectionRequired",title:short?"Answer too short":"Complete all questions",bodyHtml:`<p>${short?"Your answer is too short.":"Please complete all questions before moving on."} Write at least ${MIN_RESPONSE_CHARS} characters in each answer.</p>`,buttons:[{label:"Back to questions",primary:true,onClick:()=>{
+    const card=lessonCards().findIndex(x=>x.key===missing[0]);if(card>=0 && document.getElementById("lessonCard")){setUi("s2.card",card);renderLessonCard();}
+    document.getElementById(`ans_${cssId(missing[0])}`)?.focus();
+  }}]});return false;
 }
-function visibleReflectionKeys() { return Array.from(document.querySelectorAll('#levelMain [data-reflection]')).map(el=>el.dataset.reflection); }
-function wireReflections(el) {
-  el.querySelectorAll('[data-reflection]').forEach(card=>{
-    wireAnswerBoxes(card);
-    const key=card.dataset.reflection,box=card.querySelector('textarea'),status=card.querySelector('[data-reflection-status]');
-    box.addEventListener('input',()=>{status.textContent=reflectionSaved(key) ? 'Saved.' : 'Changes not saved. Select Save before continuing.';});
-    card.querySelector('[data-save-reflection]').addEventListener('click',()=>{
-      if(!responseLongEnough(key)){requireReflections([key]);return;}
-      setUi(`${key}.saved`,rec.answers[key].t);queueSave('now');status.textContent='Saved.';
-    });
-  });
-}
+function visibleReflectionKeys(){return Array.from(document.querySelectorAll('[data-reflection]')).map(x=>x.dataset.reflection);}
+function wireReflections(el){wireAnswerBoxes(el);}
 
 function isBlank(key) { return !String(getAnswer(key) == null ? "" : getAnswer(key)).trim(); }
 
@@ -1468,14 +1551,13 @@ function showBadgePopup(n) {
     title: s.iconImg ? `<span class="graphic-heading">${levelIconHtml(s)}<span>${escapeHtml(s.badge)}</span></span>` : `${(CONFIG.IMAGES[s.badgeImg] || {}).emoji || s.icon} ${escapeHtml(s.badge)}`, // the badge's own emoji (e.g. 🔍 for Badge 3)
     bodyHtml: `<div class="badge-pop-img">${imgHtml(s.badgeImg, "badge-img")}</div>
       <p class="badge-pop-text">You earned the ${escapeHtml(s.badge)} badge!</p>`,
-    buttons: [{ label: "Back to my route", primary: true, onClick: () => { window.location.hash = "#home"; } }]
+    buttons: [{ label: "Back to my route", primary: true, onClick: () => { backToRoute(n); } }]
   });
 }
 
 /* ---------- "Not finished yet" (V45 submit guard) ----------
    missing: [{el, name}]. Each is outlined in red with "✗ Not done yet" and listed by
-   name in the pop-up. Only Level 1 offers "Submit anyway"; required questions only
-   offer "Go back". */
+   name in the pop-up. All required questions offer only "Go back"; empty work cannot bypass validation. */
 function showNotFinished(missing) {
   missing.forEach(m => m.el.classList.add("incomplete"));
   const count = missing.length;
@@ -1554,7 +1636,16 @@ function pickVoice() {
   return voices.find(v => want(v) && v.localService) || voices.find(want) || null;
 }
 
+let speechWords=[],speechClock=null;
+function clearSpeechWords(){clearInterval(speechClock);speechClock=null;speechWords.forEach(x=>{if(x.el.isConnected)x.el.replaceWith(document.createTextNode(x.el.textContent));});speechWords=[];}
+function prepareSpeechWords(block){
+  const walker=document.createTreeWalker(block,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode()){const node=walker.currentNode;if(node.parentElement.closest('button,textarea,input,select,svg,video,.video-transcript,.think-card,.listen-row,[aria-hidden="true"],.nav-row,[data-student-text]'))continue;if(node.textContent.trim())nodes.push(node);}
+  const words=[];let index=0;nodes.forEach(node=>{const frag=document.createDocumentFragment();node.textContent.split(/(\s+)/).forEach(text=>{if(!text)return;if(/^\s+$/.test(text)){frag.append(text);return;}const span=document.createElement('span');span.className='speech-word';span.textContent=text;words.push({el:span,start:index,text});index+=text.length+1;frag.append(span);});node.replaceWith(frag);});speechWords=words;return words.map(x=>x.text).join(' ');
+}
+function highlightSpeechWord(index){speechWords.forEach((x,i)=>x.el.classList.toggle('reading-now',i===index));}
+
 function stopSpeaking() {
+  clearSpeechWords();
   if (!canSpeak) return;
   window.speechSynthesis.cancel();
   if (speakingBtn) { setGraphicHtml(speakingBtn, "🔊 Read aloud"); speakingBtn.setAttribute("aria-pressed", "false"); }
@@ -1578,7 +1669,9 @@ function wireListen(el) {
     const target = btn.getAttribute("data-target");
     const block = (target && document.getElementById(target)) || btn.closest("section") || el;
     // Short sentences one after another: some browsers stop long speech part-way.
-    const sentences = blockSpeechText(block).match(/[^.!?]+[.!?]*["')]*\s*/g) || [];
+    const speechText=prepareSpeechWords(block);
+    const sentences = speechText.match(/[^.!?]+[.!?]*["')]*\s*/g) || [];
+    let sentenceOffset=0;
     const voice = pickVoice();
     speakingBtn = btn;
     setGraphicHtml(btn, "⏹ Stop");
@@ -1588,6 +1681,12 @@ function wireListen(el) {
       u.lang = voice ? voice.lang : "en-GB";
       if (voice) u.voice = voice;
       u.rate = 0.9;
+      const start=speechText.indexOf(s.trim(),sentenceOffset);sentenceOffset=start+s.trim().length;
+      const firstWord=speechWords.findIndex(x=>x.start>=start),lastWord=speechWords.findLastIndex(x=>x.start<sentenceOffset);
+      let word=firstWord,boundarySeen=false;
+      u.onstart=()=>{if(speakingBtn!==btn)return;highlightSpeechWord(word);clearInterval(speechClock);speechClock=setInterval(()=>{if(!boundarySeen && word<lastWord)highlightSpeechWord(++word);},400);};
+      u.onboundary=e=>{if(speakingBtn!==btn)return;boundarySeen=true;clearInterval(speechClock);const pos=start+e.charIndex;let index=speechWords.findLastIndex(x=>x.start<=pos);if(index>=0)highlightSpeechWord(index);};
+      u.onerror=()=>{if(speakingBtn===btn)stopSpeaking();};
       if (i === sentences.length - 1) u.onend = () => { if (speakingBtn === btn) stopSpeaking(); };
       window.speechSynthesis.speak(u);
     });
@@ -1649,6 +1748,7 @@ const STAGES = [
   { icon: "👋", name: "Approaching customers", text: "Greet the customer, show you're happy to help." },
   { icon: "📱", name: "Presenting product information", text: "Find out their needs, present a suitable product, explain why it suits their needs, handle questions or objections (when the customer is unsure or disagrees)." },
   { icon: "✅", name: "Closing the customer experience positively", text: "Summarise what the customer decided and any next steps (e.g. warranty, collection date), thank the customer, leave a good final impression." },
+  { icon: "🛡️", name: "Provide support services", text: "Help customers after purchase through warranty cover, repairs and support in-store, by phone or online." },
   { icon: "🛠️", name: "Performing service recovery", text: "Respond well when something goes wrong." }
 ];
 
@@ -1661,7 +1761,7 @@ const RECOVERY_STEPS = [
   { icon: "❓", label: "Ask questions", text: "Ask questions if more information is needed.", bubble: "\"When did you buy it, and when did you first notice the crack?\"", face: "😐", mood: "calmer" },
   { icon: "🛠️", label: "Offer solutions", text: "Offer solutions.", bubble: "\"Since it's still under warranty, I can give you a replacement phone today.\"", face: "🙂", mood: "reassured" },
   { icon: "🧑‍💼", label: "Refer", text: "Refer customers to more senior staff if unable to provide them with an acceptable solution.", bubble: "\"If you'd prefer something else, my manager can look at other options for you.\"", face: "🙂", mood: "reassured" },
-  { icon: "😊", label: "Thank", text: "Thank customers for bringing the problem to our attention.", bubble: "\"Thank you for letting us know about this.\"", face: "😊", mood: "happy" }
+  { icon: "😊", label: "Thank", text: "Thank customers for bringing the problem to our attention.", bubble: "\"Thank you for letting us know about this.\"", face: "😄", mood: "happy" }
 ];
 
 // How many path stops are on screen. The path starts with Step 1 only; a student
@@ -1678,7 +1778,7 @@ function recoveryStopHtml(step, i, animate) {
         <h4 class="path-label" id="pathLabel${i + 1}"><span class="visually-hidden">Step ${i + 1}: </span>${escapeHtml(step.label)}</h4>
         <p class="path-text">${escapeHtml(step.text)}</p>
         <p class="path-bubble ${actionLine ? "action" : ""}"><span class="visually-hidden">The staff member: </span>${escapeHtml(step.bubble)}</p>
-        <p class="path-face"><span aria-hidden="true">${step.face}</span><span class="visually-hidden">Customer feels ${step.mood}</span></p>
+        <p class="path-face"><span aria-hidden="true">${moodFaceHtml(i)}</span><span class="visually-hidden">Customer feels ${step.mood}</span></p>
       </div>
     </li>`;
 }
@@ -1751,7 +1851,7 @@ document.addEventListener("click", e => {
 const L2_TABS = [
   {
     label: "Quality Customer Service",
-    next: "Next: The Four Stages →",
+    next: "Next: The Five Stages →",
     parts: [
       notesPart(() => `
         <h2 class="section-title">${hIcon("🤝")}What is customer service?</h2>
@@ -1795,11 +1895,11 @@ const L2_TABS = [
     ]
   },
   {
-    label: "The Four Stages",
+    label: "The Five Stages",
     next: "Next: Breakdown and Recovery →",
     parts: [
       notesPart(() => `
-        <h2 class="section-title">${hIcon("🗺️")}The four stages of providing customer service</h2>
+        <h2 class="section-title">${hIcon("🗺️")}The five stages of providing customer service</h2>
         <table class="stage-table">
           <thead class="visually-hidden"><tr><th scope="col">Stage</th><th scope="col">What to do</th></tr></thead>
           <tbody>
@@ -1890,11 +1990,13 @@ const L2_TABS = [
         <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt. For example, Uniqlo, as shown below.</p>
         ${imgHtml("R03", "uniqlo-img")}
         ${reflectionHtml("s2.think2", "Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?")}
-        ${recapHtml("The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery.")}
+        ${recapHtml("The five stages are approaching customers, presenting product information, closing the customer experience positively, providing support services and performing service recovery.")}
         ${finishButtonHtml(2)}`, { wireMore: (el) => { wireFinish(el, 2); } })
     ]
   }
 ];
+
+L2_TABS[1].parts.push(notesPart(()=>`<h2 class="section-title">${hIcon("🛡️")}Provide support services</h2><p>After a purchase, help customers use their product and get help when they need it.</p>${iconCardsHtml([{icon:"🛡️",html:namedCardHtml("Warranty","Explain what the warranty covers and remind customers to keep their receipt.")},{icon:"🛠️",html:namedCardHtml("Repairs","Explain how to arrange a repair and what happens next.")},{icon:"💬",html:namedCardHtml("Multi-channel support","Offer help in-store, by phone or through online chat.")}],"cols-3")}`));
 
 function afterPathHtml() {
   return `<p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
@@ -1935,8 +2037,9 @@ function wirePath(el, ctx) {
 function itemState(item) {
   const first = rec.first[item.attemptKey];
   if (!first) return "open";
-  if (first.ok) return "right";
   const second = rec.second[item.attemptKey];
+  if(item.answerKey.startsWith("s5.") && second)return second.ok?"right":"revealed";
+  if (first.ok) return "right";
   if (!second) return "retry";
   return second.ok ? "right" : "revealed";
 }
@@ -1963,6 +2066,7 @@ function itemFeedbackHtml(item) {
 }
 
 function itemEditable(item) {
+  if(item.answerKey.startsWith("s5.") && !rec.second[item.attemptKey] && !isDone(5) && L5_MARKED.some(it=>itemState(it)==="retry"))return true;
   if (isDone(Number(item.answerKey.charAt(1)))) return false;
   const st = itemState(item);
   return st === "open" || st === "retry";
@@ -1991,9 +2095,9 @@ function itemControlHtml(item) {
       if (!revealed) return box;
       return `<div class="select-row">${WRONG_MARK}${box}<span class="answer-tag right-tag">✓ Correct answer: ${escapeHtml(item.answerLabel)}</span></div>`;
     }
-    const select = `<select class="select-input item-select ${revealed ? "wrong-pick" : ""}" data-item="${item.id}" ${off ? "disabled" : ""}>
+    const select = `<select style="border-left:6px solid ${v===undefined?"#9ca3af":STAGE_COLOURS[v===3?4:v===4?3:v]}" class="select-input item-select ${revealed ? "wrong-pick" : ""}" data-item="${item.id}" ${off ? "disabled" : ""}>
       <option value="" disabled ${v === undefined ? "selected" : ""}>Choose a stage…</option>
-      ${item.options.map((o, i) => `<option value="${i}" ${v === i ? "selected" : ""}>${escapeHtml(o)}</option>`).join("")}
+      ${[0,1,2,4,3].map(i => `<option value="${i}" style="color:${STAGE_COLOURS[i===3?4:i===4?3:i]}" ${v === i ? "selected" : ""}>${escapeHtml(item.options[i])}</option>`).join("")}
     </select>`;
     if (!revealed) return select;
     return `<div class="select-row">${WRONG_MARK}${select}<span class="answer-tag right-tag">✓ Correct answer: ${escapeHtml(item.answerLabel)}</span></div>`;
@@ -2040,7 +2144,7 @@ function recordAttempts(items, which) {
     const v = getAnswer(it.answerKey);
     const rec1 = { a: v === undefined ? null : v, ok: isCorrect(it, v), t: now };
     if (which === "first" && !rec.first[it.attemptKey]) rec.first[it.attemptKey] = rec1;
-    if (which === "second" && itemState(it) === "retry" && !rec.second[it.attemptKey]) rec.second[it.attemptKey] = rec1;
+    if (which === "second" && (itemState(it) === "retry" || (it.answerKey.startsWith("s5.") && rec.first[it.attemptKey])) && !rec.second[it.attemptKey]) rec.second[it.attemptKey] = rec1;
   });
 }
 
@@ -2073,28 +2177,34 @@ function tickHtml(key, label, readOnly) {
   const v = getAnswer(key) === true;
   return `<label class="tick-row"><input type="checkbox" class="tick-input" data-answer="${key}" ${v ? "checked" : ""} ${readOnly ? "disabled" : ""}> <span>${escapeHtml(label)}</span></label>`;
 }
-function wireTick(el, n, t, key) {
-  const box = el.querySelector(`input.tick-input[data-answer="${key}"]`);
-  if (box) box.addEventListener("change", () => {
-    setAnswer(key, box.checked, "soon");
-    redrawInPlace(n, t, `input.tick-input[data-answer="${key}"]`);
+function wireTick(el,n,t,key){
+  const box=el.querySelector(`input.tick-input[data-answer="${key}"]`);if(!box)return;
+  box.addEventListener("change",async()=>{
+    if(!box.checked){setAnswer(key,false,"soon");redrawInPlace(n,t,`input.tick-input[data-answer="${key}"]`);return;}
+    box.checked=false;box.disabled=true;
+    const reply=el.validateConversation?await el.validateConversation():{ok:false,error:"link_check_unavailable"};
+    if(!box.isConnected || reply.error==="changed")return;box.disabled=false;
+    if(!reply.ok){setAnswer(key,false,"soon");showModal({id:"invalidConversationLink",title:reply.error==="invalid_link"?"Invalid conversation link":"Unable to check conversation link",bodyHtml:`<p>${escapeHtml(conversationErrorText(reply.error))}</p>`,buttons:[{label:"Back to the link",primary:true,onClick:()=>el.querySelector('input[type="url"]')?.focus()}]});return;}
+    setAnswer(key,true,"now");redrawInPlace(n,t,`input.tick-input[data-answer="${key}"]`);
   });
 }
+
 function gemButtonHtml(url, label) {
   return `<div class="btn-row"><a class="btn gem-btn" href="${escapeHtml(url || "#")}" target="_blank" rel="noopener">${escapeHtml(label)}</a></div>`;
 }
 
 /* ---------------- Level 3: Chat with Alex ---------------- */
 
-const STAGE_NAMES = STAGES.map(s => s.name);
+// Preserve historical answer values: recovery remains 3; support is 4.
+const STAGE_NAMES = [STAGES[0].name,STAGES[1].name,STAGES[2].name,STAGES[4].name,STAGES[3].name];
 
 // "Look at these again" (agreed wording): the topic and where to find it, for each marked item.
 // Used by the summary card after feedback and by the learning report.
 const LOOK_AGAIN = {
   "s3q2.P": "Performing service recovery (Level 2, Breakdown and Recovery)",
-  "s3q2.Q": "Presenting product information (Level 2, The Four Stages)",
-  "s3q2.R": "Closing the customer experience positively (Level 2, The Four Stages)",
-  "s3q2.S": "Approaching customers (Level 2, The Four Stages)",
+  "s3q2.Q": "Presenting product information (Level 2, The Five Stages)",
+  "s3q2.R": "Closing the customer experience positively (Level 2, The Five Stages)",
+  "s3q2.S": "Approaching customers (Level 2, The Five Stages)",
   "s5q3.i": "What customer service is (Level 2, Quality Customer Service)",
   "s5q3.ii": "Good product knowledge (Level 2, Quality Customer Service)",
   "s5q3.iii": "The 8 steps of service recovery (Level 2, Breakdown and Recovery)",
@@ -2125,7 +2235,7 @@ const L3_TABS = [
     label: "Chat",
     next: "Next: Think back →",
     nextDisabledNote: "Tick the box above when you've finished.",
-    nextState: () => (getAnswer("s3.tick") === true || isDone(3) ? "show" : "disabled"),
+    nextState: () => ((getAnswer("s3.tick") === true && conversationReady(3)) || isDone(3) ? "show" : "disabled"),
     parts: [{
       html: (ctx) => `
         <h2 class="visually-hidden">Chat with Alex</h2>
@@ -2148,8 +2258,8 @@ const L3_TABS = [
         </details>
         <p>Watch how Alex starts the chat, presents information, and responds when something has gone wrong.</p>
         ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.alex, "💬 Open chat with Alex (new tab) ↗")}
-        ${tickHtml("s3.tick", "I have finished chatting with Alex.", ctx.readOnly)}`,
-      wire: (el, ctx) => wireTick(el, 3, 0, "s3.tick")
+        ${conversationLinkHtml(3,ctx.readOnly)}${tickHtml("s3.tick", "I have finished chatting with Alex.", ctx.readOnly)}`,
+      wire: (el, ctx) => {wireConversationLink(el,3);wireTick(el, 3, 0, "s3.tick");}
     }]
   },
   {
@@ -2182,7 +2292,7 @@ const L3_TABS = [
           </section>
           ${checkAgainHtml(L3_Q2)}
           ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL3">Submit</button></div>` : ""}
-          ${resolved ? `${summaryCardHtml(L3_Q2)}${recapHtml("The same four stages happen in every customer interaction, whether it's in a shop or in a chat.")}${finishButtonHtml(3)}` : ""}`;
+          ${resolved ? `${summaryCardHtml(L3_Q2)}${recapHtml("The same five stages happen in every customer interaction, whether it's in a shop or in a chat.")}${finishButtonHtml(3)}` : ""}`;
       },
       wire: (el, ctx) => {
         wireAnswerBoxes(el);
@@ -2243,7 +2353,7 @@ const STYLEZ_INFORMATION = [
     "facts": [
       [
         "Basic T-shirt",
-        "$18 each."
+        "$18 each. Available colours: black, white, navy blue and grey."
       ],
       [
         "Jeans",
@@ -2341,8 +2451,8 @@ function renderStylezInfo() {
 }
 
 const L4_BOXES = [
-  { key: "s4.q1", num: 1, icon: "👍", text: "What is one thing you feel you did well when serving Suzzie?", hint: "I did well at..." },
-  { key: "s4.q2", num: 2, icon: "🔄", text: "What is one thing you would do differently next time?", hint: "Next time, I would..." }
+  { key: "s4.q1", num: 2, icon: "👍", text: "What is one thing you feel you did well when serving Suzzie?", hint: "I did well at..." },
+  { key: "s4.q2", num: 3, icon: "🔄", text: "What is one thing you would do differently next time?", hint: "Next time, I would..." }
 ];
 
 const L4_TABS = [
@@ -2350,7 +2460,7 @@ const L4_TABS = [
     label: "Roleplay",
     next: "Next: Reflect →",
     nextDisabledNote: "Tick the box above when you've finished.",
-    nextState: () => (getAnswer("s4.tick") === true || isDone(4) ? "show" : "disabled"),
+    nextState: () => ((getAnswer("s4.tick") === true && conversationReady(4)) || isDone(4) ? "show" : "disabled"),
     parts: [{
       html: (ctx) => `
         <h2 class="visually-hidden">Roleplay</h2>
@@ -2367,10 +2477,10 @@ const L4_TABS = [
           <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
           ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
         </div>
-        <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.</span></p>
+        <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the five stages from Level 2: approach Suzzie, present product information, close positively, provide support services, and if there's a problem, perform service recovery.</span></p>
         ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open chat with Suzzie (new tab) ↗")}
-        ${tickHtml("s4.tick", "I have finished serving Suzzie.", ctx.readOnly)}`,
-      wire: (el) => wireTick(el, 4, 0, "s4.tick")
+        ${conversationLinkHtml(4,ctx.readOnly)}${tickHtml("s4.tick", "I have finished serving Suzzie.", ctx.readOnly)}`,
+      wire: (el) => {wireConversationLink(el,4);wireTick(el, 4, 0, "s4.tick");}
     }]
   },
   {
@@ -2380,21 +2490,23 @@ const L4_TABS = [
         const submitted = !!rec.submitted.s4;
         return `
           <h2 class="visually-hidden">Reflect</h2>
-          <p>Think about your roleplay with Suzzie.</p>
+          <p>Think about your roleplay with Suzzie.</p>${roleplayStagesHtml(submitted || ctx.readOnly)}
           <div class="story-cards cols-2-cards">
             ${L4_BOXES.map(b => answerBoxHtml(b.key, {
               cls: "story-card", icon: b.icon,
               labelHtml: `<strong>${b.num}.</strong> ${escapeHtml(b.text)}`, hint: b.hint, readOnly: submitted || ctx.readOnly, rows: 5
             })).join("")}
           </div>
-          ${submitted ? `${recapHtml("Look back at the four stages. Which one would you like to practise more?")}${finishButtonHtml(4)}`
+          ${submitted ? `${recapHtml("Look back at the five stages. Which one would you like to practise more?")}${finishButtonHtml(4)}`
             : `<div class="btn-row"><button type="button" class="btn" id="submitL4">Submit</button></div>`}`;
       },
       wire: (el) => {
         wireAnswerBoxes(el);
+        wireRoleplayStages(el);
         wireFinish(el, 4);
         const btn = el.querySelector("#submitL4");
         if (btn) btn.addEventListener("click", () => {
+          if(!Array.isArray(getAnswer("s4.stages")) || !getAnswer("s4.stages").length){showNotFinished([{el:el.querySelector(".roleplay-stages"),name:"Q1: choose the stages you used"}]);return;}
           const missing = L4_BOXES.filter(b => isBlank(b.key)).map(b => ({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}` }));
           if (missing.length) { showNotFinished(missing); return; }
           rec.submitted.s4 = nowIso();
@@ -2448,7 +2560,7 @@ const L5_MARKED = L5_Q3.concat(L5_Q4);
 const CONFIDENCE_ROWS = [
   "I can explain why quality customer service matters to a business",
   "I can name the skills and qualities a good customer service employee needs",
-  "I can describe the four stages of providing customer service",
+  "I can describe the five stages of providing customer service",
   "I can explain what service breakdown is, and how to perform service recovery"
 ];
 const FACES = [["😟", "Not yet"], ["🙁", "A little"], ["🙂", "Confident"], ["😄", "Very confident"]];
@@ -2485,10 +2597,10 @@ const L5_TABS = [
           </section>
           <section class="question card" data-q="q5" aria-labelledby="l5q5">
             <h3 class="q-title" id="l5q5"><span class="q-num">Q3.</span> Explain why quality customer service matters to a business. Give ONE reason.</h3>
-            ${answerBoxHtml("s5.q5", { label: "Quality customer service matters because", readOnly: submitted || ctx.readOnly, rows: 3 })}
+            ${answerBoxHtml("s5.q5", { label: "Quality customer service matters because", readOnly: ctx.readOnly, rows: 3 })}
             ${submitted ? checkNoteHtml("Check your answer: did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?") : ""}
           </section>
-          ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL5">Submit</button></div>` : ""}
+          ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL5">Check answer</button></div>` : ""}
           ${checkAgainHtml(L5_MARKED)}
           ${submitted && itemsResolved(L5_MARKED) ? summaryCardHtml(L5_MARKED) : ""}`;
       },
@@ -2510,6 +2622,7 @@ const L5_TABS = [
         });
         const again = el.querySelector("#checkAgainBtn");
         if (again) again.addEventListener("click", () => {
+          if(isBlank("s5.q5")){showNotFinished([{el:el.querySelector('[data-key="s5.q5"]'),name:"Q3"}]);return;}
           recordAttempts(L5_MARKED, "second");
           queueSave("now");
           redrawInPlace(5, 0);
@@ -2543,7 +2656,7 @@ const L5_TABS = [
                 <p class="face-statement">${escapeHtml(row)}</p>
                 <div class="face-options" role="group" aria-label="${escapeHtml(row)}">
                   ${FACES.map(([face, label], i) => `<button type="button" class="face-btn ${v === i ? "picked" : ""}" data-key="${key}" data-value="${i}" aria-pressed="${v === i}" ${ro ? "disabled" : ""}>
-                    <span class="face-emoji" aria-hidden="true">${face}</span><span class="face-label">${label}</span></button>`).join("")}
+                    <span class="face-emoji" aria-hidden="true">${moodFaceHtml([2,3,5,7][i])}</span><span class="face-label">${label}</span></button>`).join("")}
                 </div>
               </div>`;
             }).join("")}
@@ -2578,6 +2691,7 @@ const L5_TABS = [
 
 // Level 5 completion pop-up with Badge 5.
 function showChampionPopup() {
+  popConfetti();
   showModal({
     id: "badgeModal",
     className: "badge-modal",
@@ -2586,7 +2700,7 @@ function showChampionPopup() {
       <p class="badge-pop-text">🏆 Completion Champion</p>`,
     buttons: [
       { label: "📊 See my learning report", primary: true, onClick: () => { window.location.hash = "#report"; } },
-      { label: "Back to my route", onClick: () => { window.location.hash = "#home"; } }
+      { label: "Back to my route", onClick: () => backToRoute(5) }
     ]
   });
 }
@@ -2676,8 +2790,8 @@ function learningAnswersHtml(r) {
   const groups = [
     L1_BOXES.map(b => qa(`${b.num}. ${b.text}`,b.key)).join(""),
     qa("What did Alex do to make June feel welcome? Why did she bring her friend back?","s2.video") + qa("Was this good service recovery? Which of the 8 steps above were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
-    reportAnswerHtml("I have finished chatting with Alex.",tick("s3.tick")) + qa("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed. Skill or quality:","s3.q1a") + qa("This is important to customers because","s3.q1b") + L3_Q2.map(it=>reportMarkedHtml(it,r)).join(""),
-    reportAnswerHtml("I have finished serving Suzzie.",tick("s4.tick")) + L4_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
+    reportAnswerHtml("Alex conversation link",recAnswer(r,"s3.link")) + reportAnswerHtml("I have finished chatting with Alex.",tick("s3.tick")) + qa("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed. Skill or quality:","s3.q1a") + qa("This is important to customers because","s3.q1b") + L3_Q2.map(it=>reportMarkedHtml(it,r)).join(""),
+    reportAnswerHtml("Suzzie conversation link",recAnswer(r,"s4.link")) + reportAnswerHtml("Which stages did you do?",(recAnswer(r,"s4.stages") || []).join(", ")) + reportAnswerHtml("I have finished serving Suzzie.",tick("s4.tick")) + L4_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
     L5_MARKED.map(it=>reportMarkedHtml(it,r)).join("") + qa("Q3. Quality customer service matters because","s5.q5") + qa("Q4. What is one thing you have learnt about customer service?","s5.q6") + qa("Q5. What is one question you still have about this chapter?","s5.q7") + CONFIDENCE_ROWS.map((row,i)=>{const v=recAnswer(r,`s5.q8.${i+1}`);return reportAnswerHtml(`Q6. ${row}`,typeof v==="number" && FACES[v] ? FACES[v][1] : undefined);}).join("")
   ];
   return groups.map((html,i)=>`<section class="card report-answer-level" aria-labelledby="answerLevel${i+1}"><h3 class="section-title" id="answerLevel${i+1}">Level ${i+1}: ${escapeHtml(LEVELS[i].title)}</h3>${html}</section>`).join("");
@@ -2739,7 +2853,7 @@ function renderReport() {
         <p>These are your saved answers. Questions you have not answered are marked “Not answered yet”.</p>
         ${learningAnswersHtml(r)}
       </section>
-      <div class="block"><div class="btn-row"><a href="#home" class="btn" id="reportBack">Back to my route</a></div></div>
+      <div class="block"><div class="btn-row"><a href="#home" class="btn" id="reportBack" onclick="event.preventDefault();backToRoute()">Back to my route</a></div></div>
     </main>
     ${footerHtml()}
   `);
@@ -3093,7 +3207,7 @@ function renderStudentReport(body, panel) {
       <h3 class="sum-head">Level 3: Q2</h3>
       ${attemptsTable(withR(L3_Q2), "Line")}
       <h3 class="sum-head">Level 4: reflections</h3>
-      ${L4_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
+      ${qa("Which stages did you do?",(recAnswer(r,"s4.stages") || []).join(", "))}${qa("Suzzie conversation link",recAnswer(r,"s4.link"))}${L4_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
       <h3 class="sum-head">Level 5: Q1 and Q2</h3>
       ${attemptsTable(withR(L5_MARKED), "Item")}
       ${qa("Q3. Quality customer service matters because", recAnswer(r, "s5.q5"))}
@@ -3141,7 +3255,7 @@ function downloadClassCsv(res) {
     .concat(L1_BOXES.map(b => `Level 1 story ${b.num}`))
     .concat(["Level 2 Video reflection", "Level 2 Think about it 1", "Level 2 Think about it 2", "Level 3 Q1 skill or quality", "Level 3 Q1 why important"])
     .concat(L3_Q2.reduce((a, it) => a.concat([`Q2 ${it.id} first try`, `Q2 ${it.id} second try`]), []))
-    .concat(L4_BOXES.map(b => `Level 4 reflection ${b.num}`))
+    .concat(["Alex conversation link","Suzzie conversation link","Level 4 stages used"]).concat(L4_BOXES.map(b => `Level 4 reflection ${b.num}`))
     .concat(L5_Q3.reduce((a, it) => a.concat([`Q1 ${it.id} first try`, `Q1 ${it.id} second try`]), []))
     .concat(["Q2 first try", "Q2 second try", "Q3", "Q4", "Q5"])
     .concat(CONFIDENCE_ROWS.map((row, i) => `Q6 confidence ${i + 1}: ${row}`))
@@ -3156,7 +3270,7 @@ function downloadClassCsv(res) {
       .concat(L1_BOXES.map(b => recAnswer(r, b.key)))
       .concat(["s2.video", "s2.think1", "s2.think2", "s3.q1a", "s3.q1b"].map(k => recAnswer(r, k)))
       .concat(L3_Q2.reduce((a, it) => a.concat([att(it, "first"), att(it, "second")]), []))
-      .concat(L4_BOXES.map(b => recAnswer(r, b.key)))
+      .concat([recAnswer(r,"s3.link"),recAnswer(r,"s4.link"),(recAnswer(r,"s4.stages") || []).join("; ")]).concat(L4_BOXES.map(b => recAnswer(r, b.key)))
       .concat(L5_MARKED.reduce((a, it) => a.concat([att(it, "first"), att(it, "second")]), []))
       .concat(["s5.q5", "s5.q6", "s5.q7"].map(k => recAnswer(r, k)))
       .concat(CONFIDENCE_ROWS.map((row, i) => { const v = recAnswer(r, `s5.q8.${i + 1}`); return typeof v === "number" ? FACES[v][1] : ""; }))

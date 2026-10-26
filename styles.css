@@ -26,8 +26,8 @@
 
   /* The four stages: notes only (stage table, Service Recovery Path), never in questions. */
   --stage1:#2563EB;
-  --stage2:#EA580C;
-  --stage3:#16A34A;
+  --stage2:#c2410c;
+  --stage3:#15803d;
   --stage4:#7C3AED;
 
   --radius:14px;
@@ -1483,3 +1483,21 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 
 /* Caption transcript remains easy to open on touch screens. */
 .video-transcript summary { min-height: 44px; padding: 10px 0; cursor: pointer; }
+/* Five-stage learning journey, shared colours and one card per screen. */
+:root{--sticky-clearance:calc(var(--topbar-h,80px) + 100px)}
+[id],.part,.lesson-card,.route>li{scroll-margin-top:var(--sticky-clearance)}
+.lesson-single{max-width:1120px}.lesson-card{margin:24px 0}.lesson-card-nav{justify-content:space-between}.lesson-card-progress{position:sticky;top:var(--topbar-h,80px);background:#faf7f5;padding:12px 0;z-index:8}.lesson-card-progress p{margin:0 0 8px}.single-recovery{padding-top:16px}.single-recovery .path-stop{margin-bottom:0}
+.stage-4{--stage:#0f766e}.stage-5{--stage:#7c3aed}.stage-4 th{border-left:6px solid #0f766e;background:#e6f5f1}.stage-5 th{border-left:6px solid #7c3aed;background:#f2ebff}
+.stage-checklist{display:flex;gap:12px;flex-wrap:wrap}.stage-chip{display:flex;gap:10px;align-items:center;min-height:48px;border-left:6px solid var(--stage-colour);border-radius:10px;background:#fff;padding:10px 14px;box-shadow:0 0 0 1px #e8dadf}.stage-chip input{width:22px;height:22px}.stage-chip .ui-graphic{width:26px;height:26px}
+.mood-graphic{width:48px;height:48px;display:inline-block;vertical-align:middle}.face-emoji .mood-graphic{width:54px;height:54px}.conversation-share{margin:24px 0}.conversation-share .field-error{min-height:24px}.conversation-open[aria-disabled=true]{opacity:.6;pointer-events:none}.conversation-share .tick-row{margin-top:18px}
+.speech-word.reading-now{background:#ffdf70;color:#201625;border-radius:3px;box-shadow:0 0 0 2px #ffdf70}
+.confetti-burst{position:fixed;inset:0;pointer-events:none;z-index:10000;overflow:hidden}.confetti-burst i{position:absolute;left:var(--x);top:-20px;width:10px;height:16px;animation:confetti-fall 1.9s var(--delay) ease-in forwards}@keyframes confetti-fall{to{transform:translate(var(--drift),100vh) rotate(680deg);opacity:0}}@media(prefers-reduced-motion:reduce){.confetti-burst{display:none}}
+@media(max-width:600px){.lesson-card{padding:18px}.stage-checklist{display:grid;grid-template-columns:1fr}.lesson-card-nav .btn{min-width:100px}}
+.lesson-card .head-row{align-items:flex-start;flex-wrap:wrap}.lesson-card .head-row>h2{flex:1 1 280px}.lesson-card .head-row>.listen-btn{flex:0 0 auto}.face-emoji{filter:none}
+.stage-row.stage-4{border-left-color:#0f766e}.stage-row.stage-5{border-left-color:#7c3aed}
+@media(max-width:560px){.stage-row.stage-4 th,.stage-row.stage-5 th{border-left:0}.lesson-card .head-row>.listen-btn{margin-bottom:14px}}
+#routeProgress{scroll-margin-top:calc(var(--topbar-h,80px) + 12px)}
+.lesson-subsection + .lesson-subsection{margin-top:36px;padding-top:24px;border-top:1px solid var(--border)}
+.recovery-step-nav{justify-content:space-between}.recovery-step-count{font-weight:700;color:var(--brand-dark)}
+/* Separate a reflection from the recap that follows it. */
+.think-card + .recap-card{margin-top:24px;}
