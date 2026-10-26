@@ -55,7 +55,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(page.locator("#part0 > p", { hasText: "Watch how" })).toHaveText("Watch how Alex starts the chat, presents information, and responds when something has gone wrong.");
     const gem = page.locator(".gem-btn");
     await expect(gem).toHaveText("Open Alex (new tab)");
-    await expect(gem).toHaveAttribute("href", "https://gemini.google.com/gem/03f888f88087");
+    await expect(gem).toHaveAttribute("href", "https://gemini.google.com/share/d/11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8?usp=sharing");
     await expect(gem).toHaveAttribute("target", "_blank");
     const tick = page.locator(".tick-input");
     await expect(page.locator(".tick-row")).toHaveText("I have finished chatting with Alex.");
@@ -181,7 +181,7 @@ test.describe("Level 3: Chat with Alex", () => {
     // Coming back: read-only, feedback still there, Open Alex still works.
     await page.click("#levelCard3");
     await page.locator(".step-tab").nth(0).click();
-    await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/gem/03f888f88087");
+    await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/share/d/11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8?usp=sharing");
     await expect(page.locator(".tick-input")).toBeDisabled();
     await page.locator(".step-tab").nth(1).click();
     await expect(page.locator("#sel_Q")).toHaveAttribute("aria-disabled", "true");

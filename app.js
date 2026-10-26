@@ -61,7 +61,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.26";
+const APP_VERSION = "0.6.27";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */

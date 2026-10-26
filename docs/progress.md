@@ -363,3 +363,7 @@ Merged Dan’s image compression, badge transparency, Read aloud and report refi
 ### Reset releases student identity (24 October 2026, version 0.6.26 preview)
 - User requested reset also clear the name and free the register number. Reset now leaves only the server reset marker, removes the profile from Reset and Unlock lists, and returns an affected active device to registration. Students can register again with any available number 1–40 in the teacher-selected class. Stale saves remain blocked, including on another device. Dan must redeploy Code.gs for live use.
 - Verification: full suite passed 120 checks (two intentional skips) at laptop and phone widths. Reset clears the registered identity, permits a new name at the same number, leaves other profiles intact, and rejects stale saves. Reviewed the cleared registration form on both widths. Backend responses now report version 0.6.26 for deployment verification.
+
+### Nexora chatbot link (26 October 2026, version 0.6.27 preview)
+- Updated Alex/Nexora chatbot to the Gemini sharing URL supplied by the user. Local preview only; no backend changes required.
+- Replaced the preview Nexora link with the user’s newer Gemini share link ending in 11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8.
