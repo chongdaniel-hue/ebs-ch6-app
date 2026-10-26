@@ -21,6 +21,7 @@ async function student(page, request, reg) {
   // Open every level and part on this device so all notes can be checked.
   await page.evaluate(() => {
     localStorage.setItem("ch6_unlock_all", "true");
+    for(const key of REFLECTION_KEYS){setAnswer(key,"A complete reflection.");setUi(`${key}.saved`,rec.answers[key].t);}
     rec.reached["s2.tabs"] = 2; ["s2.t0", "s2.t1", "s2.t2"].forEach(k => { rec.reached[k] = 5; }); rec.reached["s2.path"] = 8;
     saveLocal();
   });

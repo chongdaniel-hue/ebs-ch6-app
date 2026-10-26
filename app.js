@@ -61,7 +61,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.28";
+const APP_VERSION = "0.6.30";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -1305,7 +1305,8 @@ function renderLevel(n) {
   if (rec.agreed && !isStarted(n)) { raiseReached(`s${n}.t${t}`, 1); queueSave("soon"); }
   app.querySelectorAll(".step-tab").forEach(b => b.addEventListener("click", () => {
     const i = Number(b.getAttribute("data-tab"));
-    if (!isTabUnlocked(n, i) || i === t) return; // locked tabs cannot be opened
+    if (!isTabUnlocked(n, i) || i === t) return;
+    if(n === 2 && i > t && !requireReflections(i > 0 ? ["s2.video", ...visibleReflectionKeys()] : visibleReflectionKeys()))return; // locked tabs cannot be opened
     setUi(`s${n}.tab`, i);
     queueSave("soon");
     renderLevel(n);
@@ -1326,6 +1327,7 @@ function drawTab(n, t, tab, o) {
     const title = sec.querySelector(":scope > h2, :scope > .head-row > h2, :scope > .head-row > p, :scope > p, :scope > h3");
     if (title) title.id = `part${i}Title`;
     if (part.wire) part.wire(sec, ctx);
+    wireReflections(sec);
   });
 
   const last = shown === tab.parts.length;
@@ -1344,6 +1346,7 @@ function drawTab(n, t, tab, o) {
 
   const cont = document.getElementById("continueBtn");
   if (cont) cont.addEventListener("click", () => {
+    if(n === 2 && !requireReflections([...visibleReflectionKeys(), ...(t > 0 ? ["s2.video"] : [])]))return;
     raiseReached(`s${n}.t${t}`, shown + 1);
     queueSave("soon");
     drawTab(n, t, tab, {});
@@ -1351,6 +1354,7 @@ function drawTab(n, t, tab, o) {
   });
   const next = document.getElementById("nextBtn");
   if (next) next.addEventListener("click", () => {
+    if(n === 2 && !requireReflections([...visibleReflectionKeys(), ...(t > 0 ? ["s2.video"] : [])]))return;
     raiseReached(`s${n}.tabs`, t + 1);
     setUi(`s${n}.tab`, t + 1);
     queueSave("soon");
@@ -1381,6 +1385,35 @@ function wireAnswerBoxes(el) {
     box.addEventListener("input", () => setAnswer(box.getAttribute("data-answer"), box.value, "typing"));
   });
 }
+const REFLECTION_KEYS = ["s2.video", "s2.think1", "s2.think2"];
+function reflectionSaved(key) {
+  return !isBlank(key) && getUi(`${key}.saved`) === (rec.answers[key] || {}).t;
+}
+function reflectionHtml(key, label) {
+  return `<div class="card think-card" data-reflection="${key}"><h3 class="think-title">${hIcon("🤔")}Think about it</h3>
+    ${answerBoxHtml(key,{label,hint:"Type your thoughts here...",readOnly:isDone(2) && reflectionSaved(key)})}
+    <div class="btn-row"><button type="button" class="btn secondary" data-save-reflection="${key}" ${isDone(2) && reflectionSaved(key) ? "disabled" : ""}>Save</button></div>
+    <p class="field-note" role="status" data-reflection-status>${reflectionSaved(key) ? "Saved." : "Enter your thoughts and select Save before continuing."}</p></div>`;
+}
+function requireReflections(keys) {
+  const missing=keys.filter(key=>!reflectionSaved(key));
+  if(!missing.length)return true;
+  showModal({id:"reflectionRequired",title:"Complete all questions",bodyHtml:"<p>Please complete all questions and select Save before moving on.</p>",buttons:[{label:"Back to questions",primary:true,onClick:()=>{let box=document.getElementById(`ans_${cssId(missing[0])}`);if(!box){const target=missing[0] === "s2.video" ? [0,2] : missing[0] === "s2.think1" ? [2,3] : [2,5];setUi("s2.tab",target[0]);raiseReached(`s2.t${target[0]}`,target[1]);queueSave("soon");renderLevel(2);box=document.getElementById(`ans_${cssId(missing[0])}`);}if(box)box.focus();}}]});
+  return false;
+}
+function visibleReflectionKeys() { return Array.from(document.querySelectorAll('#levelMain [data-reflection]')).map(el=>el.dataset.reflection); }
+function wireReflections(el) {
+  el.querySelectorAll('[data-reflection]').forEach(card=>{
+    wireAnswerBoxes(card);
+    const key=card.dataset.reflection,box=card.querySelector('textarea'),status=card.querySelector('[data-reflection-status]');
+    box.addEventListener('input',()=>{status.textContent=reflectionSaved(key) ? 'Saved.' : 'Changes not saved. Select Save before continuing.';});
+    card.querySelector('[data-save-reflection]').addEventListener('click',()=>{
+      if(isBlank(key)){requireReflections([key]);return;}
+      setUi(`${key}.saved`,rec.answers[key].t);queueSave('now');status.textContent='Saved.';
+    });
+  });
+}
+
 function isBlank(key) { return !String(getAnswer(key) == null ? "" : getAnswer(key)).trim(); }
 
 // 📌 Remember this (V45's re-teach card). 💡 is kept for tips.
@@ -1400,6 +1433,7 @@ function wireFinish(el, n) {
 }
 
 function finishLevel(n) {
+  if(n === 2 && !requireReflections(REFLECTION_KEYS))return;
   if (!rec.done[n]) rec.done[n] = nowIso();
   queueSave("now");
   showBadgePopup(n);
@@ -1511,7 +1545,7 @@ function stopSpeaking() {
 // The words of a block, without buttons, answer boxes, questions or icons.
 function blockSpeechText(block) {
   const copy = block.cloneNode(true);
-  copy.querySelectorAll("button, textarea, input, select, .think-card, .listen-row, [aria-hidden='true'], .nav-row").forEach(x => x.remove());
+  copy.querySelectorAll("button, textarea, input, select, video, .think-card, .listen-row, [aria-hidden='true'], .nav-row").forEach(x => x.remove());
   copy.querySelectorAll("p, li, h2, h3, h4, th, td, div").forEach(x => x.append(" "));
   copy.querySelectorAll("img").forEach(x => x.remove());
   return copy.textContent.replace(/\s+/g, " ").trim();
@@ -1707,7 +1741,7 @@ const L2_TABS = [
         <h2 class="section-title">${hIcon("⭐")}What is quality customer service?</h2>
         ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to exceed their expectations.</p>`, "TERM_QUALITY")}
 `),
-      notesPart(() => `
+      notesPart((ctx) => `
         <h2 class="section-title">${hIcon("❓")}Why does quality customer service matter?</h2>
         <p>If a business provides quality customer service:</p>
         ${iconCardsHtml([
@@ -1715,7 +1749,13 @@ const L2_TABS = [
           { icon: "🗣️", html: "Customers will <strong>recommend</strong> the business to their relatives and friends; and" },
           { icon: "🤝", html: "<strong>Customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>." }
         ], "cols-3")}
-        ${imgHtml("C01", "comic-img")}`),
+        ${imgHtml("C01", "comic-img")}
+        <section class="lesson-video" aria-labelledby="nexoraVideoTitle">
+          <h3 id="nexoraVideoTitle">Watch: A better welcome at Nexora</h3>
+          <p id="nexoraVideoPrompt">Watch both versions. Notice what Alex does differently and how June responds.</p>
+          <video controls playsinline preload="metadata" aria-label="A better welcome at Nexora" aria-describedby="nexoraVideoPrompt" poster="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.poster)}"><source src="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.file)}" type="video/mp4">Your browser cannot play this video. <a href="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.file)}">Open the Nexora video</a>.</video>
+          ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}
+        </section>`),
       notesPart(() => `
         <h2 class="section-title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
         <p>Some skills and qualities customer service employees need:</p>
@@ -1816,10 +1856,7 @@ const L2_TABS = [
         <h2 class="section-title">${hIcon("📉")}Real-life example: poor service recovery</h2>
         <p>A customer complained to a food delivery app that their orders from one restaurant had been cancelled 4 times. The replies? "oh" and "so sad", followed by a $3.30 voucher "to say we're sorry".</p>
         ${imgPairHtml(["R01", "R02"])}
-        <div class="card think-card">
-          <h3 class="think-title">${hIcon("🤔")}Think about it (optional)</h3>
-          ${answerBoxHtml("s2.think1", { label: "Was this good service recovery? Which of the 8 steps above were missing?", hint: "I think this was / was not good service recovery because... The steps that were missing were...", readOnly: ctx.readOnly })}
-        </div>`, { wireMore: (el) => wireAnswerBoxes(el) }),
+        ${reflectionHtml("s2.think1", "Was this good service recovery? Which of the 8 steps above were missing?")}`),
       notesPart((ctx) => `
         <h2 class="section-title">${hIcon("↩️")}Handling returns of unsatisfactory products</h2>
         <p>If a customer returns a product they are unhappy with, the business can offer:</p>
@@ -1833,12 +1870,9 @@ const L2_TABS = [
       notesPart((ctx) => `
         <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt. For example, Uniqlo, as shown below.</p>
         ${imgHtml("R03", "uniqlo-img")}
-        <div class="card think-card">
-          <h3 class="think-title">${hIcon("🤔")}Think about it (optional)</h3>
-          ${answerBoxHtml("s2.think2", { label: "Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?", hint: "One item Uniqlo will not accept is... I think they have this rule because...", readOnly: ctx.readOnly })}
-        </div>
+        ${reflectionHtml("s2.think2", "Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?")}
         ${recapHtml("The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery.")}
-        ${finishButtonHtml(2)}`, { wireMore: (el) => { wireAnswerBoxes(el); wireFinish(el, 2); } })
+        ${finishButtonHtml(2)}`, { wireMore: (el) => { wireFinish(el, 2); } })
     ]
   }
 ];
@@ -2622,7 +2656,7 @@ function learningAnswersHtml(r) {
   const tick = key => recAnswer(r,key) === true ? "Yes" : recAnswer(r,key) === false ? "No" : undefined;
   const groups = [
     L1_BOXES.map(b => qa(`${b.num}. ${b.text}`,b.key)).join(""),
-    qa("Was this good service recovery? Which of the 8 steps above were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
+    qa("What did Alex do to make June feel welcome? Why did she bring her friend back?","s2.video") + qa("Was this good service recovery? Which of the 8 steps above were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
     reportAnswerHtml("I have finished chatting with Alex.",tick("s3.tick")) + qa("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed. Skill or quality:","s3.q1a") + qa("This is important to customers because","s3.q1b") + L3_Q2.map(it=>reportMarkedHtml(it,r)).join(""),
     reportAnswerHtml("I have finished serving Suzzie.",tick("s4.tick")) + L4_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
     L5_MARKED.map(it=>reportMarkedHtml(it,r)).join("") + qa("Q5. Quality customer service matters because","s5.q5") + qa("Q6. What is one thing you have learnt about customer service?","s5.q6") + qa("Q7. What is one question you still have about this chapter?","s5.q7") + CONFIDENCE_ROWS.map((row,i)=>{const v=recAnswer(r,`s5.q8.${i+1}`);return reportAnswerHtml(`Q8. ${row}`,typeof v==="number" && FACES[v] ? FACES[v][1] : undefined);}).join("")
@@ -3030,7 +3064,8 @@ function renderStudentReport(body, panel) {
       <p class="muted">Levels done: ${recLevelsDone(r)} of 5${s.lastSaved ? ` · Last saved ${escapeHtml(s.lastSaved)}` : ""}${s.clearedAt ? ` · Work cleared ${escapeHtml(s.clearedAt)}` : ""}</p>
       <h3 class="sum-head">Level 1: stories</h3>
       ${L1_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
-      <h3 class="sum-head">Level 2: Think about it (optional)</h3>
+      <h3 class="sum-head">Level 2: Think about it</h3>
+      ${qa("What did Alex do to make June feel welcome? Why did she bring her friend back?", recAnswer(r, "s2.video"))}
       ${qa("Was this good service recovery? Which of the 8 steps above were missing?", recAnswer(r, "s2.think1"))}
       ${qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?", recAnswer(r, "s2.think2"))}
       <h3 class="sum-head">Level 3: Q1</h3>
@@ -3085,7 +3120,7 @@ function downloadClassCsv(res) {
     .concat(LEVELS.map(s => `Level ${s.num} finished`))
     .concat(["Q2 first try (/4)", "Q3 and Q4 first try (/5)"])
     .concat(L1_BOXES.map(b => `Level 1 story ${b.num}`))
-    .concat(["Level 2 Think about it 1", "Level 2 Think about it 2", "Level 3 Q1 skill or quality", "Level 3 Q1 why important"])
+    .concat(["Level 2 Video reflection", "Level 2 Think about it 1", "Level 2 Think about it 2", "Level 3 Q1 skill or quality", "Level 3 Q1 why important"])
     .concat(L3_Q2.reduce((a, it) => a.concat([`Q2 ${it.id} first try`, `Q2 ${it.id} second try`]), []))
     .concat(L4_BOXES.map(b => `Level 4 reflection ${b.num}`))
     .concat(L5_Q3.reduce((a, it) => a.concat([`Q3 ${it.id} first try`, `Q3 ${it.id} second try`]), []))
@@ -3100,7 +3135,7 @@ function downloadClassCsv(res) {
       .concat(LEVELS.map(lv => shortDate(recDone(r, lv.num))))
       .concat([q2 == null ? "" : q2, q34 == null ? "" : q34])
       .concat(L1_BOXES.map(b => recAnswer(r, b.key)))
-      .concat(["s2.think1", "s2.think2", "s3.q1a", "s3.q1b"].map(k => recAnswer(r, k)))
+      .concat(["s2.video", "s2.think1", "s2.think2", "s3.q1a", "s3.q1b"].map(k => recAnswer(r, k)))
       .concat(L3_Q2.reduce((a, it) => a.concat([att(it, "first"), att(it, "second")]), []))
       .concat(L4_BOXES.map(b => recAnswer(r, b.key)))
       .concat(L5_MARKED.reduce((a, it) => a.concat([att(it, "first"), att(it, "second")]), []))

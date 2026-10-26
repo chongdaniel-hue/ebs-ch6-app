@@ -157,6 +157,7 @@ test("every student screen", async ({ page, request }, testInfo) => {
 
   // Level 2, every tab and part.
   await page.evaluate(() => {
+    for(const key of REFLECTION_KEYS){setAnswer(key,"A complete reflection.");setUi(`${key}.saved`,rec.answers[key].t);}
     rec.reached["s2.tabs"] = 2; ["s2.t0", "s2.t1", "s2.t2"].forEach(k => { rec.reached[k] = 5; }); rec.reached["s2.path"] = 8; saveLocal();
   });
   for (const t of [0, 1, 2]) {

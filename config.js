@@ -16,6 +16,10 @@ window.APP_CONFIG = {
   LOCAL_URL: "api",
 
   /* ---------- 2. Chatbot links (open in a new tab) ---------- */
+  VIDEOS: {
+    nexoraWelcome: {file:"assets/video/nexora-welcome.mp4",poster:"assets/video/nexora-welcome-poster.jpg"}
+  },
+
   GEMS: {
     alex: "https://gemini.google.com/share/d/11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8?usp=sharing",
     suzzie: "https://gemini.google.com/share/d/1H4fljjGGGpMKFUnY-CsTxDrElTGAdMZy?usp=sharing"

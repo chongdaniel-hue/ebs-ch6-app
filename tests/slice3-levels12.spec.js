@@ -153,6 +153,8 @@ test.describe("Level 2", () => {
       "Customer loyalty is created, ensuring the continuity of the business."
     ]);
     await expect(page.locator('#part1 img[data-img="C01"]')).toBeVisible();
+    await page.locator('[data-answer="s2.video"]').fill("Alex greeted June and offered help.");
+    await page.locator('[data-save-reflection="s2.video"]').click();
     await page.click("#continueBtn");
     await expect(page.locator("#part2 h2")).toHaveText("Skills and qualities of a good customer service employee");
     // Skill names on their own line (bold, no colon), descriptions below with a capital letter.
@@ -235,8 +237,9 @@ test.describe("Level 2", () => {
     await expect(page.locator("#part2 h2")).toHaveText("Real-life example: poor service recovery");
     await expect(page.locator('#part2 img[data-img="R01"]')).toBeVisible();
     await expect(page.locator('#part2 img[data-img="R02"]')).toBeVisible();
-    await expect(page.locator("#part2 .think-title")).toHaveText("Think about it (optional)");
+    await expect(page.locator("#part2 .think-title")).toHaveText("Think about it");
     await page.fill('textarea[data-answer="s2.think1"]', "Not good: no apology or solution.");
+    await page.locator('[data-save-reflection="s2.think1"]').click();
     await page.click("#continueBtn");
     await expect(page.locator("#part3 h2")).toHaveText("Handling returns of unsatisfactory products");
     await expect(page.locator('#part3 img[data-img="N03"]')).toBeVisible();
@@ -246,7 +249,8 @@ test.describe("Level 2", () => {
     await page.click("#continueBtn");
     await expect(page.locator("#part4 .head-row p")).toHaveText("Many businesses also set clear rules for returns, such as a time limit and needing the receipt. For example, Uniqlo, as shown below.");
     await expect(page.locator('#part4 img[data-img="R03"]')).toBeVisible();
-    // The optional box is left empty: Finish still works.
+    await page.locator('[data-answer="s2.think2"]').fill("Used products cannot be returned for hygiene reasons.");
+    await page.locator('[data-save-reflection="s2.think2"]').click();
     await expect(page.locator(".recap-card .recap-title")).toHaveText("Remember this");
     await expect(page.locator(".recap-card p")).toHaveText("The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery.");
     await expect(page.locator("#finishBtn")).toHaveText("Finish Level 2");
@@ -272,7 +276,10 @@ test.describe("Level 2", () => {
     await finishLevel1(page);
     await page.goto("/#level2");
     for (let t = 0; t < 2; t++) {
-      for (let c = 0; c < 3; c++) await page.click("#continueBtn");
+      for (let c = 0; c < 3; c++) {
+        if(t===0 && c===1){await page.locator('[data-answer="s2.video"]').fill('Alex welcomed June and offered help.');await page.locator('[data-save-reflection="s2.video"]').click();}
+        await page.click("#continueBtn");
+      }
       await page.click("#nextBtn");
     }
     await page.click("#continueBtn");
@@ -308,7 +315,7 @@ test.describe("Level 2", () => {
     await newStudent(page, request, 25);
     await finishLevel1(page);
     await page.goto("/#level2");
-    await page.evaluate(() => { localStorage.setItem("ch6_unlock_all", "true"); });
+    await page.evaluate(() => { localStorage.setItem("ch6_unlock_all", "true");setAnswer("s2.video","Alex greeted June.");setUi("s2.video.saved",rec.answers["s2.video"].t);saveLocal(); });
     await page.reload();
     await page.locator(".step-tab").nth(2).click();
     await page.click("#continueBtn"); // the path is the second part of Tab 3

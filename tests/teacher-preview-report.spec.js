@@ -39,7 +39,7 @@ test("learning report includes every saved answer, drafts, retries and unanswere
  const errors=watchErrors(page);await prepare(page,request);const before=await page.evaluate(()=>JSON.stringify(rec));
  await page.goto("/#report");await expect(page.locator(".report-answer-level")).toHaveCount(5);
  const answers=page.locator(".learning-answers");
- await expect(answers.locator(".qa")).toHaveCount(27);
+ await expect(answers.locator(".qa")).toHaveCount(28);
  await expect(answers.locator(".qa-a").first()).toHaveText("A staff member helped me. <script> 😊");
  await expect(answers.locator("script")).toHaveCount(0);
  for(const text of ["Used clothing","Clear communication","Ask more questions","How can I improve?","Not answered yet","Confident"]) await expect(answers).toContainText(text);

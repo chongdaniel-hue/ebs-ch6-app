@@ -370,3 +370,10 @@ Merged Dan’s image compression, badge transparency, Read aloud and report refi
 
 ### Shared Teacher Mode reset (26 October 2026, version 0.6.28 preview)
 - “Reset this device” now opens the exact same reset-passcode, class/profile selection and confirmation flow as footer “Reset progress”. Removed the old device-only reset logic. Both entry points clear the selected server profile, name, answers, badges and progress, freeing its register number. Requires the existing 0.6.26 Apps Script backend; no additional backend change.
+
+### Nexora welcome video (26 October 2026, version 0.6.29 preview)
+- User approved adding the supplied 45-second video after “Why does quality customer service matter?” and before employee skills in Level 2. Added the heading “Watch: A better welcome at Nexora”, the approved viewing prompt and optional discussion questions. Native player supports play, pause and replay with no autoplay; original video retained, poster and video mapped in config. Existing lesson progression and questions unchanged. Video assets are covered by the existing assets publication whitelist. Local preview only.
+
+### Required saved reflections (26 October 2026, version 0.6.30 preview)
+- All three Think about it sections now have text boxes and Save buttons; removed “optional”. Continue, forward tabs, Next and Finish Level 2 require nonblank saved reflections. Editing after Save requires saving again. A modal asks students to complete all questions and save before moving on. Video response is included in learning reports, teacher reports and CSV. Teacher preview remains view-only and opens all sections.
+- Release verification: 122 regression checks passed; the two older unlock-flow expectations were updated for compulsory reflections and both then passed in a 17-check focused rerun (one intentional skip). Video playback, required saved text, unsaved edits, forward navigation, finish, persistence, reports/CSV, contrast and student/teacher layouts checked at 1280px and 360px. Original video and responsive player reviewed. No additional Apps Script changes required for video/reflections.
