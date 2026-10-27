@@ -34,7 +34,7 @@ test('Level 2 has 15 cards with back/next progress, automatic saving and require
 });
 test('quick check: nothing pre-selected, instant feedback, one more try, then the answer; required before Next; not scored',async({page,request},info)=>{
  await start(page,request);await page.evaluate(()=>{setUi('s2.cardLayout','cards15');setUi('s2.card',8);saveLocal();});await page.goto('/#level2');
- await expect(page.locator('#lessonCard h2')).toHaveText('Quick check: which approach is this?');await expect(page.locator('#lessonCard')).toContainText('Tap one for each.');
+ await expect(page.locator('#lessonCard h2')).toHaveText('Quick check: Which approach is this?');await expect(page.locator('#lessonCard')).toContainText('Tap one for each.');
  await expect(page.locator('#lessonCard .listen-btn')).toHaveCount(0);
  await expect(page.locator('.qc-btn')).toHaveCount(9);await expect(page.locator('.qc-btn.picked')).toHaveCount(0);await expect(page.locator('.qc-btn[aria-pressed="true"]')).toHaveCount(0);
  await page.locator('#lessonNext').click();await expect(page.locator('#notFinished')).toContainText('a)');await page.keyboard.press('Escape');

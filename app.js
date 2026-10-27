@@ -67,9 +67,11 @@
    0.8.0 Key terms as term, definition, example; product-knowledge comics with
         speech bubbles; 1600px comics and larger tap to enlarge; the 8 steps
         in textbook wording only; capital letters after labels.
+   0.8.1 New link for Alex (a Gemini Skill); capital letters after the colon in
+        headings and the When to approach line.
    ============================================================ */
 
-const APP_VERSION = "0.8.0";
+const APP_VERSION = "0.8.1";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -2032,7 +2034,7 @@ const L2_CARDS = [
   { label: "Stage 1: Approaching customers", ...notesPart(() => `
     ${stageLabelHtml(1)}
     <h2 class="section-title">${hIcon("👋")}Approaching customers: 3 approaches</h2>
-    <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> as soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by making eye contact, smiling and greeting them politely.</span></p>
+    <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> As soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by making eye contact, smiling and greeting them politely.</span></p>
     <ul class="approach-cards">
       <li class="approach-card">
         <span class="ic-icon" aria-hidden="true">👋</span>
@@ -2068,14 +2070,14 @@ const L2_CARDS = [
     ${youtubeVideoHtml("betterWelcome", { heading: "Watch: A better welcome at Nexora", prompt: "Watch this video showing poor and good service. Notice what Alex does differently and how June responds.", frameTitle: "Video: A better welcome at Nexora" })}
     ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}`) },
   { label: "Quick check", html: (ctx) => `
-    <h2 class="section-title">${hIcon("🎯")}Quick check: which approach is this?</h2>
+    <h2 class="section-title">${hIcon("🎯")}Quick check: Which approach is this?</h2>
     <p>Tap one for each.</p>
     <ol class="match-list qc-list">${QUICK_CHECK.map(it => quickCheckItemHtml(it, ctx.readOnly)).join("")}</ol>`,
     wire: (el) => wireQuickCheck(el),
     check: (el) => QUICK_CHECK.filter(it => !qcResolved(it)).map(it => ({ el: el.querySelector(`[data-key="s2.qc.${it.id}"]`), name: it.id + ")" })) },
   { label: "Stage 2: Presenting product information", ...notesPart(() => `
     ${stageLabelHtml(2)}
-    <h2 class="section-title">${hIcon("🎯")}Presenting product information: suitability</h2>
+    <h2 class="section-title">${hIcon("🎯")}Presenting product information: Suitability</h2>
     ${zoomImgHtml("SUITABILITY", "notes-img suitability-img")}
     <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>`) },
   { label: "Stage 3: Closing the customer experience positively", ...notesPart(() => `

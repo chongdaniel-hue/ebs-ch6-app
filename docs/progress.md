@@ -551,3 +551,13 @@ Textbook wording (definitions, the 8 steps, the returns lines, the "If a busines
 ### Checks (version 0.8.0)
 - Full suite: 167 passed, 2 intentional skips, at 1280px and 360px (one phone run had a browser worker crash, which passed on rerun). New test `zoom-larger.spec.js`; product-knowledge, key-term, path, steps-box and capital-letter tests updated.
 - Visual check (screenshots at 1280px and 360px of the key terms page, cards 1, 5, 7, 12, 13 and 14, and the enlarged C03 and warranty comics): key terms read term, definition, example in their coloured cards; the five comics are square, side-by-side comics line up, and the bubbles are readable on laptops (and when enlarged on phones); enlarged C03 fills the laptop screen and is sharp. Fixed on the way: the hidden Read aloud line made card 5 558px too wide on laptops; on phones the long step headings were squeezed beside the mood face, so the face now sits under the staff member's line; square comics open at 1.6 times the phone width (wide strips 2.2 times) so the bubble needs less panning.
+
+## Alex's new link and heading capitals (27 October 2026, version 0.8.1)
+- **Alex's chatbot link** (`CONFIG.GEMS.alex` in `config.js`) is now `https://gemini.google.com/share/d/1QRxLwDMbt93_M7IEil2jxrtNOEu74pwi?usp=sharing`. Suzzie's link is unchanged.
+- **Both chatbots are now Gemini Skills shared as chat links**, because Gems are being phased out. Each link must be tested with a student account that does not own the Skill, to check that a student can open it and chat.
+- **Capital letters after the colon** (student-facing):
+  - Card 7: "When to approach: as soon as…" → "When to approach: As soon as…".
+  - Card 9 heading: "Quick check: which approach is this?" → "Quick check: Which approach is this?".
+  - Card 10 heading: "Presenting product information: suitability" → "Presenting product information: Suitability".
+  - These now match "Real-life example: Poor service recovery". Every other student-facing heading with a colon already had a capital or a number after it ("Approaching customers: 3 approaches").
+  - The Teacher Mode headings ("Level 1: stories", "Level 4: reflections", "Q5: one question I still have") are not student-facing and were left as they are.

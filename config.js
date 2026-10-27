@@ -25,7 +25,7 @@ window.APP_CONFIG = {
   /* ---------- 2. Chatbot links (open in a new tab) ---------- */
 
   GEMS: {
-    alex: "https://gemini.google.com/share/d/11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8?usp=sharing",
+    alex: "https://gemini.google.com/share/d/1QRxLwDMbt93_M7IEil2jxrtNOEu74pwi?usp=sharing",
     suzzie: "https://gemini.google.com/share/d/1D1h2fvX3L6KnSJHjCGQSm1ZkVWUnu8E3?usp=sharing"
   },
 
