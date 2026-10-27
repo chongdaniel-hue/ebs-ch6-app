@@ -65,8 +65,12 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(page.locator(".next-note")).toHaveText("Tick the box above when you've finished.");
     await checkPage(page, testInfo, "slice4-level3-chat");
     await tick.check();
+    // Ticked but no chat link yet: Next stays greyed and the help line shows under the box.
+    await expect(page.locator("#nextBtn")).toBeDisabled();
+    await expect(page.locator("#conversationError3")).toHaveText("Please paste the link to your Gemini chat. It should contain the word Gemini.");
+    await page.locator("#conversationLink3").fill("https://gemini.google.com/share/AbCd1234");
     await expect(page.locator("#nextBtn")).toBeEnabled();
-    await expect(page.locator(".next-note")).toHaveCount(0);
+    await expect(page.locator(".next-note")).toBeHidden();
     await page.click("#nextBtn");
 
     // Tab 2: Think back. Nothing pre-selected. The Chat tab now shows ✓.
@@ -77,7 +81,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(page.locator('[data-q="q1"] .field-label')).toHaveText(["Skill or quality:", "This is important to customers because"]);
     await expect(page.locator("#l3q2")).toHaveText("Q2. Match each line to the stage of providing customer service. Choose a stage for each line.");
     await expect(page.locator(".match-line")).toHaveText([
-      "P. \"Could you tell me when the screen first stopped working? Then we can arrange a repair or replacement for you.\"",
+      "P. \"I'm really sorry your new phone stopped working. Could you tell me when it happened, so I can help you fix it?\"",
       "Q. \"Since you play a lot of games, the Nexora Prime's fast processor would suit you best.\"",
       "R. \"Your purchase is confirmed: the Nexora Core with the 256GB upgrade and the one-year warranty. You can collect it on Friday. Thank you for shopping at Nexora. Have a great day!\"",
       "S. \"Good afternoon! Is there anything I can help you find today?\""
@@ -108,7 +112,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(page.locator('[data-q="q1"] .check-note')).toHaveText("Check your reason: does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.");
     await expect(page.locator('[data-q="q1"] textarea').first()).toHaveAttribute("readonly", "");
     const fb = id => page.locator(`.match-item[data-key="s3.q2.${id}"] .feedback`);
-    await expect(fb("P")).toHaveText("✓ Correct: asking questions (Step 5) and offering a solution (Step 6) are part of service recovery.");
+    await expect(fb("P")).toHaveText("✓ Correct: apologising and asking about a problem are part of service recovery.");
     await expect(fb("P")).toHaveClass(/right/);
     await expect(fb("Q")).toHaveText("✗ The officer matches a phone feature to something the customer does a lot. Which stage is about presenting a suitable product?");
     await expect(fb("Q")).toHaveClass(/wrong/);
@@ -145,8 +149,8 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(card.locator("h3")).toHaveText("Let's learn from these");
     await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
     await expect(card.locator("li")).toHaveText([
-      "Presenting product information (Level 2, The Four Stages)",
-      "Closing the customer experience positively (Level 2, The Four Stages)"
+      "Presenting product information (Level 2, The four stages)",
+      "Closing the customer experience positively (Level 2, The four stages)"
     ]);
     expect(await page.evaluate(() => {
       const c = document.querySelector(".missed-card"), r = document.querySelector(".recap-card");
@@ -206,30 +210,32 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await page.click("#stylezFacts summary");
     await expect(page.locator("#stylezFacts summary")).toHaveText("Stylez store facts");
     await expect(page.locator(".stylez-fact")).toHaveCount(17);
-    await expect(page.locator(".stylez-fact dd")).toHaveText(["Casual clothing retailer for teenagers and young adults; sells affordable everyday clothing in-store and online.", "T-shirts, jeans, hoodies, dresses, shorts and accessories.", "XS to XL.", "$18 each.", "$39 each.", "$35 each.", "Buy 2 Basic T-shirts for $30.", "Stylez members get 10% off regular-priced items.", "STYLE10 gives 10% off the first online order.", "Promotions cannot be combined.", "Exchange within 14 days with receipt.", "Item must be unworn, unwashed and have its original tags.", "No exchange.", "Customer may bring the item and receipt to the store for assistance.", "Cash, cards and common mobile payment methods.", "Free delivery for orders of $60 or more.", "Available in-store or through Stylez online chat."]);
+    await expect(page.locator(".stylez-fact dd")).toHaveText(["Casual clothing retailer for teenagers and young adults; sells affordable everyday clothing in-store and online.", "T-shirts, jeans, hoodies, dresses, shorts and accessories.", "XS to XL.", "$18 each. Available colours: black, white, navy blue and grey.", "$39 each.", "$35 each.", "Buy 2 Basic T-shirts for $30.", "Stylez members get 10% off regular-priced items.", "STYLE10 gives 10% off the first online order.", "Promotions cannot be combined.", "Exchange within 14 days with receipt.", "Item must be unworn, unwashed and have its original tags.", "No exchange.", "Customer may bring the item and receipt to the store for assistance.", "Cash, cards and common mobile payment methods.", "Free delivery for orders of $60 or more.", "Available in-store or through Stylez online chat."]);
     await checkPage(page, testInfo, "slice4-stylez-information");
     await expect(page.locator("#nextBtn")).toBeDisabled();
     await expect(page.locator(".start-box")).toHaveText("You are the customer service officer. Suzzie is your customer. In a fresh chat, greet Suzzie to begin. Try: \"Hi, welcome to Stylez! How may I assist you?\"");
-    await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.");
+    await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Level 2: approach Suzzie, present product information, close positively (including after-sales support), and if there's a problem, perform service recovery.");
     await expect(page.locator(".gem-btn")).toHaveText("Open chat with Suzzie (new tab)");
     await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/share/d/1D1h2fvX3L6KnSJHjCGQSm1ZkVWUnu8E3?usp=sharing");
     await expect(page.locator(".tick-row")).toHaveText("I have finished serving Suzzie.");
     await expect(page.locator("#nextBtn")).toHaveText("Next: Reflect →");
     await expect(page.locator("#nextBtn")).toBeDisabled();
     await checkPage(page, testInfo, "slice4-level4-roleplay");
+    await page.locator("#conversationLink4").fill("https://gemini.google.com/share/AbCd1234");
     await page.locator(".tick-input").check();
     await page.click("#nextBtn");
 
     await expect(page.locator("#part0 > p").first()).toHaveText("Think about your roleplay with Suzzie.");
     await expect(page.locator(".story-card .field-label")).toHaveText([
-      "1. What is one thing you feel you did well when serving Suzzie?",
-      "2. What is one thing you would do differently next time?"
+      "2. What is one thing you feel you did well when serving Suzzie?",
+      "3. What is one thing you would do differently next time?"
     ]);
     await expect(page.locator(".story-card textarea").nth(0)).toHaveAttribute("placeholder", "I did well at...");
     await expect(page.locator(".story-card textarea").nth(1)).toHaveAttribute("placeholder", "Next time, I would...");
+    await page.locator('[data-roleplay-stage="Approach"]').check();
     await page.fill('textarea[data-answer="s4.q1"]', "I greeted her straight away.");
     await page.click("#submitL4");
-    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Box 2"]);
+    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Box 3"]);
     await expect(page.locator("#notFinished button")).toHaveText(["Go back"]);
     await page.locator("#notFinished button").click();
     await page.fill('textarea[data-answer="s4.q2"]', "Next time, I would ask more questions.");
@@ -328,8 +334,8 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(card.locator("h3")).toHaveText("Let's learn from these");
     await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
     await expect(card.locator("li")).toHaveText([
-      "What customer service is (Level 2, Quality Customer Service)",
-      "The 8 steps of service recovery (Level 2, Breakdown and Recovery)"
+      "What customer service is (Level 2, What is customer service?)",
+      "The 8 steps of service recovery (Level 2, The 8 service recovery steps)"
     ]);
     await expect(page.locator("#nextBtn")).toHaveText("Next: Exit ticket →");
     await checkPage(page, testInfo, "slice4-level5-resolved");

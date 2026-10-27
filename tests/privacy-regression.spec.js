@@ -24,7 +24,7 @@ test('server rejects unnamed and mismatched reads and writes without exposing st
 test('minimum-length guidance and accessible quiz names',async({page,request})=>{
   const {login}=require('./helpers');
   await resetServer(request,['PRIVATE']);await login(page,'PRIVATE',1);await page.locator('#briefing button').click();
-  await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');setUi('s2.cardLayout','compact10');setUi('s2.card',4);saveLocal();});
+  await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');setUi('s2.cardLayout','cards15');setUi('s2.card',7);saveLocal();});
   await page.goto('/#level2');await expect(page.locator('#lessonCard')).toContainText('Watch this video showing poor and good service');
   await page.locator('[data-answer="s2.video"]').fill('ok');await page.locator('#lessonNext').click();await expect(page.locator('#reflectionRequired')).toContainText('Write at least 20 characters');await page.keyboard.press('Escape');await expect(page.locator('#reflectionRequired')).toHaveCount(0);
   await page.goto('/#level5');

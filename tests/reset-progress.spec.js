@@ -50,7 +50,7 @@ test("password, cancel, keyboard focus, server reset, reload and other students"
   await page.reload();await expect(page.locator('#nameInput')).toBeEditable();
   await page.screenshot({path:`tests/screenshots/reset-registration-${testInfo.project.name}.png`,fullPage:true});
   await page.locator('#nameInput').fill('New Demo Student');await page.locator('#regInput').selectOption('5');await page.locator('#startBtn').click();await page.locator('#briefing button').click();
-  await expect(page.locator('#studentNameInput')).toHaveValue('New Demo Student');
+  await expect(page.locator('.topbar-chip')).toContainText('New Demo Student');
   await expect.poll(async()=>(await apiGet(request,{action:'load',class:'3E1',reg:5})).record?.profile?.name?.v).toBe('New Demo Student');
   expect((await apiGet(request,{action:'load',class:'3E1',reg:5})).record.done).toEqual({});
 });

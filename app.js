@@ -59,9 +59,12 @@
    0.6.4 Replaced remaining book symbols with contextual graphic icons.
    0.6.3 Four key terms: distinct card colours and larger generated icons.
    0.6.2 Added the five storyboard illustrations and five achievement badges.
+   0.7.0 Gemini link gate without a server check; register numbers 1 to 50;
+        sticky Level 2 Back and Next; tap to enlarge; Stylez facts fold-out;
+        Level 2 as 15 cards on the four syllabus stages, with a quick check.
    ============================================================ */
 
-const APP_VERSION = "0.6.34";
+const APP_VERSION = "0.7.0";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -202,7 +205,7 @@ function levelIconHtml(level) {
 
 const LEVELS = [
   { num: 1, icon: "📝", title: "Your Customer Service Stories", desc: "Think about your own experiences as a customer.", badge: "Story Sharer", badgeImg: "BADGE1" },
-  { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the five stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
+  { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the four stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
   { num: 3, icon: "💬", title: "Chat with Alex", desc: "Be the customer. Chat with Nexora's customer service officer.", badge: "Service Spotter", badgeImg: "BADGE3" },
   { num: 4, icon: "🛍️", title: "Serve Suzzie at Stylez", desc: "Switch roles. Now you're the customer service officer.", badge: "Service Star", badgeImg: "BADGE4" },
   { num: 5, icon: "✅", title: "Check and Exit Ticket", desc: "Check what you've learnt and tell your teacher how confident you feel.", badge: "Completion Champion", badgeImg: "BADGE5" }
@@ -911,7 +914,7 @@ function showBriefing() {
   });
 }
 
-const STAGE_COLOURS = ["#2563eb","#c2410c","#15803d","#0f766e","#7c3aed"];
+const STAGE_COLOURS = ["#2563eb","#c2410c","#15803d","#7c3aed"];
 function moodFaceHtml(i) {
   const fills=["#ef4444","#f87171","#fb923c","#fdba74","#fde68a","#bef264","#86efac","#22c55e"];
   const mouth=i<3?'<path d="M10 23 Q16 16 22 23" fill="none"/>':i<5?'<path d="M11 21 H21"/>':i<7?'<path d="M10 19 Q16 26 22 19" fill="none"/>':'<path d="M9 18 Q16 30 23 18 Z" fill="#42202a"/><path d="M12 24 Q16 20 20 24" stroke="#fb7185"/>';
@@ -929,53 +932,55 @@ function conversationLinkHtml(n,readOnly) {
 function wireConversationLink(el,n){
   const input=el.querySelector(`#conversationLink${n}`);if(!input)return;
   const status=el.querySelector(`#conversationError${n}`);
-  const update=()=>{status.textContent=conversationLinkProblem(n)?CONVERSATION_LINK_HELP:"";const next=document.getElementById('nextBtn');if(next && !isDone(n))next.disabled=!(getAnswer(`s${n}.tick`)===true && conversationReady(n));};
+  const update=()=>{status.textContent=conversationLinkProblem(n)?CONVERSATION_LINK_HELP:"";const next=document.getElementById('nextBtn');if(next && !isDone(n)){next.disabled=!(getAnswer(`s${n}.tick`)===true && conversationReady(n));const note=document.getElementById('nextNote');if(note)note.hidden=!next.disabled;}};
   input.addEventListener('input',()=>{setAnswer(`s${n}.link`,input.value.trim(),'typing');update();});
   input.addEventListener('change',()=>{setAnswer(`s${n}.link`,input.value.trim(),'soon');update();});
 }
 
-const ROLEPLAY_STAGE_LABELS=["Approach","Present","Close","Support","Recovery"];
-function roleplayStagesHtml(readOnly){const chosen=getAnswer('s4.stages')||[];return `<fieldset class="card roleplay-stages"><legend class="field-label">1. Which stages did you do?</legend><p>Select every stage you used: Approach, Present, Close, Support, Recovery.</p><div class="stage-checklist">${ROLEPLAY_STAGE_LABELS.map((name,i)=>`<label class="stage-chip" style="--stage-colour:${STAGE_COLOURS[i]}"><input type="checkbox" data-roleplay-stage="${name}" ${chosen.includes(name)?'checked':''} ${readOnly?'disabled':''}>${uiGraphicHtml(STAGES[i].icon)} ${name}</label>`).join('')}</div></fieldset>`;}
+const ROLEPLAY_STAGE_LABELS=["Approach","Present","Close","Recovery"];
+function roleplayStagesHtml(readOnly){const chosen=getAnswer('s4.stages')||[];return `<fieldset class="card roleplay-stages"><legend class="field-label">1. Which stages did you do?</legend><p>Select every stage you used: Approach, Present, Close, Recovery.</p><div class="stage-checklist">${ROLEPLAY_STAGE_LABELS.map((name,i)=>`<label class="stage-chip" style="--stage-colour:${STAGE_COLOURS[i]}"><input type="checkbox" data-roleplay-stage="${name}" ${chosen.includes(name)?'checked':''} ${readOnly?'disabled':''}>${uiGraphicHtml(STAGES[i].icon)} ${name}</label>`).join('')}</div></fieldset>`;}
 function wireRoleplayStages(el){el.querySelectorAll('[data-roleplay-stage]').forEach(x=>x.addEventListener('change',()=>setAnswer('s4.stages',Array.from(el.querySelectorAll('[data-roleplay-stage]:checked')).map(x=>x.dataset.roleplayStage),'soon')));}
 function popConfetti(){
   if(reducedMotion())return;
   document.querySelector('.confetti-burst')?.remove();const layer=document.createElement('div');layer.className='confetti-burst';layer.setAttribute('aria-hidden','true');
-  for(let i=0;i<48;i++){const piece=document.createElement('i');piece.style.cssText=`--x:${(i*37)%100}%;--drift:${(i%2?-1:1)*(30+i%90)}px;--delay:${i%8*0.06}s;background:${STAGE_COLOURS[i%5]}`;layer.appendChild(piece);}document.body.appendChild(layer);setTimeout(()=>layer.remove(),2600);
+  for(let i=0;i<48;i++){const piece=document.createElement('i');piece.style.cssText=`--x:${(i*37)%100}%;--drift:${(i%2?-1:1)*(30+i%90)}px;--delay:${i%8*0.06}s;background:${STAGE_COLOURS[i%4]}`;layer.appendChild(piece);}document.body.appendChild(layer);setTimeout(()=>layer.remove(),2600);
 }
-function lessonCards(){
-  const groups=[
-    {label:"Customer service",parts:[[0,0]]},
-    {label:"Why good service matters",parts:[[0,1]]},
-    {label:"Skills and product knowledge",parts:[[0,2],[0,3]]},
-    {label:"The Five Stages",parts:[[1,0]]},
-    {label:"Approaching customers",parts:[[1,1],[1,2],[1,3]],key:"s2.video"},
-    {label:"Presenting and supporting",parts:[[1,4],[1,5]]},
-    {label:"Breakdown and recovery",parts:[[2,0]]},
-    {label:"The eight recovery steps",recovery:true,parts:[[2,1]]},
-    {label:"Learning from poor recovery",parts:[[2,2]],key:"s2.think1"},
-    {label:"Returns and exchanges",parts:[[2,3],[2,4]],key:"s2.think2"}
-  ];
-  return groups.map(group=>({...group,t:group.parts[0][0],p:group.parts[0][1],
-    html:ctx=>group.recovery ? recoveryLessonHtml() : group.parts.map(([t,p],i)=>`<div class="lesson-subsection" data-subpart="${i}">${L2_TABS[t].parts[p].html(ctx)}</div>`).join(""),
-    wire:(el,ctx)=>{if(group.recovery){wireRecoveryLesson(el);return;}group.parts.forEach(([t,p],i)=>{const section=el.querySelector(`[data-subpart="${i}"]`);L2_TABS[t].parts[p].wire?.(section,ctx);wireReflections(section);});}
-  }));
+function lessonCards(){ return L2_CARDS; }
+// The Next button on a card that is not ready yet (the 8 steps not all shown) stays greyed.
+function updateLessonNext(){
+  const next=document.getElementById('lessonNext'),note=document.getElementById('lessonNextNote');if(!next)return;
+  const card=L2_CARDS[Number(getUi('s2.card'))||0];const ok=!card || !card.ready || card.ready() || isDone(2);
+  next.disabled=!ok;if(note)note.hidden=ok;
 }
-function recoveryLessonHtml(){
-  return `<div class="head-row"><h2>The eight service recovery steps</h2>${listenButtonHtml()}</div><p>To perform service recovery, follow these 8 steps:</p><p>Follow Nexora's staff member as he handles a customer whose new phone screen has cracked.</p>${recoveryPathHtml(8,false)}${afterPathHtml()}`;
-}
-function wireRecoveryLesson(el){raiseReached("s2.path",8);saveLocal();wireListen(el);}
-
+// The card on screen; arriving at a card (not a redraw of the same one) starts the path count again.
+let lessonCardShown=-1;
+// Old card positions (10-card layout) map to the matching card of the 15-card layout.
+const L2_OLD_CARDS={compact10:[1,2,3,5,6,9,11,12,13,14]};
 function renderLessonCard(){
   stopSpeaking();setUi('route.level',2);
-  const cards=lessonCards();
-  if(getUi('s2.cardLayout')!=="compact10"){const map=[0,1,2,2,3,4,4,5,5,6,7,7,7,7,7,7,7,7,8,9,9];const old=Number(getUi('s2.card'))||0;setUi('s2.card',map[old]??0);if(old>=10 && old<=17)setUi('s2.recoveryStep',old-10);setUi('s2.cardLayout','compact10');saveLocal();}
-  let pos=Number(getUi('s2.card'))||0;pos=Math.max(0,Math.min(pos,cards.length-1));const card=cards[pos];
-  const ctx={n:2,t:card.t,readOnly:isDone(2),fresh:true};
-  setGraphicHtml(app,`${topBarHtml({showHome:true,showChip:true})}<main class="page level-page lesson-single" id="levelMain"><h1 class="page-title">Level 2: Learn: Customer Service</h1><div class="lesson-card-progress"><p id="lessonProgressText">${pos+1} of ${cards.length} · ${escapeHtml(card.label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${cards.length}" aria-valuenow="${pos+1}"><div class="progress-fill" style="width:${(pos+1)/cards.length*100}%"></div></div></div><section class="card lesson-card" id="lessonCard">${card.html(ctx)}</section><div class="btn-row lesson-card-nav"><button class="btn secondary" id="lessonBack" ${pos===0?'disabled':''}>Back</button><button class="btn" id="lessonNext">${pos===cards.length-1?'Finish Level 2':'Next →'}</button></div></main>${footerHtml()}`);
-  syncStickyOffsets();const el=document.getElementById('lessonCard');el.querySelector('#finishBtn')?.remove();card.wire(el,ctx);
+  const cards=L2_CARDS;
+  if(getUi('s2.cardLayout')!=="cards15"){
+    const old=Number(getUi('s2.card'))||0;
+    if(getUi('s2.cardLayout')==="compact10")setUi('s2.card',L2_OLD_CARDS.compact10[old]??0);
+    else if(getUi('s2.card')!==undefined){const map=[0,1,2,2,3,4,4,5,5,6,7,7,7,7,7,7,7,7,8,9,9];setUi('s2.card',L2_OLD_CARDS.compact10[map[old]??0]??0);}
+    setUi('s2.cardLayout','cards15');saveLocal();
+  }
+  let pos=Number(getUi('s2.card'))||0;pos=Math.max(0,Math.min(pos,cards.length-1));setUi('s2.card',pos);const card=cards[pos];
+  if(lessonCardShown!==pos){lessonCardShown=pos;pathShownNow=0;}
+  const ctx={n:2,t:pos,readOnly:isDone(2),fresh:true};
+  const last=pos===cards.length-1;
+  setGraphicHtml(app,`${topBarHtml({showHome:true,showChip:true})}<main class="page level-page lesson-single" id="levelMain"><h1 class="page-title">Level 2: Learn: Customer Service</h1><div class="lesson-card-progress"><p id="lessonProgressText">${pos+1} of ${cards.length} · ${escapeHtml(card.label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${cards.length}" aria-valuenow="${pos+1}"><div class="progress-fill" style="width:${(pos+1)/cards.length*100}%"></div></div></div><section class="card lesson-card" id="lessonCard">${card.html(ctx)}</section>${card.notReadyNote?`<p class="next-note lesson-next-note" id="lessonNextNote">${escapeHtml(card.notReadyNote)}</p>`:""}<div class="btn-row lesson-card-nav"><button class="btn secondary" id="lessonBack" ${pos===0?'disabled':''}>Back</button><button class="btn" id="lessonNext" ${card.notReadyNote?'aria-describedby="lessonNextNote"':''}>${last?'Finish Level 2':'Next →'}</button></div></main>${footerHtml()}`);
+  syncStickyOffsets();const el=document.getElementById('lessonCard');card.wire(el,ctx);wireReflections(el);updateLessonNext();
   if(rec.agreed && !isStarted(2))raiseReached('s2.t0',1);
   document.getElementById('lessonBack').onclick=()=>{setUi('s2.card',pos-1);queueSave('now');renderLessonCard();revealFocus(document.getElementById('lessonCard'));};
-  document.getElementById('lessonNext').onclick=()=>{if(!requireReflections(card.key?[card.key]:[]))return;if(pos===cards.length-1){finishLevel(2);return;}setUi('s2.card',pos+1);raiseReached('s2.cardReached',pos+1);raiseReached(`s2.t${card.t}`,card.p+1);queueSave('now');renderLessonCard();revealFocus(document.getElementById('lessonCard'));};
+  document.getElementById('lessonNext').onclick=()=>{
+    if(card.ready && !card.ready() && !isDone(2))return;
+    if(!requireReflections(card.key?[card.key]:[]))return;
+    const missing=card.check && !isDone(2) ? card.check(el) : [];
+    if(missing.length){showNotFinished(missing);return;}
+    if(last){finishLevel(2);return;}
+    setUi('s2.card',pos+1);raiseReached('s2.cardReached',pos+1);raiseReached(`s2.t${pos}`,1);queueSave('now');renderLessonCard();revealFocus(document.getElementById('lessonCard'));
+  };
 }
 
 /* ---------------- Router ---------------- */
@@ -985,6 +990,7 @@ function backToRoute(n){routeReturnLevel=n || Number(getUi("route.level")) || 1;
 
 function render() {
   const hash = window.location.hash;
+  if (hash !== "#level2") lessonCardShown = -1;
   document.querySelectorAll(".modal-backdrop").forEach(m => { if (m.id !== "briefing") m.remove(); });
   document.querySelectorAll(".zoom-backdrop").forEach(m => m.remove());
   if (hash === "#teacher") { renderTeacher(); window.scrollTo(0, 0); return; }
@@ -1307,13 +1313,6 @@ function switchStudent() {
 
 /* ---------------- 0.4 4 key terms ---------------- */
 
-const KEY_TERMS = [
-  { term: "Customer service", icon: "TERM_SERVICE", tone: "service", text: "Refers to what businesses do for their customers so that they are happy and satisfied." },
-  { term: "Quality customer service", icon: "TERM_QUALITY", tone: "quality", text: "Means doing more for customers to exceed their expectations." },
-  { term: "Service breakdown", icon: "TERM_BREAKDOWN", tone: "breakdown", text: "Occurs when customers make a complaint about a product or service." },
-  { term: "Service recovery", icon: "TERM_RECOVERY", tone: "recovery", text: "A process whereby a business takes action in response to service breakdown or failure." }
-];
-
 function renderTerms() {
   setGraphicHtml(app, `
     ${topBarHtml({ showHome: true, showChip: true })}
@@ -1325,9 +1324,7 @@ function renderTerms() {
         </div>
         <p class="lead">You'll meet these words in Level 2. Read them once now.</p>
         <section class="terms-block" id="termsBlock" aria-label="4 key terms">
-          <ul class="term-list">
-            ${KEY_TERMS.map(t => `<li><div class="definition term-definition term-${t.tone}" role="note"><span class="term-graphic" aria-hidden="true">${imgHtml(t.icon)}</span><div class="def-body"><p><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.text)}</p></div></div></li>`).join("")}
-          </ul>
+          ${keyTermsHtml()}
         </section>
         <div class="btn-row"><a href="#home" class="btn" id="termsDone" onclick="event.preventDefault();backToRoute()">Got it, back to my route</a></div>
       </div>
@@ -1524,7 +1521,7 @@ function requireReflections(keys) {
   if(!missing.length){keys.forEach(key=>{if(rec.answers[key])setUi(`${key}.saved`,rec.answers[key].t);});queueSave("now");return true;}
   const short=missing.some(key=>!isBlank(key));
   showModal({id:"reflectionRequired",title:short?"Answer too short":"Complete all questions",bodyHtml:`<p>${short?"Your answer is too short.":"Please complete all questions before moving on."} Write at least ${MIN_RESPONSE_CHARS} characters in each answer.</p>`,buttons:[{label:"Back to questions",primary:true,onClick:()=>{
-    const card=lessonCards().findIndex(x=>x.key===missing[0]);if(card>=0 && document.getElementById("lessonCard")){setUi("s2.card",card);renderLessonCard();}
+    const card=L2_CARDS.findIndex(x=>x.key===missing[0]);if(card>=0 && document.getElementById("lessonCard")){setUi("s2.card",card);renderLessonCard();}
     document.getElementById(`ans_${cssId(missing[0])}`)?.focus();
   }}]});return false;
 }
@@ -1758,14 +1755,17 @@ const L1_PART = {
   }
 };
 
-/* ---------------- Level 2: Learn: Customer Service ---------------- */
+/* ---------------- Level 2: Learn: Customer Service ----------------
+   Fifteen cards, one idea each, shown one at a time with Back and Next (renderLessonCard).
+   The four stages follow the syllabus: approaching customers, presenting product
+   information, closing the customer experience positively (including after-sales
+   support) and performing service recovery. */
 
 const STAGES = [
-  { icon: "👋", name: "Approaching customers", text: "Greet the customer, show you're happy to help." },
-  { icon: "📱", name: "Presenting product information", text: "Find out their needs, present a suitable product, explain why it suits their needs, handle questions or objections (when the customer is unsure or disagrees)." },
-  { icon: "✅", name: "Closing the customer experience positively", text: "Summarise what the customer decided and any next steps (e.g. warranty, collection date), thank the customer, leave a good final impression." },
-  { icon: "🛡️", name: "Provide support services", text: "Help customers after purchase through warranty cover, repairs and support in-store, by phone or online." },
-  { icon: "🛠️", name: "Performing service recovery", text: "Respond well when something goes wrong." }
+  { icon: "👋", short: "Approach", name: "Approaching customers", text: "Greet the customer, show you're happy to help." },
+  { icon: "📱", short: "Present", name: "Presenting product information", text: "Find out their needs, present a suitable product, explain why it suits their needs, handle questions or objections (when the customer is unsure or disagrees)." },
+  { icon: "✅", short: "Close", name: "Closing the customer experience positively", text: "Summarise what the customer decided and any next steps, thank the customer, and give good after-sales support (e.g. warranty, repairs, exchanges and refunds)." },
+  { icon: "🛠️", short: "Recovery", name: "Performing service recovery", text: "Respond well when something goes wrong." }
 ];
 
 // The 8 service recovery steps: textbook wording, with the approved example lines.
@@ -1781,7 +1781,7 @@ const RECOVERY_STEPS = [
 ];
 
 // How many path stops are on screen. The path starts with Step 1 only; a student
-// coming back to the tab later sees all 8 at once.
+// coming back to the card later sees all 8 at once.
 let pathShownNow = 0;
 function pathShown() { return Number(rec.reached["s2.path"]) || 0; }
 
@@ -1809,8 +1809,7 @@ function recoveryPathHtml(count, animateLast) {
     </div>`;
 }
 
-// Part wrappers for notes: the 🔊 Listen button sits at the top of each block of notes.
-// The Listen button goes in the row of the block's first heading: heading left, button right.
+// Part wrappers for notes: the 🔊 Read aloud button sits in the row of the block's first heading.
 function notesPart(htmlFn, extra) {
   return Object.assign({
     html: (ctx) => htmlFn(ctx).replace(/<h2 [\s\S]*?<\/h2>|<p>[\s\S]*?<\/p>/, h => `<div class="head-row">${h}${listenButtonHtml()}</div>`),
@@ -1818,198 +1817,124 @@ function notesPart(htmlFn, extra) {
   }, extra || {});
 }
 
-// Optional illustrated examples do not change answers, progress or level locks.
+// A small coloured label above a stage card's heading ("Stage 1" to "Stage 4").
+function stageLabelHtml(n) {
+  return `<p class="stage-label stage-${n}"><span class="stage-icon" aria-hidden="true">${STAGES[n - 1].icon}</span> Stage ${n}</p>`;
+}
+
+// The 4 key terms: plain English and an example first, then the exact textbook definition.
+const KEY_TERMS = [
+  { term: "Customer service", icon: "TERM_SERVICE", tone: "service",
+    plain: "what a business does to keep customers happy. It starts when you walk in and continues after you pay.",
+    example: "staff help you find your size.",
+    exam: "Customer service refers to what businesses do for their customers so that they are happy and satisfied." },
+  { term: "Quality customer service", icon: "TERM_QUALITY", tone: "quality",
+    plain: "doing MORE than the customer expects.",
+    example: "the bubble tea staff remember your usual order.",
+    exam: "Quality customer service means doing more for customers to exceed their expectations." },
+  { term: "Service breakdown", icon: "TERM_BREAKDOWN", tone: "breakdown",
+    plain: "something goes wrong and the customer complains.",
+    example: "your new earbuds don't work.",
+    exam: "A service breakdown occurs when customers make a complaint about a product or service." },
+  { term: "Service recovery", icon: "TERM_RECOVERY", tone: "recovery",
+    plain: "the business fixes the problem and wins the customer back.",
+    example: "staff say sorry and replace the earbuds.",
+    exam: "Service recovery is a process whereby a business takes action in response to service breakdown or failure." }
+];
+function keyTermsHtml() {
+  return `<ul class="term-list">
+    ${KEY_TERMS.map(t => `<li><div class="definition term-definition term-${t.tone}" role="note"><span class="term-graphic" aria-hidden="true">${imgHtml(t.icon)}</span><div class="def-body">
+      <p><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.plain)}</p>
+      <p class="term-example"><strong>Example:</strong> ${escapeHtml(t.example)}</p>
+      <div class="exam-wording"><p class="exam-label">📝 Exam wording</p><p>${escapeHtml(t.exam)}</p></div>
+    </div></div></li>`).join("")}
+  </ul>`;
+}
+
+// Good product knowledge: each aspect (textbook wording) with a Nexora picture and, as real
+// page text that Read aloud can read, what the staff member says.
 const PRODUCT_KNOWLEDGE_EXAMPLES = [
   { id: "features", icon: "📋", image: "PK_FEATURES", title: "Product features and specifications (e.g. screen size, battery life)",
-    dialogue: "This phone has a large screen for reading. Let me show you its screen size and battery details." },
+    dialogue: "\"The Nexora Spark has an all-day battery and a dual camera, so it's great for school and social media.\"" },
   { id: "price", icon: "💲", image: "PK_PRICE", title: "Price and available options",
-    dialogue: "This model comes in blue or black. Let me check the price for the storage option you want." },
+    dialogue: "\"The Nexora Core is $799. You can upgrade to 256GB for $80 more, or 512GB for $160 more.\"" },
   { id: "care", icon: "🧴", image: "PK_CARE", title: "How to use or care for the product",
-    dialogue: "You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition." },
+    dialogue: "\"You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition.\"" },
   { id: "warranty", icon: "🛡️", image: "PK_WARRANTY", title: "Warranty and after-sales support",
-    dialogue: "Please keep your receipt as proof of purchase for warranty and exchanges. Let me explain what the warranty covers and how to get help after you purchase." },
+    dialogue: "\"Every Nexora phone has a 1-year warranty for manufacturing defects. Keep your receipt, and bring the phone to our Nexora Care Bar if anything goes wrong.\"" },
   { id: "selling-point", icon: "⭐", image: "PK_SELLING_POINT", title: "Unique selling points of the product (why your product is better than competitors' products)",
-    dialogue: "Compared with this other model, this phone has a longer battery life. It may suit you if you use your phone often." }
+    dialogue: "\"Unlike many phones at this price, the Nexora Core comes with 24/7 online chat support and a trade-in rebate of up to $120 for your old phone.\"" }
 ];
-
-function productKnowledgeCardsHtml() {
-  return `<ul class="icon-cards chips product-knowledge-cards">${PRODUCT_KNOWLEDGE_EXAMPLES.map(example => `
-    <li><button type="button" class="icon-card product-knowledge-card" data-product-example="${example.id}" aria-haspopup="dialog">
-      <span class="ic-icon" aria-hidden="true">${example.icon}</span>
-      <span class="ic-body">${escapeHtml(example.title)}<span class="product-example-link">View example</span></span>
-    </button></li>`).join("")}</ul>`;
+function productKnowledgeExamplesHtml() {
+  return `<ul class="pk-examples">${PRODUCT_KNOWLEDGE_EXAMPLES.map(ex => `
+    <li class="pk-example" data-product-example="${ex.id}">
+      <h3 class="pk-title"><span class="ic-icon" aria-hidden="true">${ex.icon}</span><span>${escapeHtml(ex.title)}</span></h3>
+      ${zoomImgHtml(ex.image, "pk-img")}
+      <p class="say pk-say"><span class="visually-hidden">The staff member says: </span>${escapeHtml(ex.dialogue)}</p>
+    </li>`).join("")}</ul>`;
 }
 
-function showProductKnowledgeExample(id, trigger) {
-  const example = PRODUCT_KNOWLEDGE_EXAMPLES.find(item => item.id === id);
-  if (!example) return;
-  const restoreFocus = () => { if (trigger && trigger.isConnected) trigger.focus(); };
-  const wrap = showModal({
-    id: "productExampleModal",
-    className: "product-example-modal",
-    title: escapeHtml(example.title),
-    bodyHtml: `<figure class="product-example-figure">
-      ${imgHtml(example.image, "product-example-image")}
-      <figcaption class="visually-hidden">The staff member says: ${escapeHtml(example.dialogue)} AI-generated illustration of a fictional example.</figcaption>
-      </figure>`,
-    buttons: [{ label: "Close", primary: true, onClick: restoreFocus }]
-  });
-  if (wrap) wrap.addEventListener("keydown", e => {
-    if (e.key === "Escape") { e.preventDefault(); wrap.remove(); restoreFocus(); }
-  });
+// Quick check (card 9): not scored and not in the report. Instant feedback, one more try,
+// then the right answer. Saved as answers s2.qc.<id>.1 (first try) and s2.qc.<id>.2 (second try).
+const QC_OPTIONS = ["Greeting", "Service", "Product"];
+const QUICK_CHECK = [
+  { id: "a", quote: "\"Hi Mr Lim, nice to see you again!\"", correct: "Greeting",
+    hint: "Is the staff member offering help or talking about a product, or just welcoming the customer?",
+    reason: "the staff member welcomes a regular customer by name. That is the greeting approach." },
+  { id: "b", quote: "\"Can I help you find something today?\"", correct: "Service",
+    hint: "Is this a welcome, or a question showing the staff member is ready to help?",
+    reason: "the staff member asks a polite question to show they are ready to help. That is the service approach." },
+  { id: "c", quote: "\"That model takes great night photos. Want to try the camera?\"", correct: "Product",
+    hint: "What is the customer looking at, and what does the staff member talk about?",
+    reason: "the staff member talks about the phone the customer is looking at. That is the product approach." }
+];
+function qcState(it) {
+  const a1 = getAnswer(`s2.qc.${it.id}.1`), a2 = getAnswer(`s2.qc.${it.id}.2`);
+  if (!a1) return "open";
+  if (a1 === it.correct) return "right";
+  if (!a2) return "retry";
+  return a2 === it.correct ? "right" : "revealed";
+}
+function qcResolved(it) { return ["right", "revealed"].includes(qcState(it)); }
+function quickCheckItemHtml(it, readOnly) {
+  const state = qcState(it), a1 = getAnswer(`s2.qc.${it.id}.1`), a2 = getAnswer(`s2.qc.${it.id}.2`);
+  const current = a2 || a1;
+  const off = readOnly || state === "right" || state === "revealed";
+  const buttons = QC_OPTIONS.map(o => {
+    const picked = o === current;
+    const wrongFirst = state === "retry" && o === a1;
+    const showRight = state === "revealed" && o === it.correct;
+    const showWrong = (state === "revealed" && o === current) || wrongFirst;
+    return `<div class="tf-cell"><button type="button" class="choice-btn qc-btn ${picked && !wrongFirst ? "picked" : ""} ${showRight ? "correct-answer" : ""} ${showWrong ? "wrong-pick" : ""}" data-qc="${it.id}" data-value="${o}" aria-pressed="${picked}" ${off || wrongFirst ? "disabled" : ""}>${o}${showWrong ? WRONG_MARK : ""}</button>${showRight ? CORRECT_TAG : ""}</div>`;
+  }).join("");
+  let feedback = "";
+  if (state === "right") feedback = `<p class="feedback right" role="status">✓ Correct: ${escapeHtml(it.reason)}</p>`;
+  else if (state === "retry") feedback = `<p class="feedback wrong" role="status">✗ ${escapeHtml(it.hint)}</p>`;
+  else if (state === "revealed") feedback = `<p class="feedback wrong" role="status">✗ The answer is ${it.correct}: ${escapeHtml(it.reason)}</p>`;
+  return `<li class="match-item qc-item" data-key="s2.qc.${it.id}">
+    <div class="match-line"><span class="match-letter">${it.id})</span> ${sayHtml(it.quote)}</div>
+    <div class="qc-options" role="group" aria-label="Approach for line ${it.id}">${buttons}</div>
+    ${feedback}
+  </li>`;
+}
+function wireQuickCheck(el) {
+  el.querySelectorAll(".qc-btn").forEach(btn => btn.addEventListener("click", () => {
+    const it = QUICK_CHECK.find(q => q.id === btn.dataset.qc);
+    setAnswer(`s2.qc.${it.id}.${qcState(it) === "retry" ? 2 : 1}`, btn.dataset.value, "soon");
+    const holder = document.createElement("div");
+    setGraphicHtml(holder, quickCheckItemHtml(it, false));
+    const li = holder.firstElementChild;
+    btn.closest(".qc-item").replaceWith(li);
+    wireQuickCheck(li);
+    const fb = li.querySelector(".feedback");
+    if (fb) { fb.setAttribute("tabindex", "-1"); fb.focus({ preventScroll: true }); }
+  }));
 }
 
-document.addEventListener("click", e => {
-  const trigger = e.target.closest("[data-product-example]");
-  if (trigger) showProductKnowledgeExample(trigger.dataset.productExample, trigger);
-});
-
-const L2_TABS = [
-  {
-    label: "Quality Customer Service",
-    next: "Next: The Five Stages →",
-    parts: [
-      notesPart(() => `
-        <h2 class="section-title">${hIcon("🤝")}What is customer service?</h2>
-        ${definitionHtml(`<p><strong>Customer service</strong> refers to what businesses do for their customers so that they are happy and satisfied.</p>`, "TERM_SERVICE")}
-        <p>It takes place the moment a customer enters a shop, a restaurant or an attraction, and continues even after the customer has made a purchase and left the venue.</p>
-        <h2 class="section-title">${hIcon("⭐")}What is quality customer service?</h2>
-        ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to exceed their expectations.</p>`, "TERM_QUALITY")}
-`),
-      notesPart((ctx) => `
-        <h2 class="section-title">${hIcon("❓")}Why does quality customer service matter?</h2>
-        <p>If a business provides quality customer service:</p>
-        ${iconCardsHtml([
-          { icon: "🔁", html: "Customers will have a positive experience and they will choose to <strong>return repeatedly</strong>;" },
-          { icon: "🗣️", html: "Customers will <strong>recommend</strong> the business to their relatives and friends; and" },
-          { icon: "🤝", html: "<strong>Customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>." }
-        ], "cols-3")}
-        ${zoomImgHtml("C01", "comic-img")}`),
-      notesPart(() => `
-        <h2 class="section-title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
-        <p>Some skills and qualities customer service employees need:</p>
-        ${iconCardsHtml([
-          { icon: "😊", html: namedCardHtml("Approachable", "Friendly and easy to talk to, so customers feel comfortable asking for help") },
-          { icon: "🎯", html: namedCardHtml("Customer-focused", "Paying attention to what each customer needs and putting those needs first") },
-          { icon: "💬", html: namedCardHtml("Clear communication skills", "Explaining things simply") },
-          { icon: "🧠", html: namedCardHtml("Knowledgeable", "Knowing the products well, so you can answer questions accurately") },
-          { icon: "🛠️", html: namedCardHtml("Problem-solving skills", "Providing solutions, not just apologising") },
-          { icon: "👋", html: namedCardHtml("Able to close the customer experience positively", "Ending on a good note, e.g. thanking the customer and inviting them back") }
-        ], "cols-3 grid-6")}`),
-      notesPart(() => `
-        <h2 class="section-title">${hIcon("📱")}Good product knowledge</h2>
-        <p>Staff need good product knowledge to answer questions accurately, not guess. This includes:</p>
-        <p class="product-example-instruction">Tap a card to see the Nexora staff member explain it.</p>
-        ${productKnowledgeCardsHtml()}
-        ${zoomImgHtml("N02", "notes-img")}`)
-    ]
-  },
-  {
-    label: "The Five Stages",
-    next: "Next: Breakdown and Recovery →",
-    parts: [
-      notesPart(() => `
-        <h2 class="section-title">${hIcon("🗺️")}The five stages of providing customer service</h2>
-        <table class="stage-table">
-          <thead class="visually-hidden"><tr><th scope="col">Stage</th><th scope="col">What to do</th></tr></thead>
-          <tbody>
-            ${STAGES.map((s, i) => `<tr class="stage-row stage-${i + 1}"><th scope="row"><span class="stage-head"><span class="stage-icon" aria-hidden="true">${s.icon}</span><span>${i + 1}. ${escapeHtml(s.name)}</span></span></th><td>${escapeHtml(s.text)}</td></tr>`).join("")}
-          </tbody>
-        </table>
-        ${zoomImgHtml("C02", "comic-img")}`),
-      notesPart(() => `
-        <h2 class="section-title">${hIcon("👋")}Approaching customers: 3 approaches</h2>
-        <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> as soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by making eye contact, smiling and greeting them politely.</span></p>
-        <ul class="approach-cards">
-          <li class="approach-card">
-            <span class="ic-icon" aria-hidden="true">👋</span>
-            <h3 class="approach-name">1. Greeting Approach</h3>
-            <p>Greet the customer in a friendly way as they enter, e.g.</p>
-            ${sayHtml("\"Good morning!\"")}
-            <p>For a regular customer, use their name:</p>
-            ${sayHtml("\"Good morning, Mr Tan!\"")}
-          </li>
-          <li class="approach-card">
-            <span class="ic-icon" aria-hidden="true">🙋</span>
-            <h3 class="approach-name">2. Service Approach</h3>
-            <p>Ask a polite question to show you're ready to help, e.g.</p>
-            ${sayHtml("\"How may I assist you?\"")}
-            <p>If a customer comes up to you to ask for something or to pay, serve them as quickly as possible.</p>
-            <p class="approach-combine">You can also combine the greeting and service approaches:</p>
-            ${sayHtml("\"Good morning! How may I assist you?\"")}
-          </li>
-          <li class="approach-card">
-            <span class="ic-icon" aria-hidden="true">📱</span>
-            <h3 class="approach-name">3. Product Approach</h3>
-            <p>When a customer is looking closely at a product, ask a question about it to help them go from just being interested to actually buying it, e.g.</p>
-            ${sayHtml("\"This phone has a great camera. Would you like to try it out?\"")}
-          </li>
-        </ul>
-`),
-      notesPart(() => `
-        <p>Whether salespeople use the greeting, service or product approach, the purpose is to:</p>
-        ${iconCardsHtml([
-          { icon: "😊", html: "Make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and" },
-          { icon: "🔁", html: "Ensure customers return to the business again in the future." }
-        ], "cols-2")}
-        ${zoomImgHtml("C03", "comic-img")}`),
-      notesPart(() => `
-        ${youtubeVideoHtml("betterWelcome", { heading: "Watch: A better welcome at Nexora", prompt: "Watch this video showing poor and good service. Notice what Alex does differently and how June responds.", frameTitle: "Video: A better welcome at Nexora" })}
-        ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}`),
-      notesPart(() => `
-        <h2 class="section-title">${hIcon("🎯")}Presenting product information: suitability</h2>
-        ${zoomImgHtml("SUITABILITY", "notes-img suitability-img")}
-        <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>`)
-    ]
-  },
-  {
-    label: "Breakdown and Recovery",
-    parts: [
-      notesPart(() => `
-          <h2 class="section-title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
-          ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
-          ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}`),
-      notesPart((ctx) => {
-        // First time on the path: Step 1 only. Coming back later: all 8 at once.
-        if (ctx.fresh || !pathShownNow) pathShownNow = hasLevelGrant(2) || pathShown() >= 1 ? 8 : 1;
-        if (pathShown() < pathShownNow) { raiseReached("s2.path", pathShownNow); saveLocal(); }
-        return `
-          <p>To perform service recovery, follow these 8 steps:</p>
-          <p>Follow Nexora's staff member as he handles a customer whose new phone screen has cracked.</p>
-          <h3 class="path-title">${hIcon("🛤️")}The Service Recovery Path</h3>
-          <div id="pathHolder">${recoveryPathHtml(pathShownNow, false)}</div>
-          <div id="afterPath">${pathShownNow >= 8 ? afterPathHtml() : ""}</div>`;
-      }, {
-        // Continue ↓ appears only once all 8 stops of the path have been shown.
-        continueWhen: () => pathShownNow >= 8,
-        wireMore: (el, ctx) => wirePath(el, ctx)
-      }),
-      notesPart((ctx) => `
-        <h2 class="section-title">${hIcon("📉")}Real-life example: poor service recovery</h2>
-        <p>A customer complained to a food delivery app that their orders from one restaurant had been cancelled 4 times. The replies? "oh" and "so sad", followed by a $3.30 voucher "to say we're sorry".</p>
-        ${imgPairHtml(["R01", "R02"])}
-        ${reflectionHtml("s2.think1", "Was this good service recovery? Which of the 8 steps above were missing?")}`),
-      notesPart((ctx) => `
-        <h2 class="section-title">${hIcon("↩️")}Handling returns of unsatisfactory products</h2>
-        <p>If a customer returns a product they are unhappy with, the business can offer:</p>
-        ${iconCardsHtml([
-          { icon: "🔁", html: namedCardHtml("Replacement", "Replace it with the same product.") },
-          { icon: "🔄", html: namedCardHtml("Exchange", "Offer to exchange it with a different product.") },
-          { icon: "💵", html: namedCardHtml("Refund", "Give a refund.") }
-        ], "cols-3")}
-        ${zoomImgHtml("N03", "comic-img")}
-`),
-      notesPart((ctx) => `
-        <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt. For example, Uniqlo, as shown below.</p>
-        ${zoomImgHtml("R03", "uniqlo-img")}
-        ${reflectionHtml("s2.think2", "Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?")}
-        ${recapHtml("The five stages are approaching customers, presenting product information, closing the customer experience positively, providing support services and performing service recovery.")}
-        ${finishButtonHtml(2)}`, { wireMore: (el) => { wireFinish(el, 2); } })
-    ]
-  }
-];
-
-L2_TABS[1].parts.push(notesPart(()=>`<h2 class="section-title">${hIcon("🛡️")}Provide support services</h2><p>After a purchase, help customers use their product and get help when they need it.</p>${iconCardsHtml([{icon:"🛡️",html:namedCardHtml("Warranty","Explain what the warranty covers and remind customers to keep their receipt.")},{icon:"🛠️",html:namedCardHtml("Repairs","Explain how to arrange a repair and what happens next.")},{icon:"💬",html:namedCardHtml("Multi-channel support","Offer help in-store, by phone or through online chat.")}],"cols-3")}`));
+// The 8 step labels as a small strip (card 14), so students can see them while they answer.
+function recoveryStepStripHtml() {
+  return `<div class="step-strip" role="note" aria-label="The 8 service recovery steps"><ol>${RECOVERY_STEPS.map((s, i) => `<li><span class="step-strip-num" aria-hidden="true">${i + 1}</span> ${escapeHtml(s.label)}</li>`).join("")}</ol></div>`;
+}
 
 // A YouTube video: heading, one-line instruction, the privacy-enhanced player (never
 // starts by itself) in a 16:9 box, and a link for networks that block embedded YouTube.
@@ -2021,32 +1946,174 @@ function youtubeVideoHtml(key, { heading, prompt, frameTitle }) {
     <p class="video-link"><a href="https://youtu.be/${id}" target="_blank" rel="noopener">Video not loading? Watch it on YouTube</a></p>`;
 }
 
+// Below the path once all 8 steps are shown: the 8-steps video.
 function afterPathHtml() {
-  return `<div class="lesson-video">${youtubeVideoHtml("serviceRecovery", { heading: "Watch: The 8 steps in action", prompt: "Watch Alex use all 8 steps to help June with her cracked phone.", frameTitle: "Video: Alex uses the 8 steps of service recovery to help June with her cracked phone" })}</div>
-    <p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
-    ${zoomImgHtml("C04", "comic-img")}`;
+  return `<div class="lesson-video">${youtubeVideoHtml("serviceRecovery", { heading: "Watch: The 8 steps in action", prompt: "Watch Alex use all 8 steps to help June with her cracked phone.", frameTitle: "Video: Alex uses the 8 steps of service recovery to help June with her cracked phone" })}</div>`;
 }
 
-function wirePath(el, ctx) {
+function wirePath(el) {
   const btn = el.querySelector("#showStepBtn");
   if (!btn) return;
   btn.addEventListener("click", () => {
     pathShownNow = Math.min(8, pathShownNow + 1);
     raiseReached("s2.path", pathShownNow);
     queueSave("soon");
-    if (pathShownNow < 8) {
-      setGraphicHtml(el.querySelector("#pathHolder"), recoveryPathHtml(pathShownNow, true));
-      wirePath(el, ctx);
-      revealFocus(document.getElementById(`pathLabel${pathShownNow}`));
-      return;
+    setGraphicHtml(el.querySelector("#pathHolder"), recoveryPathHtml(pathShownNow, true));
+    if (pathShownNow >= 8) {
+      setGraphicHtml(el.querySelector("#afterPath"), afterPathHtml());
+      updateLessonNext();
     }
-    // All 8 shown: the button goes, the rest of the part and Continue ↓ appear.
-    drawTab(2, 2, L2_TABS[2], {});
-    const stop = document.getElementById("pathStop8");
-    if (stop && !reducedMotion()) stop.classList.add("slide-in");
-    revealFocus(document.getElementById("pathLabel8"));
+    wirePath(el);
+    revealFocus(document.getElementById(`pathLabel${pathShownNow}`));
   });
 }
+
+// Each card: label (progress line), html(ctx), wire(el, ctx); key = a required reflection;
+// ready() = Next is allowed; check(el) = list of unanswered items before Next.
+const L2_CARDS = [
+  { label: "4 key terms", ...notesPart(() => `
+    <h2 class="section-title graphic-heading">${graphicIconHtml("ICON_TERMS")}<span>4 key terms</span></h2>
+    ${keyTermsHtml()}`) },
+  { label: "What is customer service?", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("🤝")}What is customer service?</h2>
+    ${definitionHtml(`<p><strong>Customer service</strong> refers to what businesses do for their customers so that they are happy and satisfied.</p>`, "TERM_SERVICE")}
+    <p>It takes place the moment a customer enters a shop, a restaurant or an attraction, and continues even after the customer has made a purchase and left the venue.</p>
+    <h2 class="section-title">${hIcon("⭐")}What is quality customer service?</h2>
+    ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to exceed their expectations.</p>`, "TERM_QUALITY")}`) },
+  { label: "Why quality customer service matters", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("❓")}Why does quality customer service matter?</h2>
+    <p>If a business provides quality customer service:</p>
+    ${iconCardsHtml([
+      { icon: "🔁", html: "Customers will have a positive experience and they will choose to <strong>return repeatedly</strong>;" },
+      { icon: "🗣️", html: "Customers will <strong>recommend</strong> the business to their relatives and friends; and" },
+      { icon: "🤝", html: "<strong>Customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>." }
+    ], "cols-3")}
+    ${zoomImgHtml("C01", "comic-img")}`) },
+  { label: "Skills and qualities", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
+    <p>Some skills and qualities customer service employees need:</p>
+    ${iconCardsHtml([
+      { icon: "😊", html: namedCardHtml("Approachable", "Friendly and easy to talk to, so customers feel comfortable asking for help") },
+      { icon: "🎯", html: namedCardHtml("Customer-focused", "Paying attention to what each customer needs and putting those needs first") },
+      { icon: "💬", html: namedCardHtml("Clear communication skills", "Explaining things simply") },
+      { icon: "🧠", html: namedCardHtml("Knowledgeable", "Knowing the products well, so you can answer questions accurately") },
+      { icon: "🛠️", html: namedCardHtml("Problem-solving skills", "Providing solutions, not just apologising") },
+      { icon: "👋", html: namedCardHtml("Able to close the customer experience positively", "Ending on a good note, e.g. thanking the customer and inviting them back") }
+    ], "cols-3 grid-6")}`) },
+  { label: "Good product knowledge", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("📱")}Good product knowledge</h2>
+    <p>Staff need good product knowledge to answer questions accurately, not guess. This includes:</p>
+    ${productKnowledgeExamplesHtml()}
+    <p class="pk-why">Customers trust staff who know their products, so they buy with confidence and come back again.</p>`) },
+  { label: "The four stages", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("🗺️")}The four stages of providing customer service</h2>
+    <table class="stage-table">
+      <thead class="visually-hidden"><tr><th scope="col">Stage</th><th scope="col">What to do</th></tr></thead>
+      <tbody>
+        ${STAGES.map((s, i) => `<tr class="stage-row stage-${i + 1}"><th scope="row"><span class="stage-head"><span class="stage-icon" aria-hidden="true">${s.icon}</span><span>${i + 1}. ${escapeHtml(s.name)}</span></span></th><td>${escapeHtml(s.text)}</td></tr>`).join("")}
+      </tbody>
+    </table>
+    ${zoomImgHtml("C02", "comic-img")}
+    ${recapHtml("The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery.")}`) },
+  { label: "Stage 1: Approaching customers", ...notesPart(() => `
+    ${stageLabelHtml(1)}
+    <h2 class="section-title">${hIcon("👋")}Approaching customers: 3 approaches</h2>
+    <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> as soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by making eye contact, smiling and greeting them politely.</span></p>
+    <ul class="approach-cards">
+      <li class="approach-card">
+        <span class="ic-icon" aria-hidden="true">👋</span>
+        <h3 class="approach-name">1. Greeting Approach</h3>
+        <p>Greet the customer in a friendly way as they enter, e.g.</p>
+        ${sayHtml("\"Good morning!\"")}
+        <p>For a regular customer, use their name:</p>
+        ${sayHtml("\"Good morning, Mr Tan!\"")}
+      </li>
+      <li class="approach-card">
+        <span class="ic-icon" aria-hidden="true">🙋</span>
+        <h3 class="approach-name">2. Service Approach</h3>
+        <p>Ask a polite question to show you're ready to help, e.g.</p>
+        ${sayHtml("\"How may I assist you?\"")}
+        <p>If a customer comes up to you to ask for something or to pay, serve them as quickly as possible.</p>
+        <p class="approach-combine">You can also combine the greeting and service approaches:</p>
+        ${sayHtml("\"Good morning! How may I assist you?\"")}
+      </li>
+      <li class="approach-card">
+        <span class="ic-icon" aria-hidden="true">📱</span>
+        <h3 class="approach-name">3. Product Approach</h3>
+        <p>When a customer is looking closely at a product, ask a question about it to help them go from just being interested to actually buying it, e.g.</p>
+        ${sayHtml("\"This phone has a great camera. Would you like to try it out?\"")}
+      </li>
+    </ul>
+    <p>Whether salespeople use the greeting, service or product approach, the purpose is to:</p>
+    ${iconCardsHtml([
+      { icon: "😊", html: "Make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and" },
+      { icon: "🔁", html: "Ensure customers return to the business again in the future." }
+    ], "cols-2")}
+    ${zoomImgHtml("C03", "comic-img")}`) },
+  { label: "Watch: A better welcome at Nexora", key: "s2.video", ...notesPart(() => `
+    ${youtubeVideoHtml("betterWelcome", { heading: "Watch: A better welcome at Nexora", prompt: "Watch this video showing poor and good service. Notice what Alex does differently and how June responds.", frameTitle: "Video: A better welcome at Nexora" })}
+    ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}`) },
+  { label: "Quick check", html: (ctx) => `
+    <h2 class="section-title">${hIcon("🎯")}Quick check: which approach is this?</h2>
+    <p>Tap one for each.</p>
+    <ol class="match-list qc-list">${QUICK_CHECK.map(it => quickCheckItemHtml(it, ctx.readOnly)).join("")}</ol>`,
+    wire: (el) => wireQuickCheck(el),
+    check: (el) => QUICK_CHECK.filter(it => !qcResolved(it)).map(it => ({ el: el.querySelector(`[data-key="s2.qc.${it.id}"]`), name: it.id + ")" })) },
+  { label: "Stage 2: Presenting product information", ...notesPart(() => `
+    ${stageLabelHtml(2)}
+    <h2 class="section-title">${hIcon("🎯")}Presenting product information: suitability</h2>
+    ${zoomImgHtml("SUITABILITY", "notes-img suitability-img")}
+    <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>`) },
+  { label: "Stage 3: Closing the customer experience positively", ...notesPart(() => `
+    ${stageLabelHtml(3)}
+    <h2 class="section-title">${hIcon("🛡️")}After-sales support</h2>
+    <p>Closing the customer experience positively includes giving good after-sales support, so customers choose your business over competitors.</p>
+    ${iconCardsHtml([
+      { icon: "🛡️", html: namedCardHtml("Warranty", "Explain what the warranty covers and remind customers to keep their receipt.") },
+      { icon: "🛠️", html: namedCardHtml("Repairs", "Explain how to arrange a repair and what happens next.") },
+      { icon: "💬", html: namedCardHtml("Multi-channel support", "Offer help in-store, by phone or through online chat.") },
+      { icon: "🔄", html: namedCardHtml("Exchanges and refunds", "Explain the store's rules for exchanges and refunds.") }
+    ], "cols-2 grid-4")}`) },
+  { label: "Stage 4: Service breakdown and service recovery", ...notesPart(() => `
+    ${stageLabelHtml(4)}
+    <h2 class="section-title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
+    ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
+    ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}
+    ${zoomImgHtml("C04", "comic-img")}
+    <p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
+    <p class="second-chance">A complaint is a second chance. If you fix it well, the customer may become more loyal. If you ignore it, they may go to a competitor and tell their friends.</p>`) },
+  { label: "The 8 service recovery steps", ...notesPart((ctx) => {
+      // First time on the path: Step 1 only. Coming back later (or a teacher grant): all 8 at once.
+      if (!pathShownNow) pathShownNow = hasLevelGrant(2) || isDone(2) || pathShown() >= 1 ? 8 : 1;
+      if (pathShown() < pathShownNow) { raiseReached("s2.path", pathShownNow); saveLocal(); }
+      return `
+        <h2 class="section-title">${hIcon("🛤️")}The 8 service recovery steps</h2>
+        <p>To perform service recovery, follow these 8 steps:</p>
+        <p>Follow Nexora's staff member as he handles a customer whose new phone screen cracked on its own, even though she was using it carefully.</p>
+        <div id="pathHolder">${recoveryPathHtml(pathShownNow, false)}</div>
+        <div id="afterPath">${pathShownNow >= 8 ? afterPathHtml() : ""}</div>`;
+    }, { wireMore: (el) => wirePath(el) }),
+    ready: () => pathShownNow >= 8, notReadyNote: "Tap Show Step to see all 8 steps." },
+  { label: "Real-life example: poor service recovery", key: "s2.think1", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("📉")}Real-life example: poor service recovery</h2>
+    <p>A customer complained to a food delivery app that their orders from one restaurant had been cancelled 4 times. The replies? "oh" and "so sad", followed by a $3.30 voucher "to say we're sorry".</p>
+    ${imgPairHtml(["R01", "R02"])}
+    ${recoveryStepStripHtml()}
+    ${reflectionHtml("s2.think1", "Was this good service recovery? Which of the 8 service recovery steps were missing?")}`) },
+  { label: "Handling returns", key: "s2.think2", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("↩️")}Handling returns of unsatisfactory products</h2>
+    <p>If a customer returns a product they are unhappy with, the business can offer:</p>
+    ${iconCardsHtml([
+      { icon: "🔁", html: namedCardHtml("Replacement", "Replace it with the same product.") },
+      { icon: "🔄", html: namedCardHtml("Exchange", "Offer to exchange it with a different product.") },
+      { icon: "💵", html: namedCardHtml("Refund", "Give a refund.") }
+    ], "cols-3")}
+    ${zoomImgHtml("N03", "comic-img")}
+    <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt. For example, Uniqlo, as shown below.</p>
+    ${zoomImgHtml("R03", "uniqlo-img")}
+    ${reflectionHtml("s2.think2", "Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?")}
+    ${recapHtml("If a customer is unhappy with a product, you can offer a replacement, an exchange or a refund. Always check the store's return rules first.")}`) }
+];
 
 /* ---------------- Marked questions: hint, one retry, then the answer ----------------
    Level 3 Q2 and Level 5 Q1 and Q2. Submit records the first attempt (never
@@ -2115,13 +2182,13 @@ function itemControlHtml(item) {
     // Locked: the answer as a read-only box that wraps, so a long stage name is never cut off
     // on a phone (a disabled dropdown cannot be opened to read it).
     if (off && v !== undefined) {
-      const box = `<div class="select-input locked-answer ${revealed ? "wrong-pick" : ""}" id="sel_${item.id}" data-item="${item.id}" aria-disabled="true"><span class="visually-hidden">Your answer: </span>${escapeHtml(item.options[v])}</div>`;
+      const box = `<div class="select-input locked-answer ${revealed ? "wrong-pick" : ""}" id="sel_${item.id}" data-item="${item.id}" aria-disabled="true"><span class="visually-hidden">Your answer: </span>${escapeHtml(item.options[v] || "")}</div>`;
       if (!revealed) return box;
       return `<div class="select-row">${WRONG_MARK}${box}<span class="answer-tag right-tag">✓ Correct answer: ${escapeHtml(item.answerLabel)}</span></div>`;
     }
-    const select = `<select style="border-left:6px solid ${v===undefined?"#9ca3af":STAGE_COLOURS[v===3?4:v===4?3:v]}" class="select-input item-select ${revealed ? "wrong-pick" : ""}" data-item="${item.id}" ${off ? "disabled" : ""}>
+    const select = `<select style="border-left:6px solid ${v===undefined?"#9ca3af":(STAGE_COLOURS[v] || "#9ca3af")}" class="select-input item-select ${revealed ? "wrong-pick" : ""}" data-item="${item.id}" ${off ? "disabled" : ""}>
       <option value="" disabled ${v === undefined ? "selected" : ""}>Choose a stage…</option>
-      ${[0,1,2,4,3].map(i => `<option value="${i}" style="color:${STAGE_COLOURS[i===3?4:i===4?3:i]}" ${v === i ? "selected" : ""}>${escapeHtml(item.options[i])}</option>`).join("")}
+      ${[0,1,2,3].map(i => `<option value="${i}" style="color:${STAGE_COLOURS[i]}" ${v === i ? "selected" : ""}>${escapeHtml(item.options[i])}</option>`).join("")}
     </select>`;
     if (!revealed) return select;
     return `<div class="select-row">${WRONG_MARK}${select}<span class="answer-tag right-tag">✓ Correct answer: ${escapeHtml(item.answerLabel)}</span></div>`;
@@ -2215,27 +2282,27 @@ function gemButtonHtml(url, label) {
 
 /* ---------------- Level 3: Chat with Alex ---------------- */
 
-// Preserve historical answer values: recovery remains 3; support is 4.
-const STAGE_NAMES = [STAGES[0].name,STAGES[1].name,STAGES[2].name,STAGES[4].name,STAGES[3].name];
+// Answer values 0 to 3 (recovery has always been 3, so old saved answers keep their meaning).
+const STAGE_NAMES = STAGES.map(st => st.name);
 
 // "Look at these again" (agreed wording): the topic and where to find it, for each marked item.
 // Used by the summary card after feedback and by the learning report.
 const LOOK_AGAIN = {
-  "s3q2.P": "Performing service recovery (Level 2, Breakdown and Recovery)",
-  "s3q2.Q": "Presenting product information (Level 2, The Five Stages)",
-  "s3q2.R": "Closing the customer experience positively (Level 2, The Five Stages)",
-  "s3q2.S": "Approaching customers (Level 2, The Five Stages)",
-  "s5q3.i": "What customer service is (Level 2, Quality Customer Service)",
-  "s5q3.ii": "Good product knowledge (Level 2, Quality Customer Service)",
-  "s5q3.iii": "The 8 steps of service recovery (Level 2, Breakdown and Recovery)",
-  "s5q3.iv": "Service breakdown (Level 2, Breakdown and Recovery)",
-  "s5q4": "The 8 steps of service recovery (Level 2, Breakdown and Recovery)"
+  "s3q2.P": "Performing service recovery (Level 2, Stage 4: Service breakdown and service recovery)",
+  "s3q2.Q": "Presenting product information (Level 2, The four stages)",
+  "s3q2.R": "Closing the customer experience positively (Level 2, The four stages)",
+  "s3q2.S": "Approaching customers (Level 2, The four stages)",
+  "s5q3.i": "What customer service is (Level 2, What is customer service?)",
+  "s5q3.ii": "Good product knowledge (Level 2, Good product knowledge)",
+  "s5q3.iii": "The 8 steps of service recovery (Level 2, The 8 service recovery steps)",
+  "s5q3.iv": "Service breakdown (Level 2, Stage 4: Service breakdown and service recovery)",
+  "s5q4": "The 8 steps of service recovery (Level 2, The 8 service recovery steps)"
 };
 
 const L3_Q2 = [
-  { id: "P", quote: "\"Could you tell me when the screen first stopped working? Then we can arrange a repair or replacement for you.\"", correct: 3,
-    hint: "This officer asks when the screen stopped working and offers a repair. Has something gone wrong for this customer?",
-    right: "Correct: asking questions (Step 5) and offering a solution (Step 6) are part of service recovery." },
+  { id: "P", quote: "\"I'm really sorry your new phone stopped working. Could you tell me when it happened, so I can help you fix it?\"", correct: 3,
+    hint: "The officer apologises because something has gone wrong for this customer. Which stage deals with a problem or complaint?",
+    right: "Correct: apologising and asking about a problem are part of service recovery." },
   { id: "Q", quote: "\"Since you play a lot of games, the Nexora Prime's fast processor would suit you best.\"", correct: 1,
     hint: "The officer matches a phone feature to something the customer does a lot. Which stage is about presenting a suitable product?",
     right: "Correct: matching a feature to the customer's needs is presenting product information." },
@@ -2312,7 +2379,7 @@ const L3_TABS = [
           </section>
           ${checkAgainHtml(L3_Q2)}
           ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL3">Submit</button></div>` : ""}
-          ${resolved ? `${summaryCardHtml(L3_Q2)}${recapHtml("The same five stages happen in every customer interaction, whether it's in a shop or in a chat.")}${finishButtonHtml(3)}` : ""}`;
+          ${resolved ? `${summaryCardHtml(L3_Q2)}${recapHtml("The same four stages happen in every customer interaction, whether it's in a shop or in a chat.")}${finishButtonHtml(3)}` : ""}`;
       },
       wire: (el, ctx) => {
         wireAnswerBoxes(el);
@@ -2490,7 +2557,7 @@ const L4_TABS = [
           <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
           ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
         </div>
-        <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the five stages from Level 2: approach Suzzie, present product information, close positively, provide support services, and if there's a problem, perform service recovery.</span></p>
+        <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the four stages from Level 2: approach Suzzie, present product information, close positively (including after-sales support), and if there's a problem, perform service recovery.</span></p>
         ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open chat with Suzzie (new tab) ↗")}
         ${stylezFactsHtml()}
         ${conversationLinkHtml(4,ctx.readOnly)}${tickHtml("s4.tick", "I have finished serving Suzzie.", ctx.readOnly)}`,
@@ -2511,7 +2578,7 @@ const L4_TABS = [
               labelHtml: `<strong>${b.num}.</strong> ${escapeHtml(b.text)}`, hint: b.hint, readOnly: submitted || ctx.readOnly, rows: 5
             })).join("")}
           </div>
-          ${submitted ? `${recapHtml("Look back at the five stages. Which one would you like to practise more?")}${finishButtonHtml(4)}`
+          ${submitted ? `${recapHtml("Look back at the four stages. Which one would you like to practise more?")}${finishButtonHtml(4)}`
             : `<div class="btn-row"><button type="button" class="btn" id="submitL4">Submit</button></div>`}`;
       },
       wire: (el) => {
@@ -2574,7 +2641,7 @@ const L5_MARKED = L5_Q3.concat(L5_Q4);
 const CONFIDENCE_ROWS = [
   "I can explain why quality customer service matters to a business",
   "I can name the skills and qualities a good customer service employee needs",
-  "I can describe the five stages of providing customer service",
+  "I can describe the four stages of providing customer service",
   "I can explain what service breakdown is, and how to perform service recovery"
 ];
 const FACES = [["😟", "Not yet"], ["🙁", "A little"], ["🙂", "Confident"], ["😄", "Very confident"]];
@@ -2721,7 +2788,7 @@ function showChampionPopup() {
 
 const LEVEL_CONTENT = {
   1: { tabs: [{ label: "Your stories", parts: [L1_PART] }] },
-  2: { tabs: L2_TABS },
+  2: { tabs: L2_CARDS.map(card => ({ label: card.label, parts: [card] })) },
   3: { tabs: L3_TABS },
   4: { tabs: L4_TABS },
   5: { tabs: L5_TABS }
@@ -2803,7 +2870,7 @@ function learningAnswersHtml(r) {
   const tick = key => recAnswer(r,key) === true ? "Yes" : recAnswer(r,key) === false ? "No" : undefined;
   const groups = [
     L1_BOXES.map(b => qa(`${b.num}. ${b.text}`,b.key)).join(""),
-    qa("What did Alex do to make June feel welcome? Why did she bring her friend back?","s2.video") + qa("Was this good service recovery? Which of the 8 steps above were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
+    qa("What did Alex do to make June feel welcome? Why did she bring her friend back?","s2.video") + qa("Was this good service recovery? Which of the 8 service recovery steps were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
     reportAnswerHtml("Alex conversation link",recAnswer(r,"s3.link")) + reportAnswerHtml("I have finished chatting with Alex.",tick("s3.tick")) + qa("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed. Skill or quality:","s3.q1a") + qa("This is important to customers because","s3.q1b") + L3_Q2.map(it=>reportMarkedHtml(it,r)).join(""),
     reportAnswerHtml("Suzzie conversation link",recAnswer(r,"s4.link")) + reportAnswerHtml("Which stages did you do?",(recAnswer(r,"s4.stages") || []).join(", ")) + reportAnswerHtml("I have finished serving Suzzie.",tick("s4.tick")) + L4_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
     L5_MARKED.map(it=>reportMarkedHtml(it,r)).join("") + qa("Q3. Quality customer service matters because","s5.q5") + qa("Q4. What is one thing you have learnt about customer service?","s5.q6") + qa("Q5. What is one question you still have about this chapter?","s5.q7") + CONFIDENCE_ROWS.map((row,i)=>{const v=recAnswer(r,`s5.q8.${i+1}`);return reportAnswerHtml(`Q6. ${row}`,typeof v==="number" && FACES[v] ? FACES[v][1] : undefined);}).join("")
@@ -3052,7 +3119,7 @@ function renderTeacherLesson(n) {
       <div class="btn-row"><a class="btn secondary" href="#teacher">Back to Teacher Mode</a></div>
       ${teacherLessonLinksHtml(n)}</div>${content}</main>${footerHtml()}`);
   app.querySelectorAll(".teacher-lesson-part input, .teacher-lesson-part select, .teacher-lesson-part textarea, .teacher-lesson-part button").forEach(el=>{
-    if (!el.matches(".listen-btn, [data-product-example]")) el.disabled = true;
+    if (!el.matches(".listen-btn, .zoom-btn")) el.disabled = true;
   });
   app.querySelectorAll(".teacher-lesson [aria-labelledby]").forEach(el=>{
     if (!el.getAttribute("aria-labelledby").split(/\s+/).every(id=>document.getElementById(id))) el.removeAttribute("aria-labelledby");
@@ -3216,7 +3283,7 @@ function renderStudentReport(body, panel) {
       ${L1_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
       <h3 class="sum-head">Level 2: Think about it</h3>
       ${qa("What did Alex do to make June feel welcome? Why did she bring her friend back?", recAnswer(r, "s2.video"))}
-      ${qa("Was this good service recovery? Which of the 8 steps above were missing?", recAnswer(r, "s2.think1"))}
+      ${qa("Was this good service recovery? Which of the 8 service recovery steps were missing?", recAnswer(r, "s2.think1"))}
       ${qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?", recAnswer(r, "s2.think2"))}
       <h3 class="sum-head">Level 3: Q1</h3>
       ${qa("Skill or quality:", recAnswer(r, "s3.q1a"))}

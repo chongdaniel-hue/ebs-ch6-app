@@ -144,11 +144,25 @@ test.describe("new student", () => {
     })));
     expect(new Set(termStyle.map(s => s.colour)).size).toBe(4);
     termStyle.forEach(s => expect(s.ratio).toBeCloseTo(2.5));
-    await expect(page.locator(".term-list .def-body")).toHaveText([
-      "Customer service: Refers to what businesses do for their customers so that they are happy and satisfied.",
-      "Quality customer service: Means doing more for customers to exceed their expectations.",
-      "Service breakdown: Occurs when customers make a complaint about a product or service.",
-      "Service recovery: A process whereby a business takes action in response to service breakdown or failure."
+    // Plain English and an example first, then the exact textbook definition as "Exam wording".
+    await expect(page.locator(".term-list .def-body > p:first-child")).toHaveText([
+      "Customer service: what a business does to keep customers happy. It starts when you walk in and continues after you pay.",
+      "Quality customer service: doing MORE than the customer expects.",
+      "Service breakdown: something goes wrong and the customer complains.",
+      "Service recovery: the business fixes the problem and wins the customer back."
+    ]);
+    await expect(page.locator(".term-list .term-example")).toHaveText([
+      "Example: staff help you find your size.",
+      "Example: the bubble tea staff remember your usual order.",
+      "Example: your new earbuds don't work.",
+      "Example: staff say sorry and replace the earbuds."
+    ]);
+    await expect(page.locator(".term-list .exam-label")).toHaveText(Array(4).fill("Exam wording"));
+    await expect(page.locator(".term-list .exam-wording > p:last-child")).toHaveText([
+      "Customer service refers to what businesses do for their customers so that they are happy and satisfied.",
+      "Quality customer service means doing more for customers to exceed their expectations.",
+      "A service breakdown occurs when customers make a complaint about a product or service.",
+      "Service recovery is a process whereby a business takes action in response to service breakdown or failure."
     ]);
     await checkPage(page, testInfo, "slice2-terms");
     await page.click("#termsDone");

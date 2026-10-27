@@ -6,10 +6,10 @@ test('student names register once, lock, sync and identify reports without repla
  await resetServer(request,['3E1']);await page.goto('/');
  await expect(page.locator('#nameInput')).toHaveValue('');await expect(page.locator('#classInput')).toHaveValue('3E1');await page.locator('#regInput').selectOption('5');await page.locator('#startBtn').click();await expect(page.locator('#loginError')).toContainText('name at the top');
  await page.locator('#nameInput').fill('  Demo Student Five  ');await page.locator('#startBtn').click();await page.locator('#briefing button').click();
- await expect(page.locator('#studentNameInput')).toHaveValue('Demo Student Five');
+ await expect(page.locator('#studentNameForm')).toHaveCount(0);await expect(page.locator('.topbar-chip')).toContainText('Demo Student Five');await expect(page.locator('.topbar-chip')).toContainText('Register No. 5');
  await expect.poll(async()=>{const r=await apiGet(request,{action:'load',class:'3E1',reg:5});return r.record?.profile?.name?.v;}).toBe('Demo Student Five');
  await page.evaluate(()=>{setAnswer('s1.q1','My existing answer','now');});
- await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');await expect(page.locator('#studentNameForm button')).toHaveCount(0);
+ await expect(page.locator('#studentNameForm')).toHaveCount(0);
  const loaded=await apiGet(request,{action:'load',class:'3E1',reg:5});
  const attempt=JSON.parse(JSON.stringify(loaded.record));attempt.profile.name={v:'Replacement Name',t:new Date().toISOString()};
  const rejectedRename=await apiPost(request,{action:'save',record:attempt});expect(rejectedRename.error).toBe('name_mismatch');expect(rejectedRename).not.toHaveProperty('record');
@@ -45,10 +45,8 @@ test('saved home identity is locked and occupied register numbers reject another
  await page.goto('/');await expect(page.locator('#classInput')).toHaveValue('3E1');await page.locator('#nameInput').fill('Another Student');await page.locator('#regInput').selectOption('5');await page.locator('#startBtn').click();
  await expect(page.locator('#loginError')).toContainText('This register number has already been registered to a student profile.');
  await page.locator('#nameInput').fill('Demo Five');await page.locator('#startBtn').click();
- const select=page.locator('#studentRegisterInput');await expect(select).toHaveValue('5');await expect(select).toBeDisabled();await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');
- await expect(select.locator('option')).toHaveText(Array.from({length:50},(_,i)=>String(i+1)));
- for(const purpose of ['reset','unlock']){const r=await apiPost(request,{action:'profileList',purpose,code:purpose==='reset'?process.env.TEST_RESET_CODE:CODE(),class:'3E1'});expect(r.students.find(s=>s.name==='Demo Five').reg).toBe(Number(await select.inputValue()));}
- await page.reload();await expect(select).toBeDisabled();await expect(select).toHaveValue('5');await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');await expectNoSidewaysScroll(page);
- await page.locator('#studentNameForm').screenshot({path:`tests/screenshots/home-register-${testInfo.project.name}.png`});
+ await expect(page.locator('#studentNameForm')).toHaveCount(0);await expect(page.locator('.topbar-chip')).toContainText('Demo Five');await expect(page.locator('.topbar-chip')).toContainText('Register No. 5');
+ for(const purpose of ['reset','unlock']){const r=await apiPost(request,{action:'profileList',purpose,code:purpose==='reset'?process.env.TEST_RESET_CODE:CODE(),class:'3E1'});expect(r.students.find(s=>s.name==='Demo Five').reg).toBe(5);}
+ await page.reload();await expect(page.locator('#studentNameForm')).toHaveCount(0);await expect(page.locator('.topbar-chip')).toContainText('Demo Five');await expect(page.locator('.topbar-chip')).toContainText('Register No. 5');await expectNoSidewaysScroll(page);
  const r=await apiGet(request,{action:'load',class:'3E1',reg:5});expect(r.record.profile.name.v).toBe('Demo Five');expect(r.record.answers['s1.q1'].v).toBe('Saved work');
 });

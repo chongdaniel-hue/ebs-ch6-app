@@ -7,56 +7,59 @@ async function openKnowledge(page,request){
   await login(page,"3E1",5);
   await expect(page.locator(".welcome-card")).toBeVisible();
   await page.goto("/#level2");
-  await page.evaluate(()=>{setUi("s2.card",2);renderLevel(2);});
-  await expect(page.locator(".product-knowledge-card")).toHaveCount(5);
+  await page.evaluate(()=>{setUi("s2.card",4);renderLevel(2);});
+  await expect(page.locator(".pk-example")).toHaveCount(5);
 }
 
-test("each product card opens its matching generated picture, closes accessibly and preserves progress",async({page,request},testInfo)=>{
+// Card 5: the five aspects (textbook wording), each with its cropped picture and the
+// staff member's line as real page text, so Read aloud can read it.
+const LINES={
+  features:["Product features and specifications (e.g. screen size, battery life)","\"The Nexora Spark has an all-day battery and a dual camera, so it's great for school and social media.\""],
+  price:["Price and available options","\"The Nexora Core is $799. You can upgrade to 256GB for $80 more, or 512GB for $160 more.\""],
+  care:["How to use or care for the product","\"You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition.\""],
+  warranty:["Warranty and after-sales support","\"Every Nexora phone has a 1-year warranty for manufacturing defects. Keep your receipt, and bring the phone to our Nexora Care Bar if anything goes wrong.\""],
+  "selling-point":["Unique selling points of the product (why your product is better than competitors' products)","\"Unlike many phones at this price, the Nexora Core comes with 24/7 online chat support and a trade-in rebate of up to $120 for your old phone.\""]
+};
+
+test("good product knowledge shows each aspect with its picture and the staff member's line as page text",async({page,request},testInfo)=>{
   const errors=watchErrors(page);
   await openKnowledge(page,request);
+  await expect(page.locator("#lessonCard")).toContainText("Staff need good product knowledge to answer questions accurately, not guess. This includes:");
+  await expect(page.locator(".pk-why")).toHaveText("Customers trust staff who know their products, so they buy with confidence and come back again.");
   const before=await page.evaluate(()=>JSON.stringify(rec));
-  await shot(page,testInfo,"product-knowledge-cards");
-  const ids=["features","price","care","warranty","selling-point"];
-  for(const id of ids){
+  for(const [id,[title,line]] of Object.entries(LINES)){
     const card=page.locator(`[data-product-example="${id}"]`);
-    const title=await card.locator(".ic-body").evaluate(el=>el.childNodes[0].textContent);
-    if(id==="care"){await card.focus();await card.press("Enter");} else await card.click();
-    const dialog=page.locator("#productExampleModal");
-    await expect(dialog.getByRole("dialog")).toBeVisible();
-    await expect(dialog.locator("h2")).toHaveText(title);
-    const image=dialog.locator("img");
-    await expect(image).toHaveCount(1);
-    await expect(image).toHaveAttribute("src",`assets/img/product-knowledge-${id}-speech.png`);
-    await expect.poll(()=>image.evaluate(el=>el.complete && el.naturalWidth>0)).toBe(true);
+    await expect(card.locator(".pk-title")).toHaveText(title);
+    await expect(card.locator(".pk-say")).toHaveText("The staff member says: "+line);
+    const image=card.locator("img");
+    await expect(image).toHaveAttribute("src",`assets/img/product-knowledge-${id}.jpg`);
+    await expect.poll(()=>image.evaluate(el=>el.complete && el.naturalWidth===900)).toBe(true);
     await expect(image).toHaveAttribute("alt",/Nexora staff member/);
-    await expect(dialog.locator(".say")).toHaveCount(0);
-    await expect(dialog.locator("figcaption")).toHaveClass("visually-hidden");
-    await expect(dialog.locator("figcaption")).toContainText("The staff member says:");
-    await expect(dialog.getByRole("button",{name:"Close",exact:true})).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(dialog.getByRole("button",{name:"Close",exact:true})).toBeFocused();
-    await expectNoAmpersand(page);
-    await expectNoSidewaysScroll(page);
-    const overflow=await dialog.locator(".modal").evaluate(el=>el.scrollWidth-el.clientWidth);
-    expect(overflow).toBeLessThanOrEqual(0);
-    await shot(page,testInfo,"product-example-"+id);
-    if(id==="care") await page.keyboard.press("Escape");
-    else await dialog.getByRole("button",{name:"Close",exact:true}).click();
-    await expect(dialog).toHaveCount(0);
-    await expect(card).toBeFocused();
-    expect(await page.evaluate(()=>JSON.stringify(rec))).toBe(before);
+    // Never stretched: drawn no wider than the file, keeping its shape.
+    const box=await image.evaluate(el=>({w:el.getBoundingClientRect().width,h:el.getBoundingClientRect().height}));
+    expect(box.w).toBeLessThanOrEqual(900);
+    expect(Math.abs(box.w/box.h-900/570)).toBeLessThan(0.02);
   }
+  // Tap to enlarge keeps the alt text and closes with Esc.
+  const first=page.locator('[data-product-example="care"] .zoom-btn');
+  await first.click();
+  await expect(page.locator(".zoom-img")).toHaveAttribute("alt",/soft, dry cloth/);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".zoom-backdrop")).toHaveCount(0);
+  await expect(first).toBeFocused();
+  expect(await page.evaluate(()=>JSON.stringify(rec))).toBe(before);
+  await expectNoAmpersand(page);
+  await expectNoSidewaysScroll(page);
+  await shot(page,testInfo,"product-knowledge-cards");
   expect(errors).toEqual([]);
 });
 
-test("a failed example image keeps its accessible description and dialogue",async({page,request})=>{
+test("a failed example image shows its placeholder and the line stays readable",async({page,request})=>{
+  await page.route("**/assets/img/product-knowledge-care.jpg",route=>route.fulfill({status:404,body:"Missing test image"}));
   await openKnowledge(page,request);
-  await page.route("**/assets/img/product-knowledge-care-speech.png",route=>route.fulfill({status:404,body:"Missing test image"}));
-  await page.locator('[data-product-example="care"]').click();
-  const dialog=page.locator("#productExampleModal");
-  await expect(dialog.getByRole("img")).toHaveAttribute("aria-label",/soft dry cloth/);
-  await expect(dialog.locator("figcaption")).toContainText("You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition.");
-  await expect(dialog.locator("figcaption")).toBeVisible();
-  await dialog.getByRole("button",{name:"Close",exact:true}).click();
-  await expect(dialog).toHaveCount(0);
+  const card=page.locator('[data-product-example="care"]');
+  await expect(card.getByRole("img")).toHaveAttribute("aria-label",/soft, dry cloth/);
+  await expect(card.locator(".pk-say")).toContainText("You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition.");
+  await card.locator(".zoom-btn").click();
+  await expect(page.locator(".zoom-backdrop")).toHaveCount(0);
 });

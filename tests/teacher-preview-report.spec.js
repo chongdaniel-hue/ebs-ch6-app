@@ -17,7 +17,7 @@ test("teachers can view all lesson sections immediately without changing student
   await expect(page.locator(".teacher-preview-note")).toBeVisible();
   await expect(page.locator("#continueBtn,#nextBtn")).toHaveCount(0);
   await expect(page.locator(".teacher-lesson-part input:enabled,.teacher-lesson-part textarea:enabled,.teacher-lesson-part select:enabled")).toHaveCount(0);
-  if(n===2){await expect(page.locator(".teacher-lesson-step")).toHaveCount(3);await expect(page.locator(".path-stop")).toHaveCount(8);await expect(page.locator('img[data-img="SUITABILITY"]')).toBeVisible();}
+  if(n===2){await expect(page.locator(".teacher-lesson-step")).toHaveCount(15);await expect(page.locator(".qc-btn:enabled")).toHaveCount(0);await expect(page.locator(".path-stop")).toHaveCount(8);await expect(page.locator('img[data-img="SUITABILITY"]')).toBeVisible();}
   if(n===5){await expect(page.locator('[data-answer="s5.q7"]')).toBeVisible();}
   await expectNoSidewaysScroll(page);await expectNoAmpersand(page);await shot(page,testInfo,"teacher-preview-level-"+n);
   expect(await page.evaluate(()=>JSON.stringify(rec))).toBe(before);
@@ -39,7 +39,7 @@ test("learning report includes every saved answer, drafts, retries and unanswere
  const errors=watchErrors(page);await prepare(page,request);const before=await page.evaluate(()=>JSON.stringify(rec));
  await page.goto("/#report");await expect(page.locator(".report-answer-level")).toHaveCount(5);
  const answers=page.locator(".learning-answers");
- await expect(answers.locator(".qa")).toHaveCount(28);
+ await expect(answers.locator(".qa")).toHaveCount(31);
  await expect(answers.locator(".qa-a").first()).toHaveText("A staff member helped me. <script> 😊");
  await expect(answers.locator("script")).toHaveCount(0);
  for(const text of ["Used clothing","Clear communication","Ask more questions","How can I improve?","Not answered yet","Confident"]) await expect(answers).toContainText(text);

@@ -22,7 +22,7 @@ async function student(page, request, reg) {
   await page.evaluate(() => {
     localStorage.setItem("ch6_unlock_all", "true");
     for(const key of REFLECTION_KEYS){setAnswer(key,"A complete reflection.");setUi(`${key}.saved`,rec.answers[key].t);}
-    rec.reached["s2.tabs"] = 2; ["s2.t0", "s2.t1", "s2.t2"].forEach(k => { rec.reached[k] = 5; }); rec.reached["s2.path"] = 8;
+    rec.reached["s2.path"] = 8; setUi("s2.cardLayout", "cards15");
     saveLocal();
   });
 }
@@ -46,10 +46,9 @@ test("Level 1: the three question cards line up and the boxes are the same size"
 
 test("images are shown in full and the Foodpanda pair is the same height", async ({ page, request }, testInfo) => {
   await student(page, request, 32);
-  for (const t of [0, 1, 2]) {
-    await page.goto("/#home");
-    await page.goto("/#level2");
-    await page.locator(".step-tab").nth(t).click();
+  await page.goto("/#level2");
+  for (let c = 0; c < 15; c++) {
+    await page.evaluate(c => { setUi("s2.card", c); renderLevel(2); }, c);
     await page.waitForTimeout(300);
     const cropped = await page.locator("img.content-img").evaluateAll(imgs => imgs.filter(i => i.naturalWidth).map(i => {
       const r = i.getBoundingClientRect();
@@ -57,6 +56,8 @@ test("images are shown in full and the Foodpanda pair is the same height", async
     }).filter(x => x.off > 0.02));
     expect(cropped, "no image squashed or cut").toEqual([]);
   }
+  await page.evaluate(() => { setUi("s2.card", 13); renderLevel(2); });
+  await page.waitForTimeout(300);
   const heights = await page.locator(".img-pair img").evaluateAll(imgs => imgs.map(i => Math.round(i.getBoundingClientRect().height)));
   expect(heights.length).toBe(2);
   if (testInfo.project.name === "laptop") expect(Math.abs(heights[0] - heights[1])).toBeLessThanOrEqual(2);
@@ -96,12 +97,11 @@ test("blocks line up: same left and right edges on every page", async ({ page, r
     await page.waitForTimeout(300);
     expect(await edgeProblems(page), name).toEqual([]);
   }
-  for (const t of [0, 1, 2]) {
-    await page.goto("/#home");
-    await page.goto("/#level2");
-    await page.locator(".step-tab").nth(t).click();
-    await page.waitForTimeout(400);
-    expect(await edgeProblems(page), `level2 tab ${t + 1}`).toEqual([]);
+  await page.goto("/#level2");
+  for (let c = 0; c < 15; c++) {
+    await page.evaluate(c => { setUi("s2.card", c); renderLevel(2); }, c);
+    await page.waitForTimeout(300);
+    expect(await edgeProblems(page), `level2 card ${c + 1}`).toEqual([]);
   }
   for (const n of [3, 4, 5]) {
     for (const t of [0, 1]) {
@@ -126,7 +126,9 @@ test("Read aloud reads a block of notes, not the questions, and stops on a secon
   await expect(termsBtn).toHaveText("Stop");
   await expect(termsBtn).toHaveAttribute("aria-pressed", "true");
   const spoken = (await page.evaluate(() => window.__spoken)).join(" ");
-  expect(spoken).toContain("Customer service: Refers to what businesses do for their customers so that they are happy and satisfied.");
+  expect(spoken).toContain("what a business does to keep customers happy. It starts when you walk in and continues after you pay.");
+  expect(spoken).toContain("Example: staff help you find your size.");
+  expect(spoken).toContain("Customer service refers to what businesses do for their customers so that they are happy and satisfied.");
   expect(spoken).not.toContain("Read aloud"); // the button itself is never read out
   expect(await page.evaluate(() => window.__lastUtterance.rate)).toBe(0.9);
   expect(await page.evaluate(() => window.__lastUtterance.lang)).toBe("en-GB");
@@ -134,29 +136,27 @@ test("Read aloud reads a block of notes, not the questions, and stops on a secon
   await expect(termsBtn).toHaveText("Read aloud");
   await expect(termsBtn).toHaveAttribute("aria-pressed", "false");
 
-  // Level 2: one Read aloud button per block of notes; the optional question box is not read.
+  // Level 2: one Read aloud button per card of notes; the question box is not read.
   await page.goto("/#level2");
-  await page.locator(".step-tab").nth(2).click();
-  await expect(page.locator(".part .listen-btn")).toHaveCount(5);
-  await page.evaluate(() => { window.__spoken = []; });
-  await page.locator("#part2 .listen-btn").click();
-  const part1 = (await page.evaluate(() => window.__spoken)).join(" ");
-  expect(part1).toContain("A customer complained to a food delivery app");
-  expect(part1).not.toContain("Was this good service recovery");
-  await page.locator("#part2 .listen-btn").click();
-
+  const readCard = async (c) => {
+    await page.evaluate(c => { setUi("s2.card", c); renderLevel(2); window.__spoken = []; }, c);
+    await expect(page.locator("#lessonCard .listen-btn")).toHaveCount(1);
+    await page.locator("#lessonCard .listen-btn").click();
+    const text = (await page.evaluate(() => window.__spoken)).join(" ");
+    await page.locator("#lessonCard .listen-btn").click();
+    return text;
+  };
+  const poor = await readCard(13);
+  expect(poor).toContain("A customer complained to a food delivery app");
+  expect(poor).not.toContain("Was this good service recovery");
   // Cards: the words read aloud are the words shown, name and description kept apart.
-  await page.locator(".step-tab").nth(0).click();
-  await page.evaluate(() => { window.__spoken = []; });
-  await page.locator("#part1 .listen-btn").click();
-  const why = (await page.evaluate(() => window.__spoken)).join(" ");
-  expect(why).toContain("Customers will have a positive experience and they will choose to return repeatedly;");
-  await page.locator("#part1 .listen-btn").click();
-  await page.evaluate(() => { window.__spoken = []; });
-  await page.locator("#part2 .listen-btn").click();
-  const skills = (await page.evaluate(() => window.__spoken)).join(" ");
-  expect(skills).toContain("Approachable Friendly and easy to talk to, so customers feel comfortable asking for help");
-  await page.locator("#part2 .listen-btn").click();
+  expect(await readCard(2)).toMatch(/Customers will have a positive experience and they will choose to return repeatedly ?;/);
+  expect(await readCard(3)).toContain("Approachable Friendly and easy to talk to, so customers feel comfortable asking for help");
+  // Good product knowledge: the staff member's lines are page text, so they are read too.
+  expect(await readCard(4)).toContain("The Nexora Core is $799.");
+  // The quick check is a question: no Read aloud.
+  await page.evaluate(() => { setUi("s2.card", 8); renderLevel(2); });
+  await expect(page.locator("#lessonCard .listen-btn")).toHaveCount(0);
 
   // Level 1 is questions only: no Read aloud button.
   await page.goto("/#level1");

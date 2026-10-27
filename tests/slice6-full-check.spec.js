@@ -157,22 +157,24 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await page.locator("#badgeModal button").click();
   await check(page, testInfo, "home-in-progress", problems);
 
-  // Level 2, every tab and part.
+  // Level 2, every one of the 15 cards (quick check answered, one wrong first, so its feedback is checked too).
   await page.evaluate(() => {
     for(const key of REFLECTION_KEYS){setAnswer(key,"A complete reflection.");setUi(`${key}.saved`,rec.answers[key].t);}
-    rec.reached["s2.tabs"] = 2; ["s2.t0", "s2.t1", "s2.t2"].forEach(k => { rec.reached[k] = 5; }); rec.reached["s2.path"] = 8; saveLocal();
+    setAnswer("s2.qc.a.1","Greeting");setAnswer("s2.qc.b.1","Greeting");setAnswer("s2.qc.b.2","Service");setAnswer("s2.qc.c.1","Service");setAnswer("s2.qc.c.2","Greeting");
+    rec.reached["s2.path"] = 8; setUi("s2.cardLayout","cards15"); setUi("s2.card",0); saveLocal();
   });
-  for (const t of [0, 1, 2]) {
-    await page.goto("/#home"); await page.goto("/#level2");
-    await page.locator(".step-tab").nth(t).click();
-    await check(page, testInfo, `level2-tab${t + 1}`, problems);
+  await page.goto("/#home"); await page.goto("/#level2");
+  for (let c = 1; c <= 15; c++) {
+    await expect(page.locator("#lessonProgressText")).toContainText(`${c} of 15`);
+    await check(page, testInfo, `level2-card${String(c).padStart(2, "0")}`, problems);
+    await page.locator("#lessonNext").click();
   }
-  await page.locator("#finishBtn").click();
   await page.locator("#badgeModal button").click();
 
   // Level 3: chat, think back, feedback with a wrong answer, revealed.
   await page.goto("/#level3");
   await check(page, testInfo, "level3-chat", problems);
+  await page.locator("input[id^=conversationLink]").fill("https://gemini.google.com/share/AbCd1234");
   await page.locator(".tick-input").check();
   await page.click("#nextBtn");
   await page.fill('textarea[data-answer="s3.q1a"]', "Knowledgeable");
@@ -194,8 +196,10 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await page.click("#stylezFacts summary");
   await check(page, testInfo, "stylez-information", problems);
   await expect(page.locator(".stylez-fact")).toHaveCount(17);
+  await page.locator("input[id^=conversationLink]").fill("https://gemini.google.com/share/AbCd1234");
   await page.locator(".tick-input").check();
   await page.click("#nextBtn");
+  await page.locator('[data-roleplay-stage="Approach"]').check();
   await page.fill('textarea[data-answer="s4.q1"]', "Greeted her");
   await page.fill('textarea[data-answer="s4.q2"]', "Ask more");
   await page.click("#submitL4");

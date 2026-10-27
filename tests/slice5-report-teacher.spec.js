@@ -65,9 +65,9 @@ test.describe("6.1 My learning report", () => {
     await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 3 / 4.", "Level 5, Q1 and Q2: first try 2 / 5."]);
     await expect(page.locator("#lookTitle")).toHaveText("Look at these again");
     await expect(page.locator(".look-list li")).toHaveText([
-      "Closing the customer experience positively (Level 2, The Four Stages)",
-      "What customer service is (Level 2, Quality Customer Service)",
-      "The 8 steps of service recovery (Level 2, Breakdown and Recovery)"
+      "Closing the customer experience positively (Level 2, The four stages)",
+      "What customer service is (Level 2, What is customer service?)",
+      "The 8 steps of service recovery (Level 2, The 8 service recovery steps)"
     ]);
     await expect(page.locator("#confTitle")).toHaveText("How confident you felt");
     await expect(page.locator(".conf-row .conf-face")).toHaveText(["Confident", "Very confident", "A little", "Not yet"]);

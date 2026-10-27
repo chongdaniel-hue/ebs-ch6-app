@@ -8,11 +8,9 @@ test('teacher-selected class controls registration and independent register numb
  await expect(page.getByRole('radio',{name:'Show 3E1 to students',exact:true})).not.toBeChecked();
  await expectNoSidewaysScroll(page);await page.screenshot({path:`tests/screenshots/active-class-teacher-${testInfo.project.name}.png`,fullPage:true});
  const ctx=await browser.newContext({viewport:testInfo.project.use.viewport});const student=await ctx.newPage();await student.goto('http://localhost:8788/');
- await expect(student.locator('.topbar-chip')).toHaveText('4A');await expect(student.locator('#classInput')).toHaveAttribute('readonly','');await expect(student.locator('#regInput option')).toHaveText(['Choose your register number…',...Array.from({length:40},(_,i)=>String(i+1))]);
+ await expect(student.locator('.topbar-chip')).toHaveText('4A');await expect(student.locator('#classInput')).toHaveAttribute('readonly','');await expect(student.locator('#regInput option')).toHaveText(['Choose your register number…',...Array.from({length:50},(_,i)=>String(i+1))]);
  await student.locator('#nameInput').fill('Demo Four');await student.locator('#regInput').selectOption('5');await student.locator('#startBtn').click();await student.locator('#briefing button').click();
- await expect(student.locator('#studentNameInput')).toHaveAttribute('readonly','');await expect(student.locator('#studentRegisterInput')).toBeDisabled();
- expect(await student.locator('#studentNameInput').evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(await student.locator('#studentRegisterInput').evaluate(e=>getComputedStyle(e).backgroundColor));
- await student.locator('#studentNameForm').screenshot({path:`tests/screenshots/grey-profile-${testInfo.project.name}.png`});
+ await expect(student.locator('#studentNameForm')).toHaveCount(0);await expect(student.locator('.topbar-chip')).toContainText('Demo Four');await expect(student.locator('.topbar-chip')).toContainText('Register No. 5');
  await expect.poll(async()=>Boolean((await apiGet(request,{action:'load',class:'4A',reg:5})).record)).toBe(true);
  await page.getByRole('radio',{name:'Show 3E1 to students',exact:true}).check();await expect.poll(async()=>(await apiGet(request,{action:'classes'})).classes).toEqual(['3E1']);
  await student.goto('http://localhost:8788/#home');await expect(student.locator('.topbar-chip')).toContainText('4A');
