@@ -14,11 +14,11 @@ async function openKnowledge(page,request){
 // Card 5: the five aspects (textbook wording), each with its cropped picture and the
 // staff member's line as real page text, so Read aloud can read it.
 const LINES={
-  features:["Product features and specifications (e.g. screen size, battery life)","\"The Nexora Spark has an all-day battery and a dual camera, so it's great for school and social media.\""],
+  features:["Product features and specifications (e.g. screen size, battery life)","\"The Nexora Spark has a large screen for reading and an all-day battery.\""],
   price:["Price and available options","\"The Nexora Core is $799. You can upgrade to 256GB for $80 more, or 512GB for $160 more.\""],
   care:["How to use or care for the product","\"You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition.\""],
   warranty:["Warranty and after-sales support","\"Every Nexora phone has a 1-year warranty for manufacturing defects. Keep your receipt, and bring the phone to our Nexora Care Bar if anything goes wrong.\""],
-  "selling-point":["Unique selling points of the product (why your product is better than competitors' products)","\"Unlike many phones at this price, the Nexora Core comes with 24/7 online chat support and a trade-in rebate of up to $120 for your old phone.\""]
+  "selling-point":["Unique selling points of the product (why your product is better than competitors' products)","\"Compared with many phones at this price, the Nexora Spark's all-day battery lasts longer, so it suits you if you use your phone often.\""]
 };
 
 test("good product knowledge shows each aspect with its picture and the staff member's line as page text",async({page,request},testInfo)=>{

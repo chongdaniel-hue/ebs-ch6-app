@@ -154,6 +154,7 @@ test("Read aloud reads a block of notes, not the questions, and stops on a secon
   expect(await readCard(3)).toContain("Approachable Friendly and easy to talk to, so customers feel comfortable asking for help");
   // Good product knowledge: the staff member's lines are page text, so they are read too.
   expect(await readCard(4)).toContain("The Nexora Core is $799.");
+  expect(await readCard(4)).toContain("The Nexora Spark has a large screen for reading and an all-day battery.");
   // The quick check is a question: no Read aloud.
   await page.evaluate(() => { setUi("s2.card", 8); renderLevel(2); });
   await expect(page.locator("#lessonCard .listen-btn")).toHaveCount(0);

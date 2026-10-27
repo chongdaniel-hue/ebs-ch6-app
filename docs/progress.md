@@ -497,3 +497,12 @@ Merged Dan’s image compression, badge transparency, Read aloud and report refi
   3. N02 (overview picture with callouts) is no longer used; confirm it can stay out.
   4. The R03 Uniqlo picture still shows "Return & Exchange Conditions" (an ampersand inside a real screenshot).
   5. `docs/storyboard.md` and `.docx` need refreshing from this file; every new student-facing line above is marked ⚑.
+
+### Dan's decisions on the open questions (27 October 2026, version 0.7.1)
+- **Four-stage comic:** Dan supplied `assets/img/C02-four-stages-v2.jpg` (1600 × 660, 246 KB; panels 1. APPROACH, 2. PRESENT, 3. CLOSE, 4. RECOVERY in the new style). C02 in the image map points at it, with Dan's alt text: "Four-panel comic at a Nexora store. 1, APPROACH: the staff member says, "Welcome to Nexora! How may I help?" 2, PRESENT: holding a camera, he says, "This camera suits your interest in photos." 3, CLOSE: handing over a Nexora shopping bag, he says, "Thank you for shopping with us!" 4, RECOVERY: the customer holds a phone with a cracked screen and he says, "I am sorry. Let me help solve this."" The old `C02-four-stages.jpg` and the draft join are deleted. (Open question 1 closed.)
+- **Product-knowledge lines now match their pictures** (open question 2 closed):
+  - Features and specifications: "The Nexora Spark has a large screen for reading and an all-day battery."
+  - Unique selling points: "Compared with many phones at this price, the Nexora Spark's all-day battery lasts longer, so it suits you if you use your phone often."
+- **N02** stays removed (open question 3 closed).
+- **R03 ampersand accepted:** "Return & Exchange Conditions" is inside a real Uniqlo screenshot, not text the app writes (open question 4 closed).
+- Still open: refresh `docs/storyboard.md` and `.docx` from this file (⚑ lines).

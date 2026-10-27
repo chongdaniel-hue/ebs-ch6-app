@@ -14,7 +14,7 @@ test('Level 2 has 15 cards with back/next progress, automatic saving and require
  await page.evaluate(()=>{setUi('s2.card',5);renderLevel(2);});await expect(page.locator('.stage-row')).toHaveCount(4);
  await expect(page.locator('.stage-row th')).toHaveText(['1. Approaching customers','2. Presenting product information','3. Closing the customer experience positively','4. Performing service recovery']);
  await expect(page.locator('.stage-row.stage-3 td')).toHaveText('Summarise what the customer decided and any next steps, thank the customer, and give good after-sales support (e.g. warranty, repairs, exchanges and refunds).');
- await expect(page.locator('[data-img="C02"]')).toHaveAttribute('src','assets/img/C02-four-stages.jpg');
+ await expect(page.locator('[data-img="C02"]')).toHaveAttribute('src','assets/img/C02-four-stages-v2.jpg');
  await expect(page.locator('.recap-card p')).toHaveText('The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery.');
  await expect(page.locator('#lessonCard')).not.toContainText('support services');
  await expectNoSidewaysScroll(page);await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`tests/screenshots/new-four-stages-${info.project.name}.png`,fullPage:true});

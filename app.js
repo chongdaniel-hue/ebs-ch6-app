@@ -62,9 +62,11 @@
    0.7.0 Gemini link gate without a server check; register numbers 1 to 50;
         sticky Level 2 Back and Next; tap to enlarge; Stylez facts fold-out;
         Level 2 as 15 cards on the four syllabus stages, with a quick check.
+   0.7.1 New four-stage comic (C02-four-stages-v2.jpg); two product-knowledge
+        lines changed to match their pictures.
    ============================================================ */
 
-const APP_VERSION = "0.7.0";
+const APP_VERSION = "0.7.1";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -1855,7 +1857,7 @@ function keyTermsHtml() {
 // page text that Read aloud can read, what the staff member says.
 const PRODUCT_KNOWLEDGE_EXAMPLES = [
   { id: "features", icon: "📋", image: "PK_FEATURES", title: "Product features and specifications (e.g. screen size, battery life)",
-    dialogue: "\"The Nexora Spark has an all-day battery and a dual camera, so it's great for school and social media.\"" },
+    dialogue: "\"The Nexora Spark has a large screen for reading and an all-day battery.\"" },
   { id: "price", icon: "💲", image: "PK_PRICE", title: "Price and available options",
     dialogue: "\"The Nexora Core is $799. You can upgrade to 256GB for $80 more, or 512GB for $160 more.\"" },
   { id: "care", icon: "🧴", image: "PK_CARE", title: "How to use or care for the product",
@@ -1863,7 +1865,7 @@ const PRODUCT_KNOWLEDGE_EXAMPLES = [
   { id: "warranty", icon: "🛡️", image: "PK_WARRANTY", title: "Warranty and after-sales support",
     dialogue: "\"Every Nexora phone has a 1-year warranty for manufacturing defects. Keep your receipt, and bring the phone to our Nexora Care Bar if anything goes wrong.\"" },
   { id: "selling-point", icon: "⭐", image: "PK_SELLING_POINT", title: "Unique selling points of the product (why your product is better than competitors' products)",
-    dialogue: "\"Unlike many phones at this price, the Nexora Core comes with 24/7 online chat support and a trade-in rebate of up to $120 for your old phone.\"" }
+    dialogue: "\"Compared with many phones at this price, the Nexora Spark's all-day battery lasts longer, so it suits you if you use your phone often.\"" }
 ];
 function productKnowledgeExamplesHtml() {
   return `<ul class="pk-examples">${PRODUCT_KNOWLEDGE_EXAMPLES.map(ex => `
