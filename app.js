@@ -61,7 +61,7 @@
    0.6.2 Added the five storyboard illustrations and five achievement badges.
    ============================================================ */
 
-const APP_VERSION = "0.6.32";
+const APP_VERSION = "0.6.33";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -928,11 +928,11 @@ function popConfetti(){
 function lessonCards(){
   const groups=[
     {label:"Customer service",parts:[[0,0]]},
-    {label:"Why good service matters",parts:[[0,1]],key:"s2.video"},
+    {label:"Why good service matters",parts:[[0,1]]},
     {label:"Skills and product knowledge",parts:[[0,2],[0,3]]},
     {label:"The Five Stages",parts:[[1,0]]},
-    {label:"Approaching customers",parts:[[1,1],[1,2]]},
-    {label:"Presenting and supporting",parts:[[1,3],[1,4]]},
+    {label:"Approaching customers",parts:[[1,1],[1,2],[1,3]],key:"s2.video"},
+    {label:"Presenting and supporting",parts:[[1,4],[1,5]]},
     {label:"Breakdown and recovery",parts:[[2,0]]},
     {label:"The eight recovery steps",recovery:true,parts:[[2,1]]},
     {label:"Learning from poor recovery",parts:[[2,2]],key:"s2.think1"},
@@ -1413,7 +1413,7 @@ function renderLevel(n) {
   app.querySelectorAll(".step-tab").forEach(b => b.addEventListener("click", () => {
     const i = Number(b.getAttribute("data-tab"));
     if (!isTabUnlocked(n, i) || i === t) return;
-    if(n === 2 && i > t && !requireReflections(i > 0 ? ["s2.video", ...visibleReflectionKeys()] : visibleReflectionKeys()))return; // locked tabs cannot be opened
+    if(n === 2 && i > t && !requireReflections(i > 1 ? ["s2.video", ...visibleReflectionKeys()] : visibleReflectionKeys()))return; // locked tabs cannot be opened
     setUi(`s${n}.tab`, i);
     queueSave("soon");
     renderLevel(n);
@@ -1453,7 +1453,7 @@ function drawTab(n, t, tab, o) {
 
   const cont = document.getElementById("continueBtn");
   if (cont) cont.addEventListener("click", () => {
-    if(n === 2 && !requireReflections([...visibleReflectionKeys(), ...(t > 0 ? ["s2.video"] : [])]))return;
+    if(n === 2 && !requireReflections([...visibleReflectionKeys(), ...(t > 1 ? ["s2.video"] : [])]))return;
     raiseReached(`s${n}.t${t}`, shown + 1);
     queueSave("soon");
     drawTab(n, t, tab, {});
@@ -1462,7 +1462,7 @@ function drawTab(n, t, tab, o) {
   const next = document.getElementById("nextBtn");
   if (next) next.addEventListener("click", () => {
     if(n===5 && t===0 && isBlank("s5.q5")){showNotFinished([{el:main.querySelector('[data-key="s5.q5"]'),name:"Q3"}]);return;}
-    if(n === 2 && !requireReflections([...visibleReflectionKeys(), ...(t > 0 ? ["s2.video"] : [])]))return;
+    if(n === 2 && !requireReflections([...visibleReflectionKeys(), ...(t > 1 ? ["s2.video"] : [])]))return;
     raiseReached(`s${n}.tabs`, t + 1);
     setUi(`s${n}.tab`, t + 1);
     queueSave("soon");
@@ -1639,7 +1639,7 @@ function pickVoice() {
 let speechWords=[],speechClock=null;
 function clearSpeechWords(){clearInterval(speechClock);speechClock=null;speechWords.forEach(x=>{if(x.el.isConnected)x.el.replaceWith(document.createTextNode(x.el.textContent));});speechWords=[];}
 function prepareSpeechWords(block){
-  const walker=document.createTreeWalker(block,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode()){const node=walker.currentNode;if(node.parentElement.closest('button,textarea,input,select,svg,video,.video-transcript,.think-card,.listen-row,[aria-hidden="true"],.nav-row,[data-student-text]'))continue;if(node.textContent.trim())nodes.push(node);}
+  const walker=document.createTreeWalker(block,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode()){const node=walker.currentNode;if(node.parentElement.closest('button,textarea,input,select,svg,video,iframe,.video-link,.think-card,.listen-row,[aria-hidden="true"],.nav-row,[data-student-text]'))continue;if(node.textContent.trim())nodes.push(node);}
   const words=[];let index=0;nodes.forEach(node=>{const frag=document.createDocumentFragment();node.textContent.split(/(\s+)/).forEach(text=>{if(!text)return;if(/^\s+$/.test(text)){frag.append(text);return;}const span=document.createElement('span');span.className='speech-word';span.textContent=text;words.push({el:span,start:index,text});index+=text.length+1;frag.append(span);});node.replaceWith(frag);});speechWords=words;return words.map(x=>x.text).join(' ');
 }
 function highlightSpeechWord(index){speechWords.forEach((x,i)=>x.el.classList.toggle('reading-now',i===index));}
@@ -1655,7 +1655,7 @@ function stopSpeaking() {
 // The words of a block, without buttons, answer boxes, questions or icons.
 function blockSpeechText(block) {
   const copy = block.cloneNode(true);
-  copy.querySelectorAll("button, textarea, input, select, video, .video-transcript, .think-card, .listen-row, [aria-hidden='true'], .nav-row").forEach(x => x.remove());
+  copy.querySelectorAll("button, textarea, input, select, video, iframe, .video-link, .think-card, .listen-row, [aria-hidden='true'], .nav-row").forEach(x => x.remove());
   copy.querySelectorAll("p, li, h2, h3, h4, th, td, div").forEach(x => x.append(" "));
   copy.querySelectorAll("img").forEach(x => x.remove());
   return copy.textContent.replace(/\s+/g, " ").trim();
@@ -1868,13 +1868,7 @@ const L2_TABS = [
           { icon: "🗣️", html: "Customers will <strong>recommend</strong> the business to their relatives and friends; and" },
           { icon: "🤝", html: "<strong>Customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>." }
         ], "cols-3")}
-        ${imgHtml("C01", "comic-img")}
-        <section class="lesson-video" aria-labelledby="nexoraVideoTitle">
-          <h3 id="nexoraVideoTitle">Watch: A better welcome at Nexora</h3>
-          <p id="nexoraVideoPrompt">Watch this video showing poor and good service. Notice what Alex does differently and how June responds.</p>
-          <video controls playsinline preload="metadata" aria-label="A better welcome at Nexora" aria-describedby="nexoraVideoPrompt" poster="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.poster)}"><source src="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.file)}" type="video/mp4"><track kind="captions" src="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.captions)}" srclang="en" label="English">Your browser cannot play this video. <a href="${escapeHtml(CONFIG.VIDEOS.nexoraWelcome.file)}">Open the Nexora video</a>.</video><details class="video-transcript"><summary>Read the video transcript</summary><p>Nexora Shop. Episode 1: Welcome to Nexora!</p><p>June enters the shop. Alex is looking at his phone.</p><p>JUNE: Um... hello?</p><p>ALEX: Hmm... later.</p><p>Service fail!</p><p>Pause! Alex ignored June. What did he do wrong?</p><p>ALEX: Good morning! Welcome to Nexora! How may I help you?</p><p>JUNE: I’m just browsing, thanks!</p><p>ALEX: Sure, take your time!</p><p>Pause! June likes a phone. What should Alex say?</p><p>ALEX: That one has a great camera! Wanna try?</p><p>JUNE: Ooh, yes please!</p><p>Service win!</p><p>ALEX: Welcome back, June!</p><p>JUNE: Hi Alex! My friend needs a new phone too!</p><p>Three ways to approach customers: Greeting: “Good morning!” Service: “How may I help you?” Product: “Want to try it?” Make customers feel welcome so they come back!</p></details>
-          ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}
-        </section>`),
+        ${imgHtml("C01", "comic-img")}`),
       notesPart(() => `
         <h2 class="section-title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
         <p>Some skills and qualities customer service employees need:</p>
@@ -1944,6 +1938,9 @@ const L2_TABS = [
         ], "cols-2")}
         ${imgHtml("C03", "comic-img")}`),
       notesPart(() => `
+        ${youtubeVideoHtml("betterWelcome", { heading: "Watch: A better welcome at Nexora", prompt: "Watch this video showing poor and good service. Notice what Alex does differently and how June responds.", frameTitle: "Video: A better welcome at Nexora" })}
+        ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}`),
+      notesPart(() => `
         <h2 class="section-title">${hIcon("🎯")}Presenting product information: suitability</h2>
         ${imgHtml("SUITABILITY", "notes-img suitability-img")}
         <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>`)
@@ -1998,8 +1995,19 @@ const L2_TABS = [
 
 L2_TABS[1].parts.push(notesPart(()=>`<h2 class="section-title">${hIcon("🛡️")}Provide support services</h2><p>After a purchase, help customers use their product and get help when they need it.</p>${iconCardsHtml([{icon:"🛡️",html:namedCardHtml("Warranty","Explain what the warranty covers and remind customers to keep their receipt.")},{icon:"🛠️",html:namedCardHtml("Repairs","Explain how to arrange a repair and what happens next.")},{icon:"💬",html:namedCardHtml("Multi-channel support","Offer help in-store, by phone or through online chat.")}],"cols-3")}`));
 
+// A YouTube video: heading, one-line instruction, the privacy-enhanced player (never
+// starts by itself) in a 16:9 box, and a link for networks that block embedded YouTube.
+function youtubeVideoHtml(key, { heading, prompt, frameTitle }) {
+  const id = encodeURIComponent(CONFIG.VIDEOS[key].youtubeId);
+  return `<h3 class="video-title" id="video_${key}_title">${escapeHtml(heading)}</h3>
+    <p class="video-prompt" id="video_${key}_prompt">${escapeHtml(prompt)}</p>
+    <div class="video-frame" data-video="${key}"><iframe src="https://www.youtube-nocookie.com/embed/${id}?rel=0" title="${escapeHtml(frameTitle)}" aria-describedby="video_${key}_prompt" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <p class="video-link"><a href="https://youtu.be/${id}" target="_blank" rel="noopener">Video not loading? Watch it on YouTube</a></p>`;
+}
+
 function afterPathHtml() {
-  return `<p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
+  return `<div class="lesson-video">${youtubeVideoHtml("serviceRecovery", { heading: "Watch: The 8 steps in action", prompt: "Watch Alex use all 8 steps to help June with her cracked phone.", frameTitle: "Video: Alex uses the 8 steps of service recovery to help June with her cracked phone" })}</div>
+    <p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
     ${imgHtml("C04", "comic-img")}`;
 }
 

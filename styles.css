@@ -1475,14 +1475,15 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 
 .home-class-field{margin-bottom:20px;}
 
-.lesson-video{margin-top:40px;}
-.lesson-video video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#111827;border-radius:12px;margin:16px 0;}
-.lesson-video .think-card{margin-top:16px;}
-
-.lesson-video video, .lesson-video video a{color:#FFFFFF;}
-
-/* Caption transcript remains easy to open on touch screens. */
-.video-transcript summary { min-height: 44px; padding: 10px 0; cursor: pointer; }
+/* YouTube videos (youtubeVideoHtml): a 16:9 box that never sticks out sideways. */
+.lesson-video{margin:40px 0;}
+.video-title{margin:0 0 12px;color:var(--brand-dark);}
+.video-prompt{margin:0 0 16px;}
+.video-frame{width:100%;aspect-ratio:16 / 9;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#111827;}
+.video-frame iframe{display:block;width:100%;height:100%;border:0;}
+.video-link{margin:4px 0 0;font-size:0.95rem;}
+.video-link a{display:inline-flex;align-items:center;min-height:44px;color:var(--brand);}
+.video-link + .think-card{margin-top:16px;}
 /* Five-stage learning journey, shared colours and one card per screen. */
 :root{--sticky-clearance:calc(var(--topbar-h,80px) + 100px)}
 [id],.part,.lesson-card,.route>li{scroll-margin-top:var(--sticky-clearance)}

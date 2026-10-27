@@ -15,10 +15,14 @@ window.APP_CONFIG = {
   LIVE_URL: "https://script.google.com/macros/s/AKfycbxCZmPHoguRUk-_uFO-7bWp7yTJUfeL_YjKartA6u22h7ks7CV4TzKn9E63DL1wuaad/exec",
   LOCAL_URL: "api",
 
-  /* ---------- 2. Chatbot links (open in a new tab) ---------- */
+  /* ---------- Videos (embedded from YouTube, never stored in the app) ----------
+     Only the YouTube video ID is needed (the part after youtu.be/). */
   VIDEOS: {
-    nexoraWelcome: {file:"assets/video/nexora-welcome.mp4",poster:"assets/video/nexora-welcome-poster.jpg",captions:"assets/video/nexora-welcome.en.vtt"}
+    betterWelcome: {youtubeId: "_Esvxks4ZjQ"},
+    serviceRecovery: {youtubeId: "tsdP80AXi8o"}
   },
+
+  /* ---------- 2. Chatbot links (open in a new tab) ---------- */
 
   GEMS: {
     alex: "https://gemini.google.com/share/d/11oY7mUjz7cw16a6GfL5zeeKiwxcCLbz8?usp=sharing",

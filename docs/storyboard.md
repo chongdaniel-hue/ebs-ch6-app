@@ -497,8 +497,21 @@ This storyboard is the single source of truth for the app. It moves the content 
 <p>[Continue ↓]</p>
 </blockquote></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Student sees (part 3)</strong></td>
+<td><p><strong>Watch: A better welcome at Nexora</strong></p>
+<blockquote>
+<p>Watch this video showing poor and good service. Notice what Alex does differently and how June responds.</p>
+</blockquote>
+<p><strong>[Video A] A better welcome at Nexora</strong> (YouTube, https://youtu.be/_Esvxks4ZjQ; embedded player, students press play)</p>
+<p>Small link under the video, opens in a new tab: Video not loading? Watch it on YouTube</p>
+<p>Box <strong>Think about it</strong> (required): What did Alex do to make June feel welcome? Why did she bring her friend back? [box, hint "Write at least 20 characters..."]</p>
+<blockquote>
+<p>[Continue ↓]</p>
+</blockquote></td>
+</tr>
+<tr class="even">
+<td><strong>Student sees (part 4)</strong></td>
 <td><p><strong>Presenting product information: suitability</strong></p>
 <blockquote>
 <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>
@@ -512,7 +525,8 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="even">
 <td><strong>Teacher only</strong></td>
-<td>In C02 panel 4, the bubbles are read in the wrong order, and panel 3 says "purchasing with". You decided these are not urgent; the alt text gives the correct reading order.</td>
+<td><p>In C02 panel 4, the bubbles are read in the wrong order, and panel 3 says "purchasing with". You decided these are not urgent; the alt text gives the correct reading order.</p>
+<p>Video A is embedded from YouTube only (privacy-enhanced youtube-nocookie.com player, no autoplay), so it uses none of the app's hosting bandwidth. No transcript box. The Think about it answer (saved as s2.video) must be written before moving on to Tab 3 and before Finish Level 2.</p></td>
 </tr>
 </tbody>
 </table>
@@ -567,7 +581,14 @@ This storyboard is the single source of truth for the app. It moves the content 
 </tr>
 <tr class="even">
 <td><strong>Student sees (part 1, continued)</strong></td>
-<td><blockquote>
+<td><p><em>Shown directly below the Service Recovery Path once all 8 stops have been shown (at once when the student comes back to the tab).</em></p>
+<p><strong>Watch: The 8 steps in action</strong></p>
+<blockquote>
+<p>Watch Alex use all 8 steps to help June with her cracked phone.</p>
+</blockquote>
+<p><strong>[Video B] The 8 steps in action</strong> (YouTube, https://youtu.be/tsdP80AXi8o; embedded player, students press play; no Think about it box, watching is not required)</p>
+<p>Small link under the video, opens in a new tab: Video not loading? Watch it on YouTube</p>
+<blockquote>
 <p>Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
 </blockquote>
 <p><strong>[Image C04] Service breakdown to service recovery comic (existing, assets/img/C04-breakdown-to-recovery.jpg)</strong></p>
@@ -1232,6 +1253,12 @@ These decisions were made while the app was built (19 to 20 October 2026). They 
 - **Images:** always shown in full and centred; the Foodpanda pair is the same height. R03 was re-cropped to the first row of icons because the original screenshot was cut off.
 
 - **Before you start:** an icon beside each point (🗺️ 💾 🤖 🔁 👀).
+
+- **Video A, "Watch: A better welcome at Nexora" (27 October 2026):** moved from Tab 1 (after "Why does quality customer service matter?") to its own Continue ↓ part in Tab 2, directly after the three approaches, the two purposes and C03, with its required Think about it box ("What did Alex do to make June feel welcome? Why did she bring her friend back?") directly under it. That answer is now needed before going on to Tab 3 and before Finish Level 2, instead of before leaving Tab 1. It is embedded from YouTube (https://youtu.be/_Esvxks4ZjQ) instead of a video file in the app; the transcript box and the app's own captions file are removed.
+
+- **Video B, "Watch: The 8 steps in action" (27 October 2026):** added in Tab 3 directly below the Service Recovery Path and above "Handled well, a service breakdown can improve customer loyalty...", shown once all 8 stops have been shown. Instruction: "Watch Alex use all 8 steps to help June with her cracked phone." Embedded from YouTube (https://youtu.be/tsdP80AXi8o). No Think about it box; watching is not required.
+
+- **Both videos:** the privacy-enhanced YouTube player (youtube-nocookie.com), never starting by itself, in a 16:9 box with the same thin border and rounded corners as the other pictures, with a small "Video not loading? Watch it on YouTube" link underneath (opens in a new tab) for school networks that block embedded YouTube. No transcript box. 🔊 Read aloud skips the videos.
 
 ### Feedback on marked questions
 

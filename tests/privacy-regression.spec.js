@@ -21,22 +21,12 @@ test('server rejects unnamed and mismatched reads and writes without exposing st
   const allowed=await post({action:'load',class:'PRIVATE',reg:40,name:'  PRIVACY   TEST STUDENT  '});
   expect(allowed.record.answers['s1.q1'].v).toBe('Private answer must never leak');
 });
-test('lesson video captions, minimum-length guidance and accessible quiz names',async({page,request})=>{
+test('minimum-length guidance and accessible quiz names',async({page,request})=>{
   const {login}=require('./helpers');
   await resetServer(request,['PRIVATE']);await login(page,'PRIVATE',1);await page.locator('#briefing button').click();
-  await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');saveLocal();});
-  await page.goto('/#level2');await page.locator('#continueBtn').click();
-  const track=page.locator('track[kind="captions"]');await expect(track).not.toHaveAttribute('default','');
-  expect(await page.locator('video').evaluate(v=>v.textTracks[0].mode)).toBe('disabled');
-  const captions=await request.get(await track.getAttribute('src'));expect(captions.headers()['content-type']).toContain('text/vtt');expect(await captions.text()).toContain('How may I help you');
-  await page.locator('video').evaluate(v=>{v.textTracks[0].mode='showing';return v.play();});
-  await expect.poll(()=>page.locator('video').evaluate(v=>v.textTracks[0]?.cues?.length || 0)).toBe(16);
-  expect(await page.locator('video').evaluate(v=>v.textTracks[0].mode)).toBe('showing');
-  await expect.poll(()=>page.locator('video').evaluate(v=>Array.from(v.textTracks[0].activeCues||[]).map(c=>c.text).join(' '))).toContain('Welcome to Nexora!');
-  expect(await page.locator('video').evaluate(v=>Array.from(v.textTracks[0].cues).find(c=>c.startTime <= 16 && c.endTime > 16).text)).toContain('Good morning!');
-  await page.locator('video').evaluate(v=>v.pause());
-  await expect(page.locator('.lesson-video')).toContainText('Watch this video showing poor and good service');
-  await page.locator('[data-answer="s2.video"]').fill('ok');await page.locator('#continueBtn').click();await expect(page.locator('#reflectionRequired')).toContainText('Write at least 20 characters');await page.keyboard.press('Escape');await expect(page.locator('#reflectionRequired')).toHaveCount(0);
+  await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');setUi('s2.cardLayout','compact10');setUi('s2.card',4);saveLocal();});
+  await page.goto('/#level2');await expect(page.locator('#lessonCard')).toContainText('Watch this video showing poor and good service');
+  await page.locator('[data-answer="s2.video"]').fill('ok');await page.locator('#lessonNext').click();await expect(page.locator('#reflectionRequired')).toContainText('Write at least 20 characters');await page.keyboard.press('Escape');await expect(page.locator('#reflectionRequired')).toHaveCount(0);
   await page.goto('/#level5');
   const labels=await page.locator('.mcq-btn').evaluateAll(xs=>xs.map(x=>x.getAttribute('aria-label')));
   expect(labels.length).toBeGreaterThan(0);for(const label of labels){expect(label).toMatch(/^[A-D]\. /);expect(label).not.toMatch(/^([A-D])\1/);}
