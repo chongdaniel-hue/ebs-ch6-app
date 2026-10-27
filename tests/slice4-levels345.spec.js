@@ -109,15 +109,15 @@ test.describe("Level 3: Chat with Alex", () => {
     await page.click("#submitL3");
     await saved; // the first attempt goes to the server at once
 
-    await expect(page.locator('[data-q="q1"] .check-note')).toHaveText("Check your reason: does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.");
+    await expect(page.locator('[data-q="q1"] .check-note')).toHaveText("Check your reason: Does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.");
     await expect(page.locator('[data-q="q1"] textarea').first()).toHaveAttribute("readonly", "");
     const fb = id => page.locator(`.match-item[data-key="s3.q2.${id}"] .feedback`);
-    await expect(fb("P")).toHaveText("✓ Correct: apologising and asking about a problem are part of service recovery.");
+    await expect(fb("P")).toHaveText("✓ Correct: Apologising and asking about a problem are part of service recovery.");
     await expect(fb("P")).toHaveClass(/right/);
     await expect(fb("Q")).toHaveText("✗ The officer matches a phone feature to something the customer does a lot. Which stage is about presenting a suitable product?");
     await expect(fb("Q")).toHaveClass(/wrong/);
     await expect(fb("R")).toHaveText("✗ The officer sums up what the customer chose and when to collect it. Is this the start or the end of the interaction?");
-    await expect(fb("S")).toHaveText("✓ Correct: a greeting with an offer of help is approaching customers.");
+    await expect(fb("S")).toHaveText("✓ Correct: A greeting with an offer of help is approaching customers.");
     await expect(page.locator("#sel_P")).toHaveAttribute("aria-disabled", "true");  // right answers lock
     await expect(page.locator("#sel_Q")).toBeEnabled();   // wrong answers can be changed once
     await expect(page.locator("#checkAgainBtn")).toHaveCount(1);
@@ -135,8 +135,8 @@ test.describe("Level 3: Chat with Alex", () => {
     await page.selectOption("#sel_R", STAGE.present);
     await checkPage(page, testInfo, "slice4-level3-changed");
     await page.click("#checkAgainBtn");
-    await expect(fb("Q")).toHaveText("✓ Correct: matching a feature to the customer's needs is presenting product information.");
-    await expect(fb("R")).toHaveText("✗ The answer is Closing the customer experience positively: summing up the decision and the next steps closes the customer experience positively.");
+    await expect(fb("Q")).toHaveText("✓ Correct: Matching a feature to the customer's needs is presenting product information.");
+    await expect(fb("R")).toHaveText("✗ The answer is Closing the customer experience positively: Summing up the decision and the next steps closes the customer experience positively.");
     await expect(page.locator("#checkAgainBtn")).toHaveCount(0);
     await expect(page.locator("#sel_R")).toHaveAttribute("aria-disabled", "true");
     // The revealed answer is shown beside the dropdown; the wrong pick is marked ✗.
@@ -297,11 +297,11 @@ test.describe("Level 5: Check and Exit Ticket", () => {
 
     const fb = id => page.locator(`[data-key="${id}"] .feedback`);
     await expect(fb("s5.q3.i")).toHaveText("✗ Look back at what customer service means. Does it stop the moment the customer pays, or continue after the purchase?");
-    await expect(fb("s5.q3.ii")).toHaveText("✓ Correct: knowing the product lets staff answer accurately instead of guessing.");
+    await expect(fb("s5.q3.ii")).toHaveText("✓ Correct: Knowing the product lets staff answer accurately instead of guessing.");
     await expect(fb("s5.q3.iii")).toHaveText("✗ Count the 8 steps of service recovery. Is apologising the last step?");
-    await expect(fb("s5.q3.iv")).toHaveText("✓ Correct: that is the textbook definition of service breakdown.");
+    await expect(fb("s5.q3.iv")).toHaveText("✓ Correct: That is the textbook definition of service breakdown.");
     await expect(fb("s5.q4")).toHaveText("✗ The staff member apologised, but then blamed the customer's phone. Which step is about acknowledging feelings and assuring help?");
-    await expect(page.locator('[data-q="q5"] .check-note')).toHaveText("Check your answer: did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?");
+    await expect(page.locator('[data-q="q5"] .check-note')).toHaveText("Check your answer: Did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?");
     await expect(page.locator("#nextBtn")).toHaveCount(0); // held back until Check again
     await checkPage(page, testInfo, "slice4-level5-feedback");
 
@@ -316,8 +316,8 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(page.locator('[data-key="s5.q3.i"] .check-prompt')).toHaveText("Tap Check again to see if you're right.");
     await page.locator(".mcq-btn", { hasText: "pass your feedback on" }).click();
     await page.click("#checkAgainBtn");
-    await expect(fb("s5.q3.i")).toHaveText("✓ Correct: customer service continues even after the customer has made a purchase.");
-    await expect(fb("s5.q3.iii")).toHaveText("✗ The answer is False: apologising is only Step 3; the officer still needs to acknowledge feelings, ask questions and offer solutions.");
+    await expect(fb("s5.q3.i")).toHaveText("✓ Correct: Customer service continues even after the customer has made a purchase.");
+    await expect(fb("s5.q3.iii")).toHaveText("✗ The answer is False: Apologising is only Step 3; the officer still needs to acknowledge feelings, ask questions and offer solutions.");
     await expect(fb("s5.q4")).toHaveText("✗ The answer is B: B acknowledges the customer's frustration and offers a solution: making sure the charger is fixed today.");
     await expect(page.locator("#checkAgainBtn")).toHaveCount(0);
     // Revealed answers: the right option outlined with "✓ Correct answer", the student's pick ✗.

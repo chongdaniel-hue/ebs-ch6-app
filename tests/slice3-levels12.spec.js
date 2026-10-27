@@ -29,7 +29,17 @@ async function finishLevel1(page) {
   await page.locator("#badgeModal button").click();
 }
 
-const PATH_LABELS = ["Listen", "Be patient", "Apologise", "Acknowledge", "Ask questions", "Offer solutions", "Refer", "Thank"];
+// The path shows each step in textbook wording, with no short label and no "Step N:".
+const PATH_LABELS = [
+  "Listen carefully to the complaint. Give customers full attention.",
+  "Be patient. Do not interrupt customers when they are describing their unhappiness.",
+  "Apologise to the customers for the inconvenience caused.",
+  "Acknowledge their feelings and assure them of help to solve the problem.",
+  "Ask questions if more information is needed.",
+  "Offer solutions.",
+  "Refer customers to more senior staff if unable to provide them with an acceptable solution.",
+  "Thank customers for bringing the problem to our attention."
+];
 
 test.describe("Level 1", () => {
   test("stories, Not finished yet, recap, badge, Level 2 unlocks", async ({ page, request }, testInfo) => {
@@ -40,7 +50,7 @@ test.describe("Level 1", () => {
     await expect(page.locator(".step-tabs")).toHaveCount(0); // one step only
     const part = page.locator("#part0");
     await expect(part.locator("p").first()).toHaveText("There are no right or wrong answers.");
-    await expect(part.locator(".tip")).toHaveText("Tip: don't name real people. Your teacher will read your answers.");
+    await expect(part.locator(".tip")).toHaveText("Tip: Don't name real people. Your teacher will read your answers.");
     await expect(part.locator(".field-label")).toHaveText([
       "1. Think of a time you got GOOD customer service (e.g. at a bubble tea shop, a hawker stall, or when ordering on GrabFood). What did the staff do?",
       "2. Think of a time you got BAD customer service. What happened?",
@@ -60,7 +70,7 @@ test.describe("Level 1", () => {
     await page.click("#submitL1");
     const modal = page.locator("#notFinished");
     await expect(modal.locator("h2")).toHaveText("Not finished yet");
-    await expect(modal.locator(".missing-list li")).toHaveText(["✗ Box 2: write at least 20 characters"]);
+    await expect(modal.locator(".missing-list li")).toHaveText(["✗ Box 2: Write at least 20 characters"]);
     await expect(modal.locator("button")).toHaveText(["Go back"]);
     await expect(page.locator('[data-key="s1.q2"]')).toHaveClass(/incomplete/);
     await checkPage(page, testInfo, "slice3-level1-not-finished");
@@ -141,7 +151,7 @@ test.describe("Level 2", () => {
           await expect(page.locator("#lessonNext")).toBeDisabled();
           await page.click("#showStepBtn");
           await expect(page.locator(".path-stop")).toHaveCount(n);
-          await expect(page.locator(`#pathLabel${n}`)).toHaveText(`Step ${n}: ${PATH_LABELS[n - 1]}`);
+          await expect(page.locator(`#pathLabel${n}`)).toHaveText(PATH_LABELS[n - 1]);
         }
       }
       if (/Real-life example/.test(label)) await page.fill('textarea[data-answer="s2.think1"]', "No apology and no real solution.");
@@ -162,7 +172,8 @@ test.describe("Level 2", () => {
     await walkLevel2(page, 12);
     await expect(page.locator("#lessonProgressText")).toHaveText("13 of 15 · The 8 service recovery steps");
     await expect(page.locator(".path-stop")).toHaveCount(1);
-    await expect(page.locator("#pathLabel1")).toHaveText("Step 1: Listen");
+    await expect(page.locator("#pathLabel1")).toHaveText(PATH_LABELS[0]);
+    await expect(page.locator(".path-text")).toHaveCount(0);
     await expect(page.locator(".video-frame")).toHaveCount(0);
     await walkLevel2(page, 3);
     await expect(page.locator("#badgeModal")).toContainText("Service Scholar");

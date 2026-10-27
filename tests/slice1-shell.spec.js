@@ -14,7 +14,7 @@ test("landing page shell", async ({ page }, testInfo) => {
   await expect.poll(() => banner.evaluate(el => el.complete && el.naturalWidth > 0)).toBe(true);
   await expect(banner).toHaveAttribute("alt", "Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity.");
   await expect(page.locator(".credits")).toContainText("A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)");
-  await expect(page.locator(".credits")).toContainText("Version 0.7.1");
+  await expect(page.locator(".credits")).toContainText("Version 0.8.0");
   await expect(page.locator(".credits a.teacher-link")).toHaveText("Teacher Mode");
   // Zoom allowed.
   const vp = await page.locator('meta[name="viewport"]').getAttribute("content");
@@ -75,7 +75,7 @@ test("image map: all artwork loads, failed requests show accessible placeholders
 });
 
 test("server only serves the app files", async ({ request }) => {
-  for (const p of ["/", "/index.html", "/app.js", "/styles.css", "/config.js", "/assets/img/C01-good-vs-poor-service.jpg"]) {
+  for (const p of ["/", "/index.html", "/app.js", "/styles.css", "/config.js", "/assets/img/C01-good-vs-poor-service-v2.jpg"]) {
     expect((await request.get(p)).status(), p).toBe(200);
   }
   for (const p of ["/docs/storyboard.md", "/CLAUDE.md", "/package.json", "/server/server.js", "/.gitignore", "/tests/helpers.js", "/BUILD-PROMPT.md", "/../CLAUDE.md", "/assets/../CLAUDE.md"]) {

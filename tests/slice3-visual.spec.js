@@ -126,9 +126,8 @@ test("Read aloud reads a block of notes, not the questions, and stops on a secon
   await expect(termsBtn).toHaveText("Stop");
   await expect(termsBtn).toHaveAttribute("aria-pressed", "true");
   const spoken = (await page.evaluate(() => window.__spoken)).join(" ");
-  expect(spoken).toContain("what a business does to keep customers happy. It starts when you walk in and continues after you pay.");
-  expect(spoken).toContain("Example: staff help you find your size.");
-  expect(spoken).toContain("Customer service refers to what businesses do for their customers so that they are happy and satisfied.");
+  expect(spoken).toContain("Customer service What businesses do for their customers so that they are happy and satisfied.");
+  expect(spoken).toContain("Example: Staff help you find the size of clothing you were looking for.");
   expect(spoken).not.toContain("Read aloud"); // the button itself is never read out
   expect(await page.evaluate(() => window.__lastUtterance.rate)).toBe(0.9);
   expect(await page.evaluate(() => window.__lastUtterance.lang)).toBe("en-GB");

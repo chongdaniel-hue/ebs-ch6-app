@@ -506,3 +506,48 @@ Merged Dan’s image compression, badge transparency, Read aloud and report refi
 - **N02** stays removed (open question 3 closed).
 - **R03 ampersand accepted:** "Return & Exchange Conditions" is inside a real Uniqlo screenshot, not text the app writes (open question 4 closed).
 - Still open: refresh `docs/storyboard.md` and `.docx` from this file (⚑ lines).
+
+## Dan's brief of 27 October 2026 (version 0.8.0)
+
+### 1. 4 key terms (Level 2 card 1 and the home "Start here: 4 key terms" page)
+- The plain-English meaning and the "📝 Exam wording" box are removed. Each term keeps its coloured card and icon and now shows the term in bold on its own line, the definition (exam wording) on the next line, then "**Example:**" and the example:
+  - **Customer service** / What businesses do for their customers so that they are happy and satisfied. / Example: Staff help you find the size of clothing you were looking for.
+  - **Quality customer service** / Doing more for customers to exceed their expectations. / Example: You buy a birthday present, and the staff offer to gift-wrap it for free and add a handwritten birthday card, even though you did not ask for it.
+  - **Service breakdown** / When customers make a complaint about a product or service. / Example: You complain to the shop staff because the earbuds you bought yesterday do not work.
+  - **Service recovery** / A process whereby a business takes action in response to service breakdown or failure. / Example: The staff apologise, test your earbuds and give you a new pair straight away.
+- Card 2 ("What is customer service?") keeps its full textbook definitions unchanged.
+
+### 2. Capital letters and grammar (every line changed)
+Textbook wording (definitions, the 8 steps, the returns lines, the "If a business provides quality customer service" list) is unchanged.
+- Level 1 tip: "Tip: don't name real people." → "Tip: Don't name real people."
+- Not finished yet list: "Box N: write at least 20 characters" → "Box N: Write at least 20 characters"; Level 4: "Q1: choose the stages you used" → "Q1: Choose the stages you used".
+- Card 12: "Common causes: unfriendly or unhelpful staff, …" → "Common causes: Unfriendly or unhelpful staff, …".
+- Card 14 label and heading: "Real-life example: poor service recovery" → "Real-life example: Poor service recovery".
+- Quick check reasons (shown after "✓ Correct:" and "✗ The answer is …:"): "the staff member welcomes …", "the staff member asks …", "the staff member talks …" now start "The staff member …".
+- Level 3 Q2 right answers: "Correct: Apologising and asking …", "Correct: Matching a feature …", "Correct: Summing up the decision …", "Correct: A greeting with an offer …" (the same reasons follow "✗ The answer is …:" after a second wrong try).
+- Level 5 Q1 right answers: "Correct: Customer service continues …", "Correct: Knowing the product …", "Correct: Apologising is only Step 3; …", "Correct: That is the textbook definition …".
+- Check notes: "Check your reason: Does it say …" (Level 3 Q1); "Check your answer: Did you name one reason …" (Level 5 Q3).
+- Report: "Level 3, Q2: First try …", "Level 5, Q1 and Q2: First try …", "Not needed: Right on the first try".
+- Alt text and placeholder labels: C01 "GOOD SERVICE": A smiling … / "POOR SERVICE": A staff member …; C02 APPROACH: The staff member … / PRESENT: Holding … / CLOSE: Handing … / RECOVERY: The customer …; C04 "SERVICE BREAKDOWN": The customer … / "SERVICE RECOVERY": The staff member …; R03 "… conditions: Returns within 30 days …"; N01 placeholder label "Landing banner: The Nexora phone store …"; the five product-knowledge alt texts start "Comic: A Nexora staff member …" (Dan's brief had "Comic: a"; capitalised under rule 2).
+- Left as they are: colons inside a sentence ("even on a different device: just log in …", "offers a solution: making sure the charger is fixed today", "Your purchase is confirmed: the Nexora Core …" in a quote), and the Teacher Mode reset and unlock messages (kept exactly, as instructed).
+- Bug fixed on the way: alt text containing double quotes (C01 to C04 and the new comics) was cut short at the first quote mark inside the `alt` attribute. `escapeHtml` now escapes quotes too.
+
+### 3. Good product knowledge (card 5)
+- The five examples use Dan's re-lettered comics `product-knowledge-<aspect>-v2.jpg` (900 × 900) with the Nexora line inside the speech bubble, drawn square and never cropped. The visible "The staff member says:" lines are removed.
+- Alt text: "Comic: A Nexora staff member talks to a customer in the shop. He says, "<line>"" with each line from the brief.
+- Read aloud reads each aspect heading followed by its line (a copy of the line is in the page, hidden from sight and from screen readers). If a comic fails to load, its placeholder shows and the line appears as visible text under it.
+- The old cropped `product-knowledge-<aspect>.jpg` files are deleted.
+
+### 4. Tap to enlarge
+- C01, C03, C04 and N03 point at Dan's 1600px files (`-v2.jpg`), alt text unchanged apart from the capitals above. The old 900px files and `C04-breakdown-to-recovery-tanned.jpg` are deleted.
+- The enlarged view now sizes every picture to fill the screen (never wider than its file). On a 1280px laptop the wide strips open at the full screen width (C03: about 1050px inline, 1256px enlarged); on phones wide pictures still open larger than the screen and scroll sideways.
+- New test `tests/zoom-larger.spec.js`: every zoomable picture in Level 2 (C01, the five product-knowledge comics, C02, C03, the camera picture, C04, R01, R02, N03, R03) opens at least 15% wider than inline, fills the screen on laptops and is never drawn wider than its file, at 1280px and 360px.
+
+### 5. The 8 service recovery steps: textbook wording only
+- Card 13 (the path): each stop shows its number circle and icon, the full textbook sentence in bold as the heading, then the staff member's line and the mood face. The short labels ("Listen", "Be patient", "Refer", "Thank" …) and the hidden "Step N:" prefix are removed; the one-step-at-a-time reveal is unchanged.
+- Card 14: the label strip is replaced by a box titled "The 8 service recovery steps" with the eight textbook sentences, numbered, 1 to 4 on the left and 5 to 8 on the right on wide screens, one column on phones.
+- No other screen (teacher preview, report, hints) showed the short labels; they are removed from the code.
+
+### Checks (version 0.8.0)
+- Full suite: 167 passed, 2 intentional skips, at 1280px and 360px (one phone run had a browser worker crash, which passed on rerun). New test `zoom-larger.spec.js`; product-knowledge, key-term, path, steps-box and capital-letter tests updated.
+- Visual check (screenshots at 1280px and 360px of the key terms page, cards 1, 5, 7, 12, 13 and 14, and the enlarged C03 and warranty comics): key terms read term, definition, example in their coloured cards; the five comics are square, side-by-side comics line up, and the bubbles are readable on laptops (and when enlarged on phones); enlarged C03 fills the laptop screen and is sharp. Fixed on the way: the hidden Read aloud line made card 5 558px too wide on laptops; on phones the long step headings were squeezed beside the mood face, so the face now sits under the staff member's line; square comics open at 1.6 times the phone width (wide strips 2.2 times) so the bubble needs less panning.

@@ -700,7 +700,7 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
   border-radius:12px;
   padding:12px 60px 12px 14px;
 }
-.path-label{margin:0 0 4px;font-size:1.2rem;color:var(--ink);}
+.path-label{margin:0 0 4px;font-size:1.08rem;line-height:1.4;color:var(--ink);}
 .path-text{margin:0;}
 .path-bubble{
   display:inline-block;
@@ -1545,20 +1545,18 @@ html:has(.lesson-card-nav){scroll-padding-bottom:84px;}
 .page p.stage-label.stage-4{border-left-color:var(--stage4);}
 .stage-label .stage-icon{font-size:1.1rem;margin:0;}
 .stage-label .stage-icon .ui-graphic{width:20px;height:20px;}
-/* 4 key terms: plain English, an example, then the exam wording. */
-.page .def-body p.term-example{margin-top:6px;}
-.exam-wording{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.75);border:1px dashed #B8A9AF;}
-.page .exam-wording p{margin:0;}
-.page .exam-wording p.exam-label{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:.9rem;font-weight:700;color:var(--brand-dark);text-transform:none;}
-.exam-label .ui-graphic{width:18px;height:18px;}
-/* Good product knowledge: picture, then what the staff member says, for each aspect. */
+/* 4 key terms: the term, its definition, then an example. */
+.page .def-body p.term-name{font-size:1.12rem;}
+.page .def-body p.term-name + p.term-def{margin-top:4px;}
+.page .def-body p.term-example{margin-top:10px;}
+/* Good product knowledge: each aspect with its comic (the line is in the speech bubble). */
 .pk-examples{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:16px;}
 .page .pk-examples > li{max-width:none;}
 .pk-example{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid var(--border);border-top:4px solid var(--brand);border-radius:12px;background:var(--paper);}
 .pk-title{display:flex;align-items:flex-start;gap:10px;margin:0;font-size:1rem;line-height:1.35;color:var(--ink);}
 .pk-title .ic-icon{flex:0 0 auto;font-size:1.4rem;}
 .pk-example .zoom-btn{width:100%;}
-.pk-example .content-img.pk-img{width:100%;max-height:none;aspect-ratio:900 / 570;object-fit:cover;}
+.pk-example .content-img.pk-img{width:100%;max-height:none;aspect-ratio:1 / 1;object-fit:contain;}
 .page p.say.pk-say{width:auto;margin:0;}
 .page p.pk-why{margin-top:20px;font-weight:600;}
 @media (min-width:760px){
@@ -1572,17 +1570,17 @@ html:has(.lesson-card-nav){scroll-padding-bottom:84px;}
 .qc-options{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:12px;max-width:480px;}
 .qc-btn{width:100%;text-align:center;}
 .qc-item .feedback{margin-top:10px;}
-/* The 8 step labels above the Foodpanda question. */
-.step-strip{margin:20px 0 0;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--paper);}
-.step-strip ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:8px;}
-.page .step-strip li{display:flex;align-items:center;gap:6px;max-width:none;margin:0;font-size:.95rem;font-weight:600;}
-.step-strip-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;font-size:.8rem;}
-@media (max-width:560px){ .step-strip ol{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+/* The 8 steps above the Foodpanda question: 1 to 4 on the left, 5 to 8 on the right. */
+.step-strip{margin:20px 0 0;padding:16px;border:1px solid var(--border);border-left:4px solid var(--brand);border-radius:12px;background:var(--paper);}
+.page p.step-strip-title{margin:0 0 12px;font-weight:700;font-size:1.05rem;color:var(--brand-dark);}
+.step-strip ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0, 1fr);gap:12px;}
+.page .step-strip li{display:flex;align-items:flex-start;gap:10px;max-width:none;margin:0;font-size:1rem;line-height:1.4;}
+.step-strip-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;font-size:.9rem;font-weight:700;}
+@media (min-width:700px){ .step-strip ol{grid-template-columns:repeat(2, minmax(0, 1fr));grid-template-rows:repeat(4, auto);grid-auto-flow:column;column-gap:24px;} }
 .page p.lesson-next-note{margin:0 0 8px;text-align:right;}
 .page p.lesson-next-note[hidden]{display:none;}
 /* The enlarge hint sits under the picture, so it never covers a caption or speech bubble. */
 .zoom-hint{position:static;display:flex;width:fit-content;margin:6px 0 0 auto;box-shadow:none;background:transparent;padding:2px 0;}
-.exam-wording{align-self:stretch;width:100%;box-sizing:border-box;}
 .page .def-body{flex:1 1 auto;}
 .step-strip + .think-card{margin-top:16px;}
 /* Phones: the key-term icon sits above its words, so the words get the full width. */
@@ -1598,3 +1596,14 @@ html:has(.lesson-card-nav){scroll-padding-bottom:84px;}
 .qc-options .answer-tag{white-space:normal;font-size:.85rem;}
 fieldset.roleplay-stages{margin-left:0;margin-right:0;min-width:0;}
 .qc-options .right-tag{width:100%;box-sizing:border-box;justify-content:center;text-align:center;border-radius:8px;padding:2px 4px;line-height:1.25;}
+
+/* ---------- 0.8.0 ---------- */
+/* Product-knowledge comics in a row line up at the bottom, whatever the heading length. */
+.lesson-card .pk-example .zoom-btn{margin-top:auto;}
+/* Phones: the step heading (full textbook sentence) gets the card's full width; the
+   customer's mood face sits under the staff member's line instead of beside the heading. */
+@media (max-width:699px){
+  .path-card{padding-right:14px;}
+  .path-face{position:static;margin:8px 0 0;font-size:1.8rem;}
+  .path-label{font-size:1rem;}
+}

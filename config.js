@@ -115,11 +115,11 @@ window.APP_CONFIG = {
   IMAGES: {
     WELCOME: {file:"assets/img/welcome-customer-service-banner.jpg",emoji:"👋",label:"Welcome to Customer Service",alt:"Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity."},
     SUITABILITY: { file: "assets/img/product-suitability-camera.png", emoji: "📱", label: "Matching the phone camera to a customer who enjoys photography", alt: "A customer shows her photo gallery while the Nexora staff member points out a new phone camera and a clear flower photo, matching its camera features to her interest in taking photos." },
-    PK_FEATURES: { file: "assets/img/product-knowledge-features.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member shows a customer a phone, with battery and screen-size symbols beside it." },
-    PK_PRICE: { file: "assets/img/product-knowledge-price.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member points to a blue phone and a black phone, with storage cards on the counter, while the customer listens." },
-    PK_CARE: { file: "assets/img/product-knowledge-care.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member wipes a phone screen with a soft, dry cloth, with a protective case on the counter." },
-    PK_WARRANTY: { file: "assets/img/product-knowledge-warranty.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member holds out a receipt and points to the repair counter, marked with a shield and spanner sign." },
-    PK_SELLING_POINT: { file: "assets/img/product-knowledge-selling-point.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "The Nexora staff member points to two phones on stands, one with a full battery symbol and one with a half-full battery symbol." },
+    PK_FEATURES: { file: "assets/img/product-knowledge-features-v2.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "Comic: A Nexora staff member talks to a customer in the shop. He says, \"The Nexora Spark has a large screen for reading and an all-day battery.\"" },
+    PK_PRICE: { file: "assets/img/product-knowledge-price-v2.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "Comic: A Nexora staff member talks to a customer in the shop. He says, \"The Nexora Core is $799. You can upgrade to 256GB for $80 more, or 512GB for $160 more.\"" },
+    PK_CARE: { file: "assets/img/product-knowledge-care-v2.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "Comic: A Nexora staff member talks to a customer in the shop. He says, \"You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition.\"" },
+    PK_WARRANTY: { file: "assets/img/product-knowledge-warranty-v2.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "Comic: A Nexora staff member talks to a customer in the shop. He says, \"Every Nexora phone has a 1-year warranty for manufacturing defects. Keep your receipt, and bring the phone to our Nexora Care Bar if anything goes wrong.\"" },
+    PK_SELLING_POINT: { file: "assets/img/product-knowledge-selling-point-v2.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "Comic: A Nexora staff member talks to a customer in the shop. He says, \"Compared with many phones at this price, the Nexora Spark's all-day battery lasts longer, so it suits you if you use your phone often.\"" },
     ICON_TERMS: { file: "assets/img/icon-key-terms.png", emoji: "🔑", label: "4 key terms", alt: "Four key terms graphic" },
     ICON_LEARN: { file: "assets/img/icon-customer-service-learning.png", emoji: "🎓", label: "Learn customer service", alt: "Customer service learning graphic" },
     TERM_SERVICE: { file: "assets/img/term-customer-service.png", emoji: "🎧", label: "Customer service", alt: "Customer service icon" },
@@ -129,11 +129,11 @@ window.APP_CONFIG = {
     N01: {
       file: "assets/img/N01-landing-banner.jpg",
       emoji: "🏬",
-      label: "Landing banner: the Nexora phone store, with the staff member welcoming a customer",
+      label: "Landing banner: The Nexora phone store, with the staff member welcoming a customer",
       alt: "The Nexora phone store, with the staff member welcoming a customer"
     },
     N03: {
-      file: "assets/img/N03-returns.jpg",
+      file: "assets/img/N03-returns-v2.jpg",
       emoji: "🎧",
       label: "Returns comic: replacement, exchange and refund at the Nexora store",
       alt: "Returns comic: replacement, exchange and refund at the Nexora store"
@@ -151,26 +151,26 @@ window.APP_CONFIG = {
       alt: "Suzzie, a shopper at the Stylez fashion store"
     },
     C01: {
-      file: "assets/img/C01-good-vs-poor-service.jpg",
+      file: "assets/img/C01-good-vs-poor-service-v2.jpg",
       emoji: "🖼️",
       label: "Good service vs poor service comic",
-      alt: "Two-panel comic. Left, \"GOOD SERVICE\": a smiling Nexora staff member offers, \"Hi! Would you like to take a look at our newest phone model available?\" The customer replies, \"Sure! Let me test it out.\" Right, \"POOR SERVICE\": a staff member looks at his own phone with arms crossed while the customer says, \"Excuse me... I need some help.\" He replies, \"...\""
+      alt: "Two-panel comic. Left, \"GOOD SERVICE\": A smiling Nexora staff member offers, \"Hi! Would you like to take a look at our newest phone model available?\" The customer replies, \"Sure! Let me test it out.\" Right, \"POOR SERVICE\": A staff member looks at his own phone with arms crossed while the customer says, \"Excuse me... I need some help.\" He replies, \"...\""
     },
     C02: {
       file: "assets/img/C02-four-stages-v2.jpg", emoji: "🖼️", label: "Four stages comic",
-      alt: "Four-panel comic at a Nexora store. 1, APPROACH: the staff member says, \"Welcome to Nexora! How may I help?\" 2, PRESENT: holding a camera, he says, \"This camera suits your interest in photos.\" 3, CLOSE: handing over a Nexora shopping bag, he says, \"Thank you for shopping with us!\" 4, RECOVERY: the customer holds a phone with a cracked screen and he says, \"I am sorry. Let me help solve this.\""
+      alt: "Four-panel comic at a Nexora store. 1, APPROACH: The staff member says, \"Welcome to Nexora! How may I help?\" 2, PRESENT: Holding a camera, he says, \"This camera suits your interest in photos.\" 3, CLOSE: Handing over a Nexora shopping bag, he says, \"Thank you for shopping with us!\" 4, RECOVERY: The customer holds a phone with a cracked screen and he says, \"I am sorry. Let me help solve this.\""
     },
     C03: {
-      file: "assets/img/C03-three-approaches.jpg",
+      file: "assets/img/C03-three-approaches-v2.jpg",
       emoji: "🖼️",
       label: "Three approaches comic",
       alt: "Three-panel comic. 1, \"GREETING APPROACH\": \"Good morning! Welcome to Nexora!\" 2, \"SERVICE APPROACH\": \"Hi! How may I assist you?\" 3, \"PRODUCT APPROACH\": \"I noticed that you are interested in this model. It is our new arrival. Would you like to try it?\""
     },
     C04: {
-      file: "assets/img/C04-breakdown-to-recovery-tanned.jpg",
+      file: "assets/img/C04-breakdown-to-recovery-v2.jpg",
       emoji: "🖼️",
       label: "Service breakdown to service recovery comic",
-      alt: "Two-panel comic. \"SERVICE BREAKDOWN\": the customer holds a cracked phone: \"I just bought this phone and the screen is already cracked!\" The staff member: \"I'm really sorry to hear that. Let me take a look and help you with this.\" \"SERVICE RECOVERY\": the staff member hands over a new phone box: \"You're welcome! If you need any further help, just let us know.\" The customer: \"Thank you so much for helping me! I'm really happy with the new phone.\""
+      alt: "Two-panel comic. \"SERVICE BREAKDOWN\": The customer holds a cracked phone: \"I just bought this phone and the screen is already cracked!\" The staff member: \"I'm really sorry to hear that. Let me take a look and help you with this.\" \"SERVICE RECOVERY\": The staff member hands over a new phone box: \"You're welcome! If you need any further help, just let us know.\" The customer: \"Thank you so much for helping me! I'm really happy with the new phone.\""
     },
     R01: {
       file: "assets/img/R01-foodpanda-chat.jpg",
@@ -188,7 +188,7 @@ window.APP_CONFIG = {
       file: "assets/img/R03-uniqlo-returns.jpg",
       emoji: "🧾",
       label: "Uniqlo return and exchange conditions",
-      alt: "Uniqlo return and exchange conditions: returns within 30 days of purchase; products that cannot be returned or exchanged include used, washed and altered products."
+      alt: "Uniqlo return and exchange conditions: Returns within 30 days of purchase; products that cannot be returned or exchanged include used, washed and altered products."
     },
     BADGE1: { file: "assets/img/badge-story-sharer-vibrant.png", emoji: "📝", label: "Story Sharer", alt: "Story Sharer badge" },
     BADGE2: { file: "assets/img/badge-service-scholar-vibrant.png", emoji: "🎓", label: "Service Scholar", alt: "Service Scholar badge" },

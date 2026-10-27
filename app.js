@@ -64,9 +64,12 @@
         Level 2 as 15 cards on the four syllabus stages, with a quick check.
    0.7.1 New four-stage comic (C02-four-stages-v2.jpg); two product-knowledge
         lines changed to match their pictures.
+   0.8.0 Key terms as term, definition, example; product-knowledge comics with
+        speech bubbles; 1600px comics and larger tap to enlarge; the 8 steps
+        in textbook wording only; capital letters after labels.
    ============================================================ */
 
-const APP_VERSION = "0.7.1";
+const APP_VERSION = "0.8.0";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -74,7 +77,8 @@ const CONFIG = window.APP_CONFIG || {};
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str == null ? "" : str;
-  return div.innerHTML;
+  // Quotes too, so alt text and labels with speech in them are not cut short inside attributes.
+  return div.innerHTML.replace(/"/g, "&quot;");
 }
 
 
@@ -171,10 +175,17 @@ function openZoom(btn) {
   });
   document.body.appendChild(wrap);
   // Phones: a wide comic opens larger than the screen (at most its own file size) and scrolls sideways.
+  // Wider screens: as large as the screen allows, never wider than the file.
   const big = wrap.querySelector(".zoom-img");
-  if (window.innerWidth < 768 && img.naturalWidth > window.innerWidth) {
+  const nw = img.naturalWidth, nh = img.naturalHeight;
+  if (window.innerWidth < 768 && nw > window.innerWidth) {
     wrap.classList.add("zoom-scroll");
-    big.style.width = Math.min(img.naturalWidth, Math.round(window.innerWidth * 2.2)) + "px";
+    // Wide strips at 2.2 times the screen; square or tall pictures at 1.6 times, so less panning.
+    const factor = nh && nw / nh > 1.3 ? 2.2 : 1.6;
+    big.style.width = Math.min(nw, Math.round(window.innerWidth * factor)) + "px";
+  } else if (nw && nh) {
+    const scale = Math.min(1, (window.innerWidth - 24) / nw, (window.innerHeight - 80) / nh);
+    big.style.width = Math.floor(nw * scale) + "px";
   }
   wrap.querySelector(".zoom-close").focus();
 }
@@ -185,9 +196,13 @@ document.addEventListener("click", e => {
 
 function imgFallback(el) {
   const exampleFigure = el.closest(".product-example-figure");
+  const pkCard = el.closest(".pk-example");
   const wrap = document.createElement("div");
   setGraphicHtml(wrap, imgPlaceholderHtml(el.getAttribute("data-img"), el.getAttribute("data-cls")));
   if (wrap.firstElementChild) el.replaceWith(wrap.firstElementChild);
+  // If a product-knowledge comic fails, show the staff member's line under the placeholder.
+  const say = pkCard && pkCard.querySelector(".pk-say");
+  if (say) { say.classList.remove("visually-hidden", "speak-only"); say.classList.add("say"); say.removeAttribute("aria-hidden"); }
   // If the graphic fails, show its speech transcript so the example stays usable.
   if (exampleFigure) {
     const caption = exampleFigure.querySelector("figcaption");
@@ -1654,7 +1669,7 @@ function pickVoice() {
 let speechWords=[],speechClock=null;
 function clearSpeechWords(){clearInterval(speechClock);speechClock=null;speechWords.forEach(x=>{if(x.el.isConnected)x.el.replaceWith(document.createTextNode(x.el.textContent));});speechWords=[];}
 function prepareSpeechWords(block){
-  const walker=document.createTreeWalker(block,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode()){const node=walker.currentNode;if(node.parentElement.closest('button,textarea,input,select,svg,video,iframe,.video-link,.think-card,.listen-row,[aria-hidden="true"],.nav-row,[data-student-text]'))continue;if(node.textContent.trim())nodes.push(node);}
+  const walker=document.createTreeWalker(block,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode()){const node=walker.currentNode;if(node.parentElement.closest('button,textarea,input,select,svg,video,iframe,.video-link,.think-card,.listen-row,[aria-hidden="true"]:not(.speak-only),.nav-row,[data-student-text]'))continue;if(node.textContent.trim())nodes.push(node);}
   const words=[];let index=0;nodes.forEach(node=>{const frag=document.createDocumentFragment();node.textContent.split(/(\s+)/).forEach(text=>{if(!text)return;if(/^\s+$/.test(text)){frag.append(text);return;}const span=document.createElement('span');span.className='speech-word';span.textContent=text;words.push({el:span,start:index,text});index+=text.length+1;frag.append(span);});node.replaceWith(frag);});speechWords=words;return words.map(x=>x.text).join(' ');
 }
 function highlightSpeechWord(index){speechWords.forEach((x,i)=>x.el.classList.toggle('reading-now',i===index));}
@@ -1670,7 +1685,7 @@ function stopSpeaking() {
 // The words of a block, without buttons, answer boxes, questions or icons.
 function blockSpeechText(block) {
   const copy = block.cloneNode(true);
-  copy.querySelectorAll("button, textarea, input, select, video, iframe, .video-link, .think-card, .listen-row, [aria-hidden='true'], .nav-row").forEach(x => x.remove());
+  copy.querySelectorAll("button, textarea, input, select, video, iframe, .video-link, .think-card, .listen-row, [aria-hidden='true']:not(.speak-only), .nav-row").forEach(x => x.remove());
   copy.querySelectorAll("p, li, h2, h3, h4, th, td, div").forEach(x => x.append(" "));
   copy.querySelectorAll("img").forEach(x => x.remove());
   return copy.textContent.replace(/\s+/g, " ").trim();
@@ -1724,7 +1739,7 @@ const L1_PART = {
     return `
       <h2 class="visually-hidden">Your stories</h2>
       <p>There are no right or wrong answers.</p>
-      ${tipHtml("Tip: don't name real people. Your teacher will read your answers.")}
+      ${tipHtml("Tip: Don't name real people. Your teacher will read your answers.")}
       <div class="story-cards">
         ${L1_BOXES.map(b => answerBoxHtml(b.key, {
           cls: "story-card", icon: b.icon,
@@ -1750,7 +1765,7 @@ const L1_PART = {
     };
     btn.addEventListener("click", () => {
       const missing = L1_BOXES.filter(b => !responseLongEnough(b.key))
-        .map(b => ({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}: write at least ${MIN_RESPONSE_CHARS} characters` }));
+        .map(b => ({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}: Write at least ${MIN_RESPONSE_CHARS} characters` }));
       if (missing.length) showNotFinished(missing);
       else submit();
     });
@@ -1772,14 +1787,14 @@ const STAGES = [
 
 // The 8 service recovery steps: textbook wording, with the approved example lines.
 const RECOVERY_STEPS = [
-  { icon: "👂", label: "Listen", text: "Listen carefully to the complaint. Give customers full attention.", bubble: "(Puts his own phone away and faces the customer.)", face: "😠", mood: "angry" },
-  { icon: "⏳", label: "Be patient", text: "Be patient. Do not interrupt customers when they are describing their unhappiness.", bubble: "(Nods and lets her finish.)", face: "😠", mood: "angry" },
-  { icon: "🙏", label: "Apologise", text: "Apologise to the customers for the inconvenience caused.", bubble: "\"I'm really sorry for the trouble this has caused you.\"", face: "😣", mood: "upset" },
-  { icon: "💙", label: "Acknowledge", text: "Acknowledge their feelings and assure them of help to solve the problem.", bubble: "\"I understand why you're upset. I'll help you sort this out.\"", face: "😐", mood: "calmer" },
-  { icon: "❓", label: "Ask questions", text: "Ask questions if more information is needed.", bubble: "\"When did you buy it, and when did you first notice the crack?\"", face: "😐", mood: "calmer" },
-  { icon: "🛠️", label: "Offer solutions", text: "Offer solutions.", bubble: "\"Since it's still under warranty, I can give you a replacement phone today.\"", face: "🙂", mood: "reassured" },
-  { icon: "🧑‍💼", label: "Refer", text: "Refer customers to more senior staff if unable to provide them with an acceptable solution.", bubble: "\"If you'd prefer something else, my manager can look at other options for you.\"", face: "🙂", mood: "reassured" },
-  { icon: "😊", label: "Thank", text: "Thank customers for bringing the problem to our attention.", bubble: "\"Thank you for letting us know about this.\"", face: "😄", mood: "happy" }
+  { icon: "👂", text: "Listen carefully to the complaint. Give customers full attention.", bubble: "(Puts his own phone away and faces the customer.)", face: "😠", mood: "angry" },
+  { icon: "⏳", text: "Be patient. Do not interrupt customers when they are describing their unhappiness.", bubble: "(Nods and lets her finish.)", face: "😠", mood: "angry" },
+  { icon: "🙏", text: "Apologise to the customers for the inconvenience caused.", bubble: "\"I'm really sorry for the trouble this has caused you.\"", face: "😣", mood: "upset" },
+  { icon: "💙", text: "Acknowledge their feelings and assure them of help to solve the problem.", bubble: "\"I understand why you're upset. I'll help you sort this out.\"", face: "😐", mood: "calmer" },
+  { icon: "❓", text: "Ask questions if more information is needed.", bubble: "\"When did you buy it, and when did you first notice the crack?\"", face: "😐", mood: "calmer" },
+  { icon: "🛠️", text: "Offer solutions.", bubble: "\"Since it's still under warranty, I can give you a replacement phone today.\"", face: "🙂", mood: "reassured" },
+  { icon: "🧑‍💼", text: "Refer customers to more senior staff if unable to provide them with an acceptable solution.", bubble: "\"If you'd prefer something else, my manager can look at other options for you.\"", face: "🙂", mood: "reassured" },
+  { icon: "😊", text: "Thank customers for bringing the problem to our attention.", bubble: "\"Thank you for letting us know about this.\"", face: "😄", mood: "happy" }
 ];
 
 // How many path stops are on screen. The path starts with Step 1 only; a student
@@ -1793,8 +1808,7 @@ function recoveryStopHtml(step, i, animate) {
     <li class="path-stop ${animate ? "slide-in" : ""}" id="pathStop${i + 1}">
       <div class="path-circle" aria-hidden="true"><span class="path-icon">${step.icon}</span><span class="path-num">${i + 1}</span></div>
       <div class="path-card">
-        <h4 class="path-label" id="pathLabel${i + 1}"><span class="visually-hidden">Step ${i + 1}: </span>${escapeHtml(step.label)}</h4>
-        <p class="path-text">${escapeHtml(step.text)}</p>
+        <h4 class="path-label" id="pathLabel${i + 1}">${escapeHtml(step.text)}</h4>
         <p class="path-bubble ${actionLine ? "action" : ""}"><span class="visually-hidden">The staff member: </span>${escapeHtml(step.bubble)}</p>
         <p class="path-face"><span aria-hidden="true">${moodFaceHtml(i)}</span><span class="visually-hidden">Customer feels ${step.mood}</span></p>
       </div>
@@ -1824,37 +1838,34 @@ function stageLabelHtml(n) {
   return `<p class="stage-label stage-${n}"><span class="stage-icon" aria-hidden="true">${STAGES[n - 1].icon}</span> Stage ${n}</p>`;
 }
 
-// The 4 key terms: plain English and an example first, then the exact textbook definition.
+// The 4 key terms: the term, its definition (exam wording), then an example.
 const KEY_TERMS = [
   { term: "Customer service", icon: "TERM_SERVICE", tone: "service",
-    plain: "what a business does to keep customers happy. It starts when you walk in and continues after you pay.",
-    example: "staff help you find your size.",
-    exam: "Customer service refers to what businesses do for their customers so that they are happy and satisfied." },
+    definition: "What businesses do for their customers so that they are happy and satisfied.",
+    example: "Staff help you find the size of clothing you were looking for." },
   { term: "Quality customer service", icon: "TERM_QUALITY", tone: "quality",
-    plain: "doing MORE than the customer expects.",
-    example: "the bubble tea staff remember your usual order.",
-    exam: "Quality customer service means doing more for customers to exceed their expectations." },
+    definition: "Doing more for customers to exceed their expectations.",
+    example: "You buy a birthday present, and the staff offer to gift-wrap it for free and add a handwritten birthday card, even though you did not ask for it." },
   { term: "Service breakdown", icon: "TERM_BREAKDOWN", tone: "breakdown",
-    plain: "something goes wrong and the customer complains.",
-    example: "your new earbuds don't work.",
-    exam: "A service breakdown occurs when customers make a complaint about a product or service." },
+    definition: "When customers make a complaint about a product or service.",
+    example: "You complain to the shop staff because the earbuds you bought yesterday do not work." },
   { term: "Service recovery", icon: "TERM_RECOVERY", tone: "recovery",
-    plain: "the business fixes the problem and wins the customer back.",
-    example: "staff say sorry and replace the earbuds.",
-    exam: "Service recovery is a process whereby a business takes action in response to service breakdown or failure." }
+    definition: "A process whereby a business takes action in response to service breakdown or failure.",
+    example: "The staff apologise, test your earbuds and give you a new pair straight away." }
 ];
 function keyTermsHtml() {
   return `<ul class="term-list">
     ${KEY_TERMS.map(t => `<li><div class="definition term-definition term-${t.tone}" role="note"><span class="term-graphic" aria-hidden="true">${imgHtml(t.icon)}</span><div class="def-body">
-      <p><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.plain)}</p>
+      <p class="term-name"><strong>${escapeHtml(t.term)}</strong></p>
+      <p class="term-def">${escapeHtml(t.definition)}</p>
       <p class="term-example"><strong>Example:</strong> ${escapeHtml(t.example)}</p>
-      <div class="exam-wording"><p class="exam-label">📝 Exam wording</p><p>${escapeHtml(t.exam)}</p></div>
     </div></div></li>`).join("")}
   </ul>`;
 }
 
-// Good product knowledge: each aspect (textbook wording) with a Nexora picture and, as real
-// page text that Read aloud can read, what the staff member says.
+// Good product knowledge: each aspect (textbook wording) with a Nexora comic. The staff
+// member's line is in the comic's speech bubble (and its alt text); a hidden copy lets
+// Read aloud read each heading followed by its line.
 const PRODUCT_KNOWLEDGE_EXAMPLES = [
   { id: "features", icon: "📋", image: "PK_FEATURES", title: "Product features and specifications (e.g. screen size, battery life)",
     dialogue: "\"The Nexora Spark has a large screen for reading and an all-day battery.\"" },
@@ -1872,7 +1883,7 @@ function productKnowledgeExamplesHtml() {
     <li class="pk-example" data-product-example="${ex.id}">
       <h3 class="pk-title"><span class="ic-icon" aria-hidden="true">${ex.icon}</span><span>${escapeHtml(ex.title)}</span></h3>
       ${zoomImgHtml(ex.image, "pk-img")}
-      <p class="say pk-say"><span class="visually-hidden">The staff member says: </span>${escapeHtml(ex.dialogue)}</p>
+      <p class="pk-say visually-hidden speak-only" aria-hidden="true">${escapeHtml(ex.dialogue)}</p>
     </li>`).join("")}</ul>`;
 }
 
@@ -1882,13 +1893,13 @@ const QC_OPTIONS = ["Greeting", "Service", "Product"];
 const QUICK_CHECK = [
   { id: "a", quote: "\"Hi Mr Lim, nice to see you again!\"", correct: "Greeting",
     hint: "Is the staff member offering help or talking about a product, or just welcoming the customer?",
-    reason: "the staff member welcomes a regular customer by name. That is the greeting approach." },
+    reason: "The staff member welcomes a regular customer by name. That is the greeting approach." },
   { id: "b", quote: "\"Can I help you find something today?\"", correct: "Service",
     hint: "Is this a welcome, or a question showing the staff member is ready to help?",
-    reason: "the staff member asks a polite question to show they are ready to help. That is the service approach." },
+    reason: "The staff member asks a polite question to show they are ready to help. That is the service approach." },
   { id: "c", quote: "\"That model takes great night photos. Want to try the camera?\"", correct: "Product",
     hint: "What is the customer looking at, and what does the staff member talk about?",
-    reason: "the staff member talks about the phone the customer is looking at. That is the product approach." }
+    reason: "The staff member talks about the phone the customer is looking at. That is the product approach." }
 ];
 function qcState(it) {
   const a1 = getAnswer(`s2.qc.${it.id}.1`), a2 = getAnswer(`s2.qc.${it.id}.2`);
@@ -1933,9 +1944,10 @@ function wireQuickCheck(el) {
   }));
 }
 
-// The 8 step labels as a small strip (card 14), so students can see them while they answer.
+// The 8 steps in a box (card 14), like the recap at the end of the 8-steps video:
+// 1 to 4 on the left and 5 to 8 on the right on wide screens, one column on phones.
 function recoveryStepStripHtml() {
-  return `<div class="step-strip" role="note" aria-label="The 8 service recovery steps"><ol>${RECOVERY_STEPS.map((s, i) => `<li><span class="step-strip-num" aria-hidden="true">${i + 1}</span> ${escapeHtml(s.label)}</li>`).join("")}</ol></div>`;
+  return `<div class="step-strip" role="note" aria-label="The 8 service recovery steps"><p class="step-strip-title">The 8 service recovery steps</p><ol>${RECOVERY_STEPS.map((s, i) => `<li><span class="step-strip-num" aria-hidden="true">${i + 1}</span><span>${escapeHtml(s.text)}</span></li>`).join("")}</ol></div>`;
 }
 
 // A YouTube video: heading, one-line instruction, the privacy-enhanced player (never
@@ -2079,7 +2091,7 @@ const L2_CARDS = [
   { label: "Stage 4: Service breakdown and service recovery", ...notesPart(() => `
     ${stageLabelHtml(4)}
     <h2 class="section-title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
-    ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
+    ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: Unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
     ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}
     ${zoomImgHtml("C04", "comic-img")}
     <p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
@@ -2096,8 +2108,8 @@ const L2_CARDS = [
         <div id="afterPath">${pathShownNow >= 8 ? afterPathHtml() : ""}</div>`;
     }, { wireMore: (el) => wirePath(el) }),
     ready: () => pathShownNow >= 8, notReadyNote: "Tap Show Step to see all 8 steps." },
-  { label: "Real-life example: poor service recovery", key: "s2.think1", ...notesPart(() => `
-    <h2 class="section-title">${hIcon("📉")}Real-life example: poor service recovery</h2>
+  { label: "Real-life example: Poor service recovery", key: "s2.think1", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("📉")}Real-life example: Poor service recovery</h2>
     <p>A customer complained to a food delivery app that their orders from one restaurant had been cancelled 4 times. The replies? "oh" and "so sad", followed by a $3.30 voucher "to say we're sorry".</p>
     ${imgPairHtml(["R01", "R02"])}
     ${recoveryStepStripHtml()}
@@ -2304,16 +2316,16 @@ const LOOK_AGAIN = {
 const L3_Q2 = [
   { id: "P", quote: "\"I'm really sorry your new phone stopped working. Could you tell me when it happened, so I can help you fix it?\"", correct: 3,
     hint: "The officer apologises because something has gone wrong for this customer. Which stage deals with a problem or complaint?",
-    right: "Correct: apologising and asking about a problem are part of service recovery." },
+    right: "Correct: Apologising and asking about a problem are part of service recovery." },
   { id: "Q", quote: "\"Since you play a lot of games, the Nexora Prime's fast processor would suit you best.\"", correct: 1,
     hint: "The officer matches a phone feature to something the customer does a lot. Which stage is about presenting a suitable product?",
-    right: "Correct: matching a feature to the customer's needs is presenting product information." },
+    right: "Correct: Matching a feature to the customer's needs is presenting product information." },
   { id: "R", quote: "\"Your purchase is confirmed: the Nexora Core with the 256GB upgrade and the one-year warranty. You can collect it on Friday. Thank you for shopping at Nexora. Have a great day!\"", correct: 2,
     hint: "The officer sums up what the customer chose and when to collect it. Is this the start or the end of the interaction?",
-    right: "Correct: summing up the decision and the next steps closes the customer experience positively." },
+    right: "Correct: Summing up the decision and the next steps closes the customer experience positively." },
   { id: "S", quote: "\"Good afternoon! Is there anything I can help you find today?\"", correct: 0,
     hint: "This is the first thing the officer says to the customer. Which stage starts the conversation?",
-    right: "Correct: a greeting with an offer of help is approaching customers." }
+    right: "Correct: A greeting with an offer of help is approaching customers." }
 ].map(it => Object.assign(it, {
   type: "select", options: STAGE_NAMES, answerKey: `s3.q2.${it.id}`, attemptKey: `s3q2.${it.id}`, answerLabel: STAGE_NAMES[it.correct],
   lookAgain: LOOK_AGAIN[`s3q2.${it.id}`]
@@ -2365,7 +2377,7 @@ const L3_TABS = [
             <h3 class="q-title" id="l3q1"><span class="q-num">Q1.</span> Think back to your conversation with Alex. Identify ONE skill or quality he showed.</h3>
             ${answerBoxHtml("s3.q1a", { label: "Skill or quality:", readOnly: ro, rows: 2 })}
             ${answerBoxHtml("s3.q1b", { label: "This is important to customers because", readOnly: ro, rows: 3 })}
-            ${submitted ? checkNoteHtml("Check your reason: does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.") : ""}
+            ${submitted ? checkNoteHtml("Check your reason: Does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.") : ""}
           </section>
           <section class="question card" data-q="q2" aria-labelledby="l3q2">
             <h3 class="q-title" id="l3q2"><span class="q-num">Q2.</span> Match each line to the stage of providing customer service. Choose a stage for each line.</h3>
@@ -2589,7 +2601,7 @@ const L4_TABS = [
         wireFinish(el, 4);
         const btn = el.querySelector("#submitL4");
         if (btn) btn.addEventListener("click", () => {
-          if(!Array.isArray(getAnswer("s4.stages")) || !getAnswer("s4.stages").length){showNotFinished([{el:el.querySelector(".roleplay-stages"),name:"Q1: choose the stages you used"}]);return;}
+          if(!Array.isArray(getAnswer("s4.stages")) || !getAnswer("s4.stages").length){showNotFinished([{el:el.querySelector(".roleplay-stages"),name:"Q1: Choose the stages you used"}]);return;}
           const missing = L4_BOXES.filter(b => isBlank(b.key)).map(b => ({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}` }));
           if (missing.length) { showNotFinished(missing); return; }
           rec.submitted.s4 = nowIso();
@@ -2607,16 +2619,16 @@ const L4_TABS = [
 const L5_Q3 = [
   { id: "i", text: "Customer service ends once the customer has paid.", correct: false,
     hint: "Look back at what customer service means. Does it stop the moment the customer pays, or continue after the purchase?",
-    right: "Correct: customer service continues even after the customer has made a purchase." },
+    right: "Correct: Customer service continues even after the customer has made a purchase." },
   { id: "ii", text: "Good product knowledge helps a customer service officer answer customer questions confidently.", correct: true,
     hint: "Think about Alex. How did knowing the prices and features help him answer your questions?",
-    right: "Correct: knowing the product lets staff answer accurately instead of guessing." },
+    right: "Correct: Knowing the product lets staff answer accurately instead of guessing." },
   { id: "iii", text: "Service recovery is complete once the staff member has apologised.", correct: false,
     hint: "Count the 8 steps of service recovery. Is apologising the last step?",
-    right: "Correct: apologising is only Step 3; the officer still needs to acknowledge feelings, ask questions and offer solutions." },
+    right: "Correct: Apologising is only Step 3; the officer still needs to acknowledge feelings, ask questions and offer solutions." },
   { id: "iv", text: "A service breakdown occurs when customers make a complaint about a product or service.", correct: true,
     hint: "Look at the definition of service breakdown in Level 2. When does a service breakdown occur?",
-    right: "Correct: that is the textbook definition of service breakdown." }
+    right: "Correct: That is the textbook definition of service breakdown." }
 ].map(it => Object.assign(it, {
   type: "tf", answerKey: `s5.q3.${it.id}`, attemptKey: `s5q3.${it.id}`, answerLabel: it.correct ? "True" : "False",
   lookAgain: LOOK_AGAIN[`s5q3.${it.id}`]
@@ -2681,7 +2693,7 @@ const L5_TABS = [
           <section class="question card" data-q="q5" aria-labelledby="l5q5">
             <h3 class="q-title" id="l5q5"><span class="q-num">Q3.</span> Explain why quality customer service matters to a business. Give ONE reason.</h3>
             ${answerBoxHtml("s5.q5", { label: "Quality customer service matters because", readOnly: ctx.readOnly, rows: 3 })}
-            ${submitted ? checkNoteHtml("Check your answer: did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?") : ""}
+            ${submitted ? checkNoteHtml("Check your answer: Did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?") : ""}
           </section>
           ${!submitted ? `<div class="btn-row"><button type="button" class="btn" id="submitL5">Check answer</button></div>` : ""}
           ${checkAgainHtml(L5_MARKED)}
@@ -2864,7 +2876,7 @@ function reportMarkedHtml(item, r) {
   return `<div class="report-marked-answer">${reportAnswerHtml(title, reportChoiceLabel(item, value))}
     <dl class="report-attempts"><dt>First try</dt><dd data-student-text>${escapeHtml(first ? `${reportChoiceLabel(item, first.a)} (${first.ok ? "right" : "wrong"})` : "Not attempted yet")}</dd>
       <dt>Second try</dt><dd data-student-text>${escapeHtml(second ? `${reportChoiceLabel(item, second.a)} (${second.ok ? "right" : "wrong"})`
-        : first && first.ok ? "Not needed: right on the first try" : "Not attempted yet")}</dd></dl></div>`;
+        : first && first.ok ? "Not needed: Right on the first try" : "Not attempted yet")}</dd></dl></div>`;
 }
 
 function learningAnswersHtml(r) {
@@ -2914,8 +2926,8 @@ function renderReport() {
       </div>
       <div class="block">
         ${iconCardsHtml([
-          { icon: "🎯", html: `Level 3, Q2: first try <strong>${q2 == null ? "–" : q2} / 4</strong>.` },
-          { icon: "🎯", html: `Level 5, Q1 and Q2: first try <strong>${q34 == null ? "–" : q34} / 5</strong>.` }
+          { icon: "🎯", html: `Level 3, Q2: First try <strong>${q2 == null ? "–" : q2} / 4</strong>.` },
+          { icon: "🎯", html: `Level 5, Q1 and Q2: First try <strong>${q34 == null ? "–" : q34} / 5</strong>.` }
         ], "cols-2 report-scores")}
       </div>
       <section class="block" aria-labelledby="lookTitle">

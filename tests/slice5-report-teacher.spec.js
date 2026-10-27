@@ -62,7 +62,7 @@ test.describe("6.1 My learning report", () => {
     ]);
     await expect(page.locator(".report-level-when").first()).toHaveText("20 Oct 2026");
     await expect(page.locator(".report-level-badge")).toHaveText(["Story Sharer", "Service Scholar", "Service Spotter", "Service Star", "Completion Champion"]);
-    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 3 / 4.", "Level 5, Q1 and Q2: first try 2 / 5."]);
+    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: First try 3 / 4.", "Level 5, Q1 and Q2: First try 2 / 5."]);
     await expect(page.locator("#lookTitle")).toHaveText("Look at these again");
     await expect(page.locator(".look-list li")).toHaveText([
       "Closing the customer experience positively (Level 2, The four stages)",
@@ -73,7 +73,7 @@ test.describe("6.1 My learning report", () => {
     await expect(page.locator(".conf-row .conf-face")).toHaveText(["Confident", "Very confident", "A little", "Not yet"]);
     // Second try: not needed when the first try was right; not attempted yet when it was wrong.
     const secondTry = i => page.locator(".report-marked-answer").nth(i).locator(".report-attempts dd").nth(1);
-    await expect(secondTry(0)).toHaveText("Not needed: right on the first try"); // Q2 P
+    await expect(secondTry(0)).toHaveText("Not needed: Right on the first try"); // Q2 P
     await expect(secondTry(2)).toHaveText("Closing the customer experience positively (right)"); // Q2 R, put right on the second try
     await expect(secondTry(8)).toHaveText("Not attempted yet"); // Q2
     await expect(page.locator(".report-attempts", { hasText: /Not attempted$/ })).toHaveCount(0);
@@ -99,7 +99,7 @@ test.describe("6.1 My learning report", () => {
     await page.locator("#badgeModal button", { hasText: "See my learning report" }).click();
     await expect(page).toHaveURL(/#report$/);
     await expect(page.locator(".look-none")).toHaveText("Nothing to look at again. You got everything right on the first try!");
-    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: first try 4 / 4.", "Level 5, Q1 and Q2: first try 5 / 5."]);
+    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: First try 4 / 4.", "Level 5, Q1 and Q2: First try 5 / 5."]);
     await checkPage(page, testInfo, "slice5-report-allright");
   });
 });
