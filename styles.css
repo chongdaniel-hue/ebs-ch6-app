@@ -1597,3 +1597,4 @@ html:has(.lesson-card-nav){scroll-padding-bottom:84px;}
 .qc-btn{min-width:0;padding-left:6px;padding-right:6px;}
 .qc-options .answer-tag{white-space:normal;font-size:.85rem;}
 fieldset.roleplay-stages{margin-left:0;margin-right:0;min-width:0;}
+.qc-options .right-tag{width:100%;box-sizing:border-box;justify-content:center;text-align:center;border-radius:8px;padding:2px 4px;line-height:1.25;}
