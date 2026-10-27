@@ -19,7 +19,7 @@ window.APP_CONFIG = {
      Only the YouTube video ID is needed (the part after youtu.be/). */
   VIDEOS: {
     betterWelcome: {youtubeId: "_Esvxks4ZjQ"},
-    serviceRecovery: {youtubeId: "tsdP80AXi8o"}
+    serviceRecovery: {youtubeId: "IWZ4xwI2fF8"}
   },
 
   /* ---------- 2. Chatbot links (open in a new tab) ---------- */

@@ -4,7 +4,7 @@ const {resetServer,login,CODE,expectNoSidewaysScroll,expectNoAmpersand}=require(
 
 const VIDEOS={
  betterWelcome:{id:'_Esvxks4ZjQ',heading:'Watch: A better welcome at Nexora',prompt:'Watch this video showing poor and good service. Notice what Alex does differently and how June responds.',title:'Video: A better welcome at Nexora'},
- serviceRecovery:{id:'tsdP80AXi8o',heading:'Watch: The 8 steps in action',prompt:'Watch Alex use all 8 steps to help June with her cracked phone.',title:'Video: Alex uses the 8 steps of service recovery to help June with her cracked phone'}
+ serviceRecovery:{id:'IWZ4xwI2fF8',heading:'Watch: The 8 steps in action',prompt:'Watch Alex use all 8 steps to help June with her cracked phone.',title:'Video: Alex uses the 8 steps of service recovery to help June with her cracked phone'}
 };
 
 // Every check that a video is embedded from YouTube the agreed way, with nothing that starts playback.

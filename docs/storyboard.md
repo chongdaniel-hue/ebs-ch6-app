@@ -586,7 +586,7 @@ This storyboard is the single source of truth for the app. It moves the content 
 <blockquote>
 <p>Watch Alex use all 8 steps to help June with her cracked phone.</p>
 </blockquote>
-<p><strong>[Video B] The 8 steps in action</strong> (YouTube, https://youtu.be/tsdP80AXi8o; embedded player, students press play; no Think about it box, watching is not required)</p>
+<p><strong>[Video B] The 8 steps in action</strong> (YouTube, https://youtu.be/IWZ4xwI2fF8; embedded player, students press play; no Think about it box, watching is not required)</p>
 <p>Small link under the video, opens in a new tab: Video not loading? Watch it on YouTube</p>
 <blockquote>
 <p>Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
@@ -1256,7 +1256,7 @@ These decisions were made while the app was built (19 to 20 October 2026). They 
 
 - **Video A, "Watch: A better welcome at Nexora" (27 October 2026):** moved from Tab 1 (after "Why does quality customer service matter?") to its own Continue ↓ part in Tab 2, directly after the three approaches, the two purposes and C03, with its required Think about it box ("What did Alex do to make June feel welcome? Why did she bring her friend back?") directly under it. That answer is now needed before going on to Tab 3 and before Finish Level 2, instead of before leaving Tab 1. It is embedded from YouTube (https://youtu.be/_Esvxks4ZjQ) instead of a video file in the app; the transcript box and the app's own captions file are removed.
 
-- **Video B, "Watch: The 8 steps in action" (27 October 2026):** added in Tab 3 directly below the Service Recovery Path and above "Handled well, a service breakdown can improve customer loyalty...", shown once all 8 stops have been shown. Instruction: "Watch Alex use all 8 steps to help June with her cracked phone." Embedded from YouTube (https://youtu.be/tsdP80AXi8o). No Think about it box; watching is not required.
+- **Video B, "Watch: The 8 steps in action" (27 October 2026):** added in Tab 3 directly below the Service Recovery Path and above "Handled well, a service breakdown can improve customer loyalty...", shown once all 8 stops have been shown. Instruction: "Watch Alex use all 8 steps to help June with her cracked phone." Embedded from YouTube (https://youtu.be/IWZ4xwI2fF8). No Think about it box; watching is not required.
 
 - **Both videos:** the privacy-enhanced YouTube player (youtube-nocookie.com), never starting by itself, in a 16:9 box with the same thin border and rounded corners as the other pictures, with a small "Video not loading? Watch it on YouTube" link underneath (opens in a new tab) for school networks that block embedded YouTube. No transcript box. 🔊 Read aloud skips the videos.
 
