@@ -884,37 +884,20 @@ function moodFaceHtml(i) {
   const eyes=i===7?'<path d="M9 13 Q11 9 13 13 M19 13 Q21 9 23 13" fill="none"/>':'<circle cx="11" cy="14" r="1.3" fill="#42202a"/><circle cx="21" cy="14" r="1.3" fill="#42202a"/>';
   return `<svg class="mood-graphic mood-${i}" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="${fills[i]}" stroke="#42202a" stroke-width="1.5"/><g stroke="#42202a" stroke-width="1.8" stroke-linecap="round">${eyes}${i<2?'<path d="M8 9 L13 11 M19 11 L24 9"/>':""}${mouth}</g></svg>`;
 }
-function conversationUrl(raw) {
-  try {const text=String(raw||"").trim().replace(/^https:\/\/g\.co\/gemini\/share\//,"https://gemini.google.com/share/");const u=new URL(text);return u.protocol==="https:" && u.hostname==="gemini.google.com" && /^\/share\/(?:d\/)?[A-Za-z0-9_-]{6,}\/?$/.test(u.pathname) && !u.username && !u.password ? u.href : null;} catch(e){return null;}
-}
-function conversationReady(n){const url=conversationUrl(getAnswer(`s${n}.link`));return !!url && getAnswer(`s${n}.linkVerified`)===url;}
+// The shared chat link: any pasted text that contains "gemini" is accepted (no server check).
+const CONVERSATION_LINK_HELP = "Please paste the link to your Gemini chat. It should contain the word Gemini.";
+function conversationReady(n){return /gemini/i.test(String(getAnswer(`s${n}.link`)||""));}
+// Show the help line once something is pasted (or the tick box is ticked) without "gemini".
+function conversationLinkProblem(n){return !conversationReady(n) && (!!String(getAnswer(`s${n}.link`)||"").trim() || getAnswer(`s${n}.tick`)===true);}
 function conversationLinkHtml(n,readOnly) {
-  return `<section class="card conversation-share" aria-label="Your conversation link"><label class="field-label" for="conversationLink${n}">Paste your Gemini conversation share link</label><p class="field-note" id="conversationHelp${n}">Use Share in Gemini and copy the conversation link then paste it below.</p><input class="text-input" type="url" id="conversationLink${n}" value="${escapeHtml(getAnswer(`s${n}.link`)||"")}" placeholder="https://gemini.google.com/share/..." aria-describedby="conversationHelp${n} conversationError${n}" ${readOnly?"readonly":""}><p class="field-note" id="conversationError${n}" role="status"></p></section>`;
-}
-function conversationErrorText(error){
-  if(error==="invalid_link")return "The link you pasted is invalid. Please paste a valid Gemini conversation share link.";
-  if(error==="unknown_action")return "Link checking is not available yet. Ask your teacher to update the app's connection, then try again.";
-  if(error==="link_check_rate_limited")return "Please wait a minute before checking another conversation link.";
-  if(error==="name_mismatch" || error==="name_required")return "Your profile could not be verified. Please sign in again with your saved name.";
-  return "We could not verify this link. Check that it is shared and accessible, then try again.";
+  return `<section class="card conversation-share" aria-label="Your conversation link"><label class="field-label" for="conversationLink${n}">Paste your Gemini conversation share link</label><p class="field-note" id="conversationHelp${n}">Use Share in Gemini and copy the conversation link then paste it below.</p><input class="text-input" type="url" id="conversationLink${n}" value="${escapeHtml(getAnswer(`s${n}.link`)||"")}" placeholder="https://gemini.google.com/share/..." aria-describedby="conversationHelp${n} conversationError${n}" ${readOnly?"readonly":""}><p class="field-note link-error" id="conversationError${n}" role="status">${conversationLinkProblem(n)?escapeHtml(CONVERSATION_LINK_HELP):""}</p></section>`;
 }
 function wireConversationLink(el,n){
   const input=el.querySelector(`#conversationLink${n}`);if(!input)return;
-  const status=el.querySelector(`#conversationError${n}`),tick=el.querySelector('.tick-input');let timer=null,generation=0,pending=null;
-  function update(){const next=document.getElementById('nextBtn');if(next)next.disabled=!(getAnswer(`s${n}.tick`)===true && conversationReady(n));}
-  el.validateConversation=async()=>{
-    const raw=input.value.trim(),url=conversationUrl(raw),key=activeKey(),current=generation;
-    if(pending && pending.raw===raw)return pending.promise;
-    const promise=(async()=>{
-      status.textContent="Checking your conversation link…";
-      let reply;try{reply=await api("POST",{action:"validateConversationLink",class:student.cls,reg:student.reg,name:profileName(rec),url:raw},15000);}catch(e){reply={ok:false,error:"link_check_unavailable"};}
-      if(current!==generation || key!==activeKey() || !input.isConnected)return {ok:false,error:"changed"};
-      if(reply.ok && url){setAnswer(`s${n}.linkVerified`,url,"soon");status.textContent="Conversation link checked.";}else{setAnswer(`s${n}.linkVerified`,null,"soon");reply.ok=false;status.textContent=conversationErrorText(reply.error);}
-      update();return reply;
-    })();pending={raw,promise};try{return await promise;}finally{if(pending?.promise===promise)pending=null;}
-  };
-  input.addEventListener('input',()=>{generation++;clearTimeout(timer);setAnswer(`s${n}.link`,input.value.trim(),'typing');setAnswer(`s${n}.linkVerified`,null,'soon');setAnswer(`s${n}.tick`,false,'soon');tick.checked=false;tick.disabled=input.readOnly;status.textContent='';update();timer=setTimeout(()=>{if(input.isConnected && input.value.trim())el.validateConversation();},650);});
-  input.addEventListener('change',()=>{clearTimeout(timer);if(input.value.trim())el.validateConversation();});update();
+  const status=el.querySelector(`#conversationError${n}`);
+  const update=()=>{status.textContent=conversationLinkProblem(n)?CONVERSATION_LINK_HELP:"";const next=document.getElementById('nextBtn');if(next && !isDone(n))next.disabled=!(getAnswer(`s${n}.tick`)===true && conversationReady(n));};
+  input.addEventListener('input',()=>{setAnswer(`s${n}.link`,input.value.trim(),'typing');update();});
+  input.addEventListener('change',()=>{setAnswer(`s${n}.link`,input.value.trim(),'soon');update();});
 }
 
 const ROLEPLAY_STAGE_LABELS=["Approach","Present","Close","Support","Recovery"];
@@ -1019,7 +1002,7 @@ function renderLanding() {
           <div class="field"><label for="nameInput" class="field-label">Your name</label><input type="text" id="nameInput" class="text-input" maxlength="80" autocomplete="name" value="${escapeHtml(typedName)}"><p class="field-note">Use the same name, class and register number each time to find your progress.</p></div>
           <div class="field">
             <label for="regInput" class="field-label">Choose your register number.</label>
-            <select id="regInput" class="select-input reg-input"><option value="" ${typed ? "" : "selected"}>Choose your register number…</option>${Array.from({length:40},(_,i)=>i+1).map(n=>`<option value="${n}" ${String(n)===typed ? "selected" : ""}>${n}</option>`).join("")}</select>
+            <select id="regInput" class="select-input reg-input"><option value="" ${typed ? "" : "selected"}>Choose your register number…</option>${Array.from({length:50},(_,i)=>i+1).map(n=>`<option value="${n}" ${String(n)===typed ? "selected" : ""}>${n}</option>`).join("")}</select>
           </div>
           <p id="loginError" class="form-error" role="alert" hidden></p>
           <div class="btn-row"><button class="btn" id="startBtn" type="button">Start</button></div>
@@ -1069,7 +1052,7 @@ async function startLogin() {
   }
   if (!regText) { showError("Please choose your register number."); return; }
   const reg = Number(regText);
-  if (!/^\d+$/.test(regText) || reg < 1 || reg > 40) { showError("Choose a register number from 1 to 40."); return; }
+  if (!/^\d+$/.test(regText) || reg < 1 || reg > 50) { showError("Choose a register number from 1 to 50."); return; }
 
   if (!name) { showError("Please key in your name at the top of the page."); document.getElementById("nameInput").focus(); return; }
   btn.disabled = true;
@@ -1203,7 +1186,7 @@ function renderHome() {
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
       <div class="block landing-banner">${imgHtml("WELCOME", "welcome-activity-banner")}</div>
-      <form class="card block" id="studentNameForm"><div class="field home-class-field"><label class="field-label" for="studentClassInput">Your class</label><input class="text-input" id="studentClassInput" readonly value="${escapeHtml(student.cls)}"></div><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" ${profileName(rec) ? "readonly" : "required"}><div class="field home-register-field"><label class="field-label" for="studentRegisterInput">Register number</label><select class="select-input" id="studentRegisterInput" disabled aria-describedby="studentRegisterNote">${student.reg > 40 ? `<option value="${student.reg}" selected>${student.reg}</option>` : ""}${Array.from({length:40},(_,i)=>i+1).map(n=>`<option value="${n}" ${n === Number(student.reg) ? "selected" : ""}>${n}</option>`).join("")}</select><p class="field-note" id="studentRegisterNote">Your register number is tied to this profile and cannot be edited.</p></div>${profileName(rec) ? "" : `<div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div>`}<p id="studentNameStatus" role="status">${profileName(rec) ? "Profile saved. Name and register number cannot be edited." : "Check your name before saving. Once saved, it cannot be edited."}</p></form>
+      <form class="card block" id="studentNameForm"><div class="field home-class-field"><label class="field-label" for="studentClassInput">Your class</label><input class="text-input" id="studentClassInput" readonly value="${escapeHtml(student.cls)}"></div><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" ${profileName(rec) ? "readonly" : "required"}><div class="field home-register-field"><label class="field-label" for="studentRegisterInput">Register number</label><select class="select-input" id="studentRegisterInput" disabled aria-describedby="studentRegisterNote">${student.reg > 50 ? `<option value="${student.reg}" selected>${student.reg}</option>` : ""}${Array.from({length:50},(_,i)=>i+1).map(n=>`<option value="${n}" ${n === Number(student.reg) ? "selected" : ""}>${n}</option>`).join("")}</select><p class="field-note" id="studentRegisterNote">Your register number is tied to this profile and cannot be edited.</p></div>${profileName(rec) ? "" : `<div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div>`}<p id="studentNameStatus" role="status">${profileName(rec) ? "Profile saved. Name and register number cannot be edited." : "Check your name before saving. Once saved, it cannot be edited."}</p></form>
       <div class="block">
         ${done === LEVELS.length ? "" : `<div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p></div>`}
         <p class="home-links">
@@ -1708,7 +1691,7 @@ const L1_PART = {
     const submitted = !!rec.submitted.s1 && L1_BOXES.every(b=>responseLongEnough(b.key));
     return `
       <h2 class="visually-hidden">Your stories</h2>
-      <p>Think about your own experiences as a customer. There are no right or wrong answers.</p>
+      <p>There are no right or wrong answers.</p>
       ${tipHtml("Tip: don't name real people. Your teacher will read your answers.")}
       <div class="story-cards">
         ${L1_BOXES.map(b => answerBoxHtml(b.key, {
@@ -2187,13 +2170,9 @@ function tickHtml(key, label, readOnly) {
 }
 function wireTick(el,n,t,key){
   const box=el.querySelector(`input.tick-input[data-answer="${key}"]`);if(!box)return;
-  box.addEventListener("change",async()=>{
-    if(!box.checked){setAnswer(key,false,"soon");redrawInPlace(n,t,`input.tick-input[data-answer="${key}"]`);return;}
-    box.checked=false;box.disabled=true;
-    const reply=el.validateConversation?await el.validateConversation():{ok:false,error:"link_check_unavailable"};
-    if(!box.isConnected || reply.error==="changed")return;box.disabled=false;
-    if(!reply.ok){setAnswer(key,false,"soon");showModal({id:"invalidConversationLink",title:reply.error==="invalid_link"?"Invalid conversation link":"Unable to check conversation link",bodyHtml:`<p>${escapeHtml(conversationErrorText(reply.error))}</p>`,buttons:[{label:"Back to the link",primary:true,onClick:()=>el.querySelector('input[type="url"]')?.focus()}]});return;}
-    setAnswer(key,true,"now");redrawInPlace(n,t,`input.tick-input[data-answer="${key}"]`);
+  box.addEventListener("change",()=>{
+    setAnswer(key,box.checked,box.checked?"now":"soon");
+    redrawInPlace(n,t,`input.tick-input[data-answer="${key}"]`);
   });
 }
 
@@ -2812,6 +2791,8 @@ function renderReport() {
   const q2 = recFirstTry(r, L3_Q2);
   const q34 = recFirstTry(r, L5_MARKED);
   const look = recLookAgain(r);
+  // "Nothing to look at again" only once Level 3 Q2 and Level 5 Q1 and Q2 have all been tried.
+  const allTried = ALL_MARKED().every(it => r && r.first && r.first[it.attemptKey]);
   setGraphicHtml(app, `
     ${topBarHtml({ showHome: true, showChip: true })}
     <main class="page">
@@ -2843,8 +2824,9 @@ function renderReport() {
       </div>
       <section class="block" aria-labelledby="lookTitle">
         <h2 class="section-title" id="lookTitle">${hIcon("🔁")}Look at these again</h2>
-        ${look.length ? `<ul class="look-list">${look.map(t => `<li>${escapeHtml(t)}</li>`).join("")}</ul>`
-          : `<p class="look-none">Nothing to look at again. You got everything right on the first try! 🎉</p>`}
+        ${look.length ? `<ul class="look-list">${look.map(t => `<li>${escapeHtml(t)}</li>`).join("")}</ul>` : ""}
+        ${!allTried ? `<p class="look-none">Finish Levels 3 and 5 to see what to look at again.</p>`
+          : !look.length ? `<p class="look-none">Nothing to look at again. You got everything right on the first try! 🎉</p>` : ""}
       </section>
       <section class="block" aria-labelledby="confTitle">
         <h2 class="section-title" id="confTitle">${hIcon("💭")}How confident you felt</h2>
@@ -2939,7 +2921,7 @@ function renderClassesTab(el, message) {
   const list = teacher.classes;
   setGraphicHtml(el, `
     <h2 class="section-title">Your classes</h2>
-    <p>Select the class students will register under. Only one class is shown to students at a time. Each class has register numbers 1 to 40. Saved profiles stay in their original class.</p>
+    <p>Select the class students will register under. Only one class is shown to students at a time. Each class has register numbers 1 to 50. Saved profiles stay in their original class.</p>
     ${list.length ? `<ul class="class-list">${list.map((c, i) => `
       <li class="class-row"><span class="class-name">${escapeHtml(c)}</span>
         <label class="class-visibility"><input type="radio" name="registrationClass" data-class-visible="${i}" aria-label="Show ${escapeHtml(c)} to students" ${teacher.classes.filter(name=>!(teacher.hidden || []).includes(name))[0] === c ? "checked" : ""}>Show to students</label>

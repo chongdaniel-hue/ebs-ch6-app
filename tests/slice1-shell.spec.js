@@ -65,7 +65,7 @@ test("image map: all artwork loads, failed requests show accessible placeholders
   await expectNoSidewaysScroll(page);
   await shot(page, testInfo, "slice1-images");
   // The fallback still works if an installed illustration becomes unavailable.
-  await page.route("**/assets/img/welcome-customer-service-banner.png", route => route.fulfill({ status: 404, body: "Not found" }));
+  await page.route("**/assets/img/welcome-customer-service-banner.jpg", route => route.fulfill({ status: 404, body: "Not found" }));
   await page.reload();
   const fallback = page.locator('.img-placeholder[data-img="WELCOME"]');
   await expect(fallback).toBeVisible();

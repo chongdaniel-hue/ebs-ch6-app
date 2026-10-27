@@ -39,7 +39,7 @@ test.describe("Level 1", () => {
     await expect(page.locator("h1.page-title")).toHaveText("Level 1: Your Customer Service Stories");
     await expect(page.locator(".step-tabs")).toHaveCount(0); // one step only
     const part = page.locator("#part0");
-    await expect(part.locator("p").first()).toHaveText("Think about your own experiences as a customer. There are no right or wrong answers.");
+    await expect(part.locator("p").first()).toHaveText("There are no right or wrong answers.");
     await expect(part.locator(".tip")).toHaveText("Tip: don't name real people. Your teacher will read your answers.");
     await expect(part.locator(".field-label")).toHaveText([
       "1. Think of a time you got GOOD customer service (e.g. at a bubble tea shop, a hawker stall, or when ordering on GrabFood). What did the staff do?",

@@ -17,6 +17,7 @@ Hosting and back end (different from V45, which ran its own back end on Vercel):
 
 ## Source of truth
 
+- **Out of date since 27 October 2026.** `docs/storyboard.md` has not caught up with the group's recent changes. The current app and `docs/progress.md` are the reference until this storyboard is refreshed. Do not revert app changes to match the storyboard; record every change in `docs/progress.md`.
 - `docs/storyboard.md` is the single source of truth for every screen, every word students see, every hint and every piece of feedback. `docs/storyboard.docx` is the same document for the teachers; if the two ever differ, ask.
 - Copy student-facing wording exactly from the storyboard. Do not reword, shorten, "improve" or add to it. Textbook definitions, the 8 service recovery steps, the returns lines and the "If a business provides quality customer service" list are word for word from the textbook and must stay exactly as written.
 - Rows marked "Teacher only" in the storyboard are notes for you. Never show them on student screens.
@@ -53,12 +54,12 @@ Hosting and back end (different from V45, which ran its own back end on Vercel):
 ## Images
 
 - All images live in `assets/img/` and are listed in one image map in `config.js` (id, file, alt text, placeholder emoji).
-- Keep images small so pages load quickly: badges about 256px wide, icons about 160px, example and comic pictures about 900px, compressed, keeping file names and transparency. Never draw an image wider than its file. Delete image files nothing references (check `config.js`, `app.js`, `styles.css` and `index.html` first).
+- Keep images small so pages load quickly: badges about 256px wide, icons about 160px, example and single-panel comic pictures about 900px; multi-panel comic strips may be up to 1600px wide, compressed under about 300 KB, so the speech bubbles stay readable when enlarged. Compress everything, and keep transparency only where the file has some (otherwise use JPEG). Never draw an image wider than its file. Delete image files nothing references (check `config.js`, `app.js`, `styles.css` and `index.html` first).
 - If an image file is missing or fails to load, show a placeholder box instead: a rounded light wine-tinted box (`#F9ECEF`) with a dashed `#C9A0AE` border, the emoji large in the middle and the short description underneath. The teachers add real files later just by dropping them into `assets/img/` with the file names in the storyboard, with no code change.
 
 ## Data and privacy
 
-- Students are identified by class plus register number only. No names, no emails.
+- Students log in with their class, register number and name (agreed by the group). No emails.
 - Student work is stored only in the Google Sheet, which stays private to its owner (never shared or published). The browser reads and writes it only through the Apps Script web app.
 - The teacher code lives only in the Apps Script project's Script Properties (`TEACHER_CODE`) and is checked inside the script. Never write a code, secret or student data into the repo, `config.js`, `app.js`, `Code.gs` or logs.
 - The GitHub repo is private, but still never commit a code, secret or student data: collaborators can read everything, and history is hard to clean. `server/data/` is in `.gitignore`. Commit under a GitHub no-reply email, never a personal one.

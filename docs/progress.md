@@ -441,3 +441,15 @@ Merged Dan’s image compression, badge transparency, Read aloud and report refi
 
 ### Corrected service recovery video (27 October 2026, version 0.6.34)
 - Video B swapped to the corrected upload (https://youtu.be/IWZ4xwI2fF8). Heading, instruction, placement and player settings unchanged.
+
+## Big update from Dan's brief (27 October 2026, version 0.7.0)
+
+`docs/storyboard.md` is out of date since 27 October 2026 (groupmates' changes). For this update the current app is the reference wherever the two differ, and every change is recorded here instead. Student-facing lines that are new in this update are marked ⚑ for Dan to review. The EBS reset and unlock code and the class and name list it shows are unchanged on purpose. No change to `apps-script/Code.gs` (no redeploy needed).
+
+### Part 1: bugs and quick fixes (done)
+- **Chat link gate (Levels 3 and 4):** no server check any more (the app never calls `validateConversationLink`; the action stays in `Code.gs` and its own back-end test). Any pasted text containing "gemini" (any case) is accepted. Next unlocks when the box contains "gemini" and the "I have finished…" box is ticked. The tick box saves straight away, whatever is in the link box. If the box has text without "gemini" (or the tick box is ticked with no such text), the line under the box reads "Please paste the link to your Gemini chat. It should contain the word Gemini." The pasted text is still saved as `s3.link` / `s4.link`. `s3.linkVerified` / `s4.linkVerified` are no longer used.
+- **Learning report, Look at these again:** "Nothing to look at again. You got everything right on the first try! 🎉" shows only when Level 3 Q2 and Level 5 Q1 and Q2 have all been tried and none was wrong on the first try. While any of them is still untried, "Finish Levels 3 and 5 to see what to look at again." shows (below any lines for items already wrong, which still show).
+- **Register numbers 1 to 50:** login dropdown, "Choose a register number from 1 to 50.", the home profile card and the Teacher Mode note ("Each class has register numbers 1 to 50.").
+- **Images:** `welcome-customer-service-banner` and `C04-breakdown-to-recovery-tanned` resized to 900px and saved as JPEG (neither had transparency): 2.0 MB and 1.9 MB down to 69 KB and 84 KB. Deleted the unused `C04-breakdown-to-recovery.jpg` and the two old PNGs. The CLAUDE.md Images rule now allows multi-panel comic strips up to 1600px wide, under about 300 KB.
+- **CLAUDE.md:** Data and privacy now reads "Students log in with their class, register number and name (agreed by the group). No emails." Source of truth carries the out-of-date note; `docs/storyboard.md` has the note at the top.
+- **Level 1:** the subtitle "Think about your own experiences as a customer." now shows once (in the header); the body line is "There are no right or wrong answers."

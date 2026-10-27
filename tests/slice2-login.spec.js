@@ -52,7 +52,7 @@ test.describe("landing and log-in", () => {
     await expect(page.locator(".login-card h2")).toHaveText("Step 1: Log in");
     await expect(page.locator(".topbar-chip")).toHaveText("3E1");
     await expect(page.locator("label[for=regInput]")).toHaveText("Choose your register number.");
-    await expect(page.locator("#regInput option")).toHaveText(["Choose your register number…",...Array.from({length:40},(_,i)=>String(i+1))]);
+    await expect(page.locator("#regInput option")).toHaveText(["Choose your register number…",...Array.from({length:50},(_,i)=>String(i+1))]);
     await checkPage(page, testInfo, "slice2-landing");
 
     const err = page.locator("#loginError");

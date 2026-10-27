@@ -46,7 +46,7 @@ test('saved home identity is locked and occupied register numbers reject another
  await expect(page.locator('#loginError')).toContainText('This register number has already been registered to a student profile.');
  await page.locator('#nameInput').fill('Demo Five');await page.locator('#startBtn').click();
  const select=page.locator('#studentRegisterInput');await expect(select).toHaveValue('5');await expect(select).toBeDisabled();await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');
- await expect(select.locator('option')).toHaveText(Array.from({length:40},(_,i)=>String(i+1)));
+ await expect(select.locator('option')).toHaveText(Array.from({length:50},(_,i)=>String(i+1)));
  for(const purpose of ['reset','unlock']){const r=await apiPost(request,{action:'profileList',purpose,code:purpose==='reset'?process.env.TEST_RESET_CODE:CODE(),class:'3E1'});expect(r.students.find(s=>s.name==='Demo Five').reg).toBe(Number(await select.inputValue()));}
  await page.reload();await expect(select).toBeDisabled();await expect(select).toHaveValue('5');await expect(page.locator('#studentNameInput')).toHaveAttribute('readonly','');await expectNoSidewaysScroll(page);
  await page.locator('#studentNameForm').screenshot({path:`tests/screenshots/home-register-${testInfo.project.name}.png`});

@@ -12,14 +12,17 @@ test('Level 2 has one card, back/next progress, automatic saving and required re
  await page.evaluate(()=>{setUi('s2.card',7);renderLevel(2);});await expect(page.locator('.path-stop')).toHaveCount(8);
  await expect(page.locator('#recoveryNextStep,#recoveryBackStep')).toHaveCount(0);await page.locator('#lessonNext').click();await expect(page.locator('#lessonProgressText')).toContainText('9 of 10');
 });
-test('chat completion uses backend checks and invalid-link popups without manual confirmation controls',async({page,request})=>{
- await start(page,request);
+test('chat completion accepts any pasted text containing gemini, with no server check',async({page,request})=>{
+ await start(page,request);const calls=[];page.on('request',r=>{if(/validateConversationLink/.test(r.postData()||''))calls.push(r.url());});
+ const help='Please paste the link to your Gemini chat. It should contain the word Gemini.';
  for(const n of [3,4]){
-  await page.goto('/#level'+n);const input=page.locator('#conversationLink'+n),tick=page.locator('.tick-input');await expect(page.locator('.conversation-open,.conversation-confirm')).toHaveCount(0);await expect(tick).toBeEnabled();
-  await input.fill('https://example.com/share/fake');await tick.click();await expect(page.locator('#invalidConversationLink')).toContainText('link you pasted is invalid');await expect(tick).not.toBeChecked();await expect(page.locator('#nextBtn')).toBeDisabled();await page.keyboard.press('Escape');
-  await input.fill('https://gemini.google.com/share/AbCdEf123456');await tick.click();await expect(tick).toBeChecked();await expect(page.locator('#nextBtn')).toBeEnabled();
-  await page.locator('#conversationLink'+n).fill('not a link');await expect(page.locator('.tick-input')).not.toBeChecked();await expect(page.locator('#nextBtn')).toBeDisabled();
+  await page.goto('/#level'+n);const input=page.locator('#conversationLink'+n),tick=page.locator('.tick-input'),note=page.locator('#conversationError'+n);await expect(input).toHaveValue('');await expect(tick).not.toBeChecked();await expect(note).toHaveText('');
+  await input.fill('https://example.com/share/fake');await expect(note).toHaveText(help);await tick.click();await expect(tick).toBeChecked();await expect(page.locator('#nextBtn')).toBeDisabled();await expect(page.locator('#conversationError'+n)).toHaveText(help);
+  await page.locator('#conversationLink'+n).fill('My chat: g.co/GEMINI/share/abc');await expect(page.locator('#conversationError'+n)).toHaveText('');await expect(page.locator('#nextBtn')).toBeEnabled();
+  await page.reload();await expect(page.locator('#conversationLink'+n)).toHaveValue('My chat: g.co/GEMINI/share/abc');await expect(page.locator('.tick-input')).toBeChecked();await expect(page.locator('#nextBtn')).toBeEnabled();
+  await page.locator('.tick-input').click();await expect(page.locator('#nextBtn')).toBeDisabled();
  }
+ expect(calls).toEqual([]);
 });
 test('Suzzie checklist, colours, saved-value compatibility and report evidence',async({page,request},info)=>{
  await start(page,request);await page.evaluate(()=>{setUi('s4.tab',1);});await page.goto('/#level4');await expect(page.locator('[data-roleplay-stage]')).toHaveCount(5);await expect(page.locator('[data-roleplay-stage]:checked')).toHaveCount(0);
@@ -54,3 +57,13 @@ test('every lesson card has a heading, no overflow or emoji text, and correct st
 
 test('Home opens the route progress directly below the sticky header',async({page,request})=>{await start(page,request);await page.goto('/#level2');await page.locator('#homeBtn').click();await expect(page).toHaveURL(/#home$/);await expect(page.locator('#routeProgress')).toBeFocused();await expect.poll(()=>page.locator('#routeProgress').evaluate(el=>Math.abs(el.getBoundingClientRect().top-document.querySelector('.topbar').getBoundingClientRect().bottom))).toBeLessThan(25);});
 test('the old 21-card position migrates to the matching compact card without losing answers',async({page,request})=>{await start(page,request);await page.evaluate(()=>{setUi('s2.card',17);setAnswer('s2.video','Alex welcomed June and offered to help.');});await page.goto('/#level2');await expect(page.locator('#lessonProgressText')).toContainText('8 of 10');await expect(page.locator('.path-stop')).toHaveCount(8);expect(await page.evaluate(()=>getAnswer('s2.video'))).toBe('Alex welcomed June and offered to help.');await page.reload();await expect(page.locator('#lessonProgressText')).toContainText('8 of 10');});
+test('report shows "Nothing to look at again" only once Level 3 Q2 and Level 5 Q1 and Q2 have all been tried',async({page,request})=>{
+ await start(page,request);
+ await page.goto('/#report');await expect(page.locator('.look-none')).toHaveText('Finish Levels 3 and 5 to see what to look at again.');
+ await page.evaluate(()=>{L3_Q2.forEach(it=>rec.first[it.attemptKey]={a:it.correct,ok:true,t:nowIso()});saveLocal();renderReport();});
+ await expect(page.locator('.look-none')).toHaveText('Finish Levels 3 and 5 to see what to look at again.');
+ await page.evaluate(()=>{L5_MARKED.forEach(it=>rec.first[it.attemptKey]={a:it.correct,ok:true,t:nowIso()});saveLocal();renderReport();});
+ await expect(page.locator('.look-none')).toContainText('Nothing to look at again. You got everything right on the first try!');
+ await page.evaluate(()=>{rec.first['s5q4'].ok=false;renderReport();});
+ await expect(page.locator('.look-none')).toHaveCount(0);await expect(page.locator('.look-list li')).toHaveCount(1);
+});

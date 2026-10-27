@@ -1,3 +1,5 @@
+> **Out of date since 27 October 2026. The current app and docs/progress.md are the reference until this storyboard is refreshed.**
+
 **EBS Chapter 6: Customer Service**
 
 Self-study revision app
