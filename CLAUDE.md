@@ -53,6 +53,7 @@ Hosting and back end (different from V45, which ran its own back end on Vercel):
 ## Images
 
 - All images live in `assets/img/` and are listed in one image map in `config.js` (id, file, alt text, placeholder emoji).
+- Keep images small so pages load quickly: badges about 256px wide, icons about 160px, example and comic pictures about 900px, compressed, keeping file names and transparency. Never draw an image wider than its file. Delete image files nothing references (check `config.js`, `app.js`, `styles.css` and `index.html` first).
 - If an image file is missing or fails to load, show a placeholder box instead: a rounded light wine-tinted box (`#F9ECEF`) with a dashed `#C9A0AE` border, the emoji large in the middle and the short description underneath. The teachers add real files later just by dropping them into `assets/img/` with the file names in the storyboard, with no code change.
 
 ## Data and privacy

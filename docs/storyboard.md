@@ -1221,7 +1221,11 @@ These decisions were made while the app was built (19 to 20 October 2026). They 
 
 - **Card text (Level 2):** cards that continued a sentence now start with a capital letter (the three reasons and the two purposes of approaching; words and punctuation unchanged). Skills and qualities cards and the Replacement, Exchange and Refund cards show the name in bold on its own line with no colon, and the description below it starting with a capital letter.
 
-- **🔊 Listen:** each block of notes in Level 2 and the 4 key terms page has a Listen button (browser speech, notes only, never questions or answers; tap again to stop).
+- **🔊 Read aloud:** each block of notes in Level 2 and the 4 key terms page has a "🔊 Read aloud" button, which shows "⏹ Stop" while reading (browser speech, notes only, never questions or answers; tap again to stop). It is not called "Listen", because path Step 1 is "Listen".
+
+- **Approach card titles** have no colon: "1. Greeting Approach", "2. Service Approach", "3. Product Approach".
+
+- **Image sizes:** badges about 256px wide, icons about 160px, example and comic pictures about 900px, so pages load quickly.
 
 - **Level header:** each level shows its card description under the title; finished tabs show ✓.
 
@@ -1234,6 +1238,8 @@ These decisions were made while the app was built (19 to 20 October 2026). They 
 - **One Check again per tab,** at the bottom, checking every item still waiting. Finish Level 3 and "Next: Exit ticket →" appear only once every item is settled.
 
 - **Revealed answer:** "✗ The answer is {answer}: {reason}"; the correct option is outlined in green with "✓ Correct answer" and the student's wrong pick is marked ✗.
+
+- **Learning report, second try:** "Not needed: right on the first try" when the first try was right; "Not attempted yet" when the first try was wrong and there is no second try yet.
 
 - **Changed answer before Check again:** the old hint fades and "👆 Tap Check again to see if you're right." shows instead.
 

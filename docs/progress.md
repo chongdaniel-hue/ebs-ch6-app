@@ -421,3 +421,13 @@ Merged Dan’s image compression, badge transparency, Read aloud and report refi
 - Added Apps Script validateConversationLink, Gemini-only URL allowlist/canonicalisation, name verification, redirect refusal, HTTP/missing-page checks, brief cache and per-profile request limit. Added UrlFetchApp stand-in with injectable responses for tests. Backend version now 0.6.32. Real Google access checks require redeployment and any new external-request authorisation by the owner. No live backend changed.
 - Browser preview uses deterministic mock fetch responses; it cannot prove real Google conversation availability/ownership. Generic Google HTML is not conclusive; deployment instructions record this limitation. Preview opened to Suzzie’s simplified link field. Not published.
 - Final release follow-up: added 24px spacing between a reflection card and the following Remember this recap, as requested in the Returns and exchanges card.
+
+
+### Handover to a fresh chat (27 October 2026)
+- Since version 0.6.20 (commit 2e4a0f3: images resized, Read aloud button, report second-try wording, approach titles without colons, Stylez promotions line), the groupmate pushed further work up to commit 743ee97 (lesson journey, shared chatbot conversations, Nexora welcome video, student reset and access checks). That work is recorded in the sections above by its author.
+- Synced on 27 October: storyboard Section H now says "🔊 Read aloud" (not "Listen") and adds the approach titles without colons, the image size targets and the report's second-try wording; `CLAUDE.md` Images section now states the image size targets.
+- **Open:**
+  - `docs/storyboard.docx` has not been updated for the Read aloud name, the approach titles without colons, the second-try wording or the image sizes (only the .md was edited). Dan keeps the .docx.
+  - **Untracked source files at the repository root**, not used by the app and not committed (about 29 MB): `Nexora Mobile Customer Service #1.docx`, `Nexora_Business_Profile.docx`, `Nexora_Shop_Ep1_Welcome_to_Nexora.mp4`, `service-recovery-8-steps v3.mp4`, and the folder `Nexora Website Ready Images/`. Dan to decide: move them out of the repository folder, add them to `.gitignore`, or commit them. They are not published either way, because `.vercelignore` is a whitelist.
+  - The 900px comics fill an 868px column; on high-resolution laptop screens they may look slightly soft. 1200px would fix it, at about a third more file size. Not changed; Dan to decide.
+  - Earlier open items (teacher code that is easy to guess, About Stylez wording, live test with a class of 40, Vercel "Blocked" deployments for groupmates' commits) still apply where the sections above have not closed them.
