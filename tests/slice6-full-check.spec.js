@@ -191,11 +191,9 @@ test("every student screen", async ({ page, request }, testInfo) => {
   // Level 4.
   await page.goto("/#level4");
   await check(page, testInfo, "level4-roleplay", problems);
-  await page.click("#stylezInfoBtn");
+  await page.click("#stylezFacts summary");
   await check(page, testInfo, "stylez-information", problems);
-  await page.reload();
   await expect(page.locator(".stylez-fact")).toHaveCount(17);
-  await page.click("#stylezBack");
   await page.locator(".tick-input").check();
   await page.click("#nextBtn");
   await page.fill('textarea[data-answer="s4.q1"]', "Greeted her");

@@ -202,14 +202,12 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await expect(page.locator("#aboutStylezTitle")).toHaveText("About Stylez");
     await expect(page.locator(".stylez-intro p")).toHaveText("Stylez is a casual clothing retailer for teenagers and young adults. It sells affordable everyday clothing in-store and online, including T-shirts, jeans, hoodies, dresses, shorts and accessories.");
     await expect(page.locator(".placeholder-card")).toHaveCount(0);
-    await page.click("#stylezInfoBtn");
-    await expect(page).toHaveURL(/#stylez$/);
-    await expect(page.locator("h1")).toHaveText("Stylez store information");
+    await expect(page.locator("#stylezFacts")).not.toHaveAttribute("open", "");
+    await page.click("#stylezFacts summary");
+    await expect(page.locator("#stylezFacts summary")).toHaveText("Stylez store facts");
     await expect(page.locator(".stylez-fact")).toHaveCount(17);
     await expect(page.locator(".stylez-fact dd")).toHaveText(["Casual clothing retailer for teenagers and young adults; sells affordable everyday clothing in-store and online.", "T-shirts, jeans, hoodies, dresses, shorts and accessories.", "XS to XL.", "$18 each.", "$39 each.", "$35 each.", "Buy 2 Basic T-shirts for $30.", "Stylez members get 10% off regular-priced items.", "STYLE10 gives 10% off the first online order.", "Promotions cannot be combined.", "Exchange within 14 days with receipt.", "Item must be unworn, unwashed and have its original tags.", "No exchange.", "Customer may bring the item and receipt to the store for assistance.", "Cash, cards and common mobile payment methods.", "Free delivery for orders of $60 or more.", "Available in-store or through Stylez online chat."]);
     await checkPage(page, testInfo, "slice4-stylez-information");
-    await page.click("#stylezBack");
-    await expect(page).toHaveURL(/#level4$/);
     await expect(page.locator("#nextBtn")).toBeDisabled();
     await expect(page.locator(".start-box")).toHaveText("You are the customer service officer. Suzzie is your customer. In a fresh chat, greet Suzzie to begin. Try: \"Hi, welcome to Stylez! How may I assist you?\"");
     await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Level 2: approach Suzzie, present product information, close positively, and if there's a problem, perform service recovery.");

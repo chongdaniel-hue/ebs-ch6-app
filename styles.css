@@ -1502,3 +1502,39 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 .recovery-step-nav{justify-content:space-between}.recovery-step-count{font-weight:700;color:var(--brand-dark)}
 /* Separate a reflection from the recap that follows it. */
 .think-card + .recap-card{margin-top:24px;}
+
+/* ---------- 0.7.0: sticky Level 2 Back and Next bar ---------- */
+.lesson-card-nav{position:sticky;bottom:0;z-index:8;flex-wrap:nowrap;margin-top:0;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -6px 12px -10px rgba(31,41,55,.35);}
+.lesson-card-nav .btn{min-width:120px;}
+/* Content scrolled to (Continue, Show Step, focus) never ends up under the bar. */
+html:has(.lesson-card-nav){scroll-padding-bottom:84px;}
+
+/* ---------- 0.7.0: tap to enlarge ---------- */
+.zoom-btn{position:relative;display:block;width:fit-content;max-width:100%;margin:0 auto;padding:0;border:0;background:none;font:inherit;cursor:zoom-in;border-radius:var(--radius);}
+.zoom-btn:focus-visible{outline:3px solid var(--brand);outline-offset:3px;}
+.zoom-btn .content-img{margin:0;}
+.img-pair-item .zoom-btn{width:100%;}
+.zoom-hint{position:absolute;right:8px;bottom:8px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.94);color:var(--brand-dark);font-size:.85rem;font-weight:700;box-shadow:0 1px 3px rgba(31,41,55,.25);pointer-events:none;}
+.zoom-hint .ui-graphic{width:16px;height:16px;}
+.zoom-backdrop{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;padding:68px 12px 12px;background:rgba(20,12,16,.92);}
+.zoom-img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:8px;background:#fff;}
+.zoom-close{position:absolute;top:12px;right:12px;background:#fff;color:var(--brand-dark);border-color:#fff;}
+.zoom-close:hover{background:var(--brand-light);color:var(--brand-dark);border-color:var(--brand-light);}
+/* Laptops: pictures take at most about 45% of the screen height, so the words stay in view. */
+@media(min-width:768px){
+  .zoom-btn .content-img{max-height:45vh;width:auto;max-width:100%;}
+  .img-pair-item .zoom-btn .content-img{width:auto;}
+}
+
+/* ---------- 0.7.0: Stylez store facts fold-out (Level 4) ---------- */
+.facts-details{margin:16px 0 0;border:1px solid var(--border);border-radius:12px;background:#fff;padding:0 16px;}
+.facts-details summary{display:flex;align-items:center;gap:10px;min-height:48px;cursor:pointer;font-weight:700;color:var(--brand-dark);}
+.facts-details summary::after{content:"▾";margin-left:auto;}
+.facts-details[open] summary::after{content:"▴";}
+.facts-icon .ui-graphic{width:24px;height:24px;}
+.facts-body{padding:0 0 12px;}
+.facts-title{margin:16px 0 4px;font-size:1.05rem;color:var(--brand-dark);}
+.link-error:not(:empty){color:#B91C1C;font-weight:600;}
+.zoom-backdrop.zoom-scroll{overflow:auto;justify-content:flex-start;}
+.zoom-scroll .zoom-img{max-width:none;max-height:none;flex:0 0 auto;margin:auto 0;}
+.zoom-scroll .zoom-close{position:fixed;}

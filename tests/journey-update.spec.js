@@ -27,7 +27,7 @@ test('chat completion accepts any pasted text containing gemini, with no server 
 test('Suzzie checklist, colours, saved-value compatibility and report evidence',async({page,request},info)=>{
  await start(page,request);await page.evaluate(()=>{setUi('s4.tab',1);});await page.goto('/#level4');await expect(page.locator('[data-roleplay-stage]')).toHaveCount(5);await expect(page.locator('[data-roleplay-stage]:checked')).toHaveCount(0);
  await page.locator('[data-answer="s4.q1"]').fill('I listened carefully to Suzzie.');await page.locator('[data-answer="s4.q2"]').fill('I would ask about the colour and size first.');await page.locator('#submitL4').click();await expect(page.locator('#notFinished')).toContainText('choose the stages');await page.keyboard.press('Escape');await page.locator('[data-roleplay-stage="Support"]').check();await page.locator('#submitL4').click();await expect(page.locator('.recap-card')).toBeVisible();
- await page.goto('/#stylez');await expect(page.locator('body')).toContainText('black, white, navy blue and grey');
+ await page.evaluate(()=>{setUi('s4.tab',0);renderLevel(4);});await page.locator('#stylezFacts summary').click();await expect(page.locator('#stylezFacts')).toContainText('black, white, navy blue and grey');
  await page.goto('/#level3');await page.evaluate(()=>{setUi('s3.tab',1);setAnswer('s3.q2.P',3);renderLevel(3);});await expect(page.locator('#sel_P')).toHaveValue('3');await expect(page.locator('#sel_P option:checked')).toHaveText('Performing service recovery');await expect(page.locator('#sel_P option')).toHaveText(['Choose a stage…','Approaching customers','Presenting product information','Closing the customer experience positively','Provide support services','Performing service recovery']);
  await page.goto('/#report');await expect(page.locator('body')).toContainText('Which stages did you do?');await expect(page.locator('body')).toContainText('Support');await expectNoSidewaysScroll(page);
 });
@@ -66,4 +66,16 @@ test('report shows "Nothing to look at again" only once Level 3 Q2 and Level 5 Q
  await expect(page.locator('.look-none')).toContainText('Nothing to look at again. You got everything right on the first try!');
  await page.evaluate(()=>{rec.first['s5q4'].ok=false;renderReport();});
  await expect(page.locator('.look-none')).toHaveCount(0);await expect(page.locator('.look-list li')).toHaveCount(1);
+});
+test('home hides the saved profile card; Level 2 pictures enlarge; Back and Next stay on screen',async({page,request},info)=>{
+ await start(page,request);await page.goto('/#home');await expect(page.locator('#studentNameForm')).toHaveCount(0);await expect(page.locator('.topbar-chip')).toContainText('Test Student 1');await expect(page.locator('#switchLink')).toContainText('Sharing this device? Switch student');
+ await page.goto('/#level2');await page.evaluate(()=>{setUi('s2.card',2);renderLevel(2);});
+ const nav=page.locator('.lesson-card-nav');await expect(nav).toHaveCSS('position','sticky');
+ const box=await nav.boundingBox();const vh=page.viewportSize().height;expect(box.y+box.height).toBeLessThanOrEqual(vh+1);expect(box.y).toBeGreaterThan(vh-120);
+ for(const b of await page.locator('.lesson-card-nav .btn').all()){const bb=await b.boundingBox();expect(bb.height).toBeGreaterThanOrEqual(44);}
+ const zoom=page.locator('.zoom-btn').first();const alt=await zoom.locator('img').getAttribute('alt');await zoom.click();
+ await expect(page.locator('.zoom-backdrop .zoom-img')).toHaveAttribute('alt',alt);await expect(page.locator('.zoom-close')).toBeFocused();await page.keyboard.press('Escape');await expect(page.locator('.zoom-backdrop')).toHaveCount(0);await expect(zoom).toBeFocused();
+ await zoom.click();await page.locator('.zoom-close').click();await expect(page.locator('.zoom-backdrop')).toHaveCount(0);
+ if(info.project.name==='laptop'){const h=await zoom.locator('img').evaluate(i=>i.getBoundingClientRect().height);expect(h).toBeLessThanOrEqual(vh*0.45+1);}
+ await expectNoSidewaysScroll(page);
 });

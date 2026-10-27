@@ -144,6 +144,40 @@ function imgHtml(id, cls) {
   return `<img class="content-img ${cls || ""}" src="${escapeHtml(im.file)}" alt="${escapeHtml(im.alt)}" data-img="${id}" data-cls="${escapeHtml(cls || "")}" onerror="imgFallback(this)">`;
 }
 
+// A picture students can tap or click to see full screen (Level 2 comics and examples).
+function zoomImgHtml(id, cls) {
+  if (!(CONFIG.IMAGES || {})[id]) return "";
+  return `<button type="button" class="zoom-btn" data-zoom="${id}">${imgHtml(id, cls)}<span class="zoom-hint" aria-hidden="true">🔍 Tap to enlarge</span><span class="visually-hidden"> (tap to enlarge)</span></button>`;
+}
+function openZoom(btn) {
+  const img = btn.querySelector("img");
+  if (!img) return; // the placeholder box has nothing to enlarge
+  const wrap = document.createElement("div");
+  wrap.className = "zoom-backdrop";
+  wrap.setAttribute("role", "dialog");
+  wrap.setAttribute("aria-modal", "true");
+  wrap.setAttribute("aria-label", "Enlarged picture");
+  setGraphicHtml(wrap, `<button type="button" class="btn zoom-close">✕ Close</button><img class="zoom-img" src="${escapeHtml(img.getAttribute("src"))}" alt="${escapeHtml(img.alt)}">`);
+  const close = () => { wrap.remove(); if (btn.isConnected) btn.focus(); };
+  wrap.addEventListener("click", e => { if (e.target === wrap || e.target.closest(".zoom-close")) close(); });
+  wrap.addEventListener("keydown", e => {
+    if (e.key === "Escape") { e.preventDefault(); close(); }
+    if (e.key === "Tab") { e.preventDefault(); wrap.querySelector(".zoom-close").focus(); } // the close button is the only control
+  });
+  document.body.appendChild(wrap);
+  // Phones: a wide comic opens larger than the screen (at most its own file size) and scrolls sideways.
+  const big = wrap.querySelector(".zoom-img");
+  if (window.innerWidth < 768 && img.naturalWidth > window.innerWidth) {
+    wrap.classList.add("zoom-scroll");
+    big.style.width = Math.min(img.naturalWidth, Math.round(window.innerWidth * 2.2)) + "px";
+  }
+  wrap.querySelector(".zoom-close").focus();
+}
+document.addEventListener("click", e => {
+  const btn = e.target.closest(".zoom-btn");
+  if (btn) openZoom(btn);
+});
+
 function imgFallback(el) {
   const exampleFigure = el.closest(".product-example-figure");
   const wrap = document.createElement("div");
@@ -952,6 +986,7 @@ function backToRoute(n){routeReturnLevel=n || Number(getUi("route.level")) || 1;
 function render() {
   const hash = window.location.hash;
   document.querySelectorAll(".modal-backdrop").forEach(m => { if (m.id !== "briefing") m.remove(); });
+  document.querySelectorAll(".zoom-backdrop").forEach(m => m.remove());
   if (hash === "#teacher") { renderTeacher(); window.scrollTo(0, 0); return; }
   const teacherLevel = hash.match(/^#teacher-preview-([1-5])$/);
   if (teacherLevel) {
@@ -964,7 +999,6 @@ function render() {
   const m = hash.match(/^#level([1-5])$/);
   if (hash === "#terms") renderTerms();
   else if (hash === "#report") renderReport();
-  else if (hash === "#stylez") renderStylezInfo();
   else if (m && isUnlocked(Number(m[1]))) renderLevel(Number(m[1]));
   else {
     if (hash !== "#home" && hash !== "") { history.replaceState(null, "", "#home"); }
@@ -1186,7 +1220,7 @@ function renderHome() {
     ${topBarHtml({ titleIsHeading: true, showChip: true })}
     <main class="page">
       <div class="block landing-banner">${imgHtml("WELCOME", "welcome-activity-banner")}</div>
-      <form class="card block" id="studentNameForm"><div class="field home-class-field"><label class="field-label" for="studentClassInput">Your class</label><input class="text-input" id="studentClassInput" readonly value="${escapeHtml(student.cls)}"></div><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" ${profileName(rec) ? "readonly" : "required"}><div class="field home-register-field"><label class="field-label" for="studentRegisterInput">Register number</label><select class="select-input" id="studentRegisterInput" disabled aria-describedby="studentRegisterNote">${student.reg > 50 ? `<option value="${student.reg}" selected>${student.reg}</option>` : ""}${Array.from({length:50},(_,i)=>i+1).map(n=>`<option value="${n}" ${n === Number(student.reg) ? "selected" : ""}>${n}</option>`).join("")}</select><p class="field-note" id="studentRegisterNote">Your register number is tied to this profile and cannot be edited.</p></div>${profileName(rec) ? "" : `<div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div>`}<p id="studentNameStatus" role="status">${profileName(rec) ? "Profile saved. Name and register number cannot be edited." : "Check your name before saving. Once saved, it cannot be edited."}</p></form>
+      ${profileName(rec) ? "" : `<form class="card block" id="studentNameForm"><div class="field home-class-field"><label class="field-label" for="studentClassInput">Your class</label><input class="text-input" id="studentClassInput" readonly value="${escapeHtml(student.cls)}"></div><label class="field-label" for="studentNameInput">Your name</label><input class="text-input" id="studentNameInput" maxlength="80" autocomplete="name" value="${escapeHtml(profileName(rec))}" ${profileName(rec) ? "readonly" : "required"}><div class="field home-register-field"><label class="field-label" for="studentRegisterInput">Register number</label><select class="select-input" id="studentRegisterInput" disabled aria-describedby="studentRegisterNote">${student.reg > 50 ? `<option value="${student.reg}" selected>${student.reg}</option>` : ""}${Array.from({length:50},(_,i)=>i+1).map(n=>`<option value="${n}" ${n === Number(student.reg) ? "selected" : ""}>${n}</option>`).join("")}</select><p class="field-note" id="studentRegisterNote">Your register number is tied to this profile and cannot be edited.</p></div>${profileName(rec) ? "" : `<div class="btn-row"><button type="submit" class="btn secondary">Save name</button></div>`}<p id="studentNameStatus" role="status">${profileName(rec) ? "Profile saved. Name and register number cannot be edited." : "Check your name before saving. Once saved, it cannot be edited."}</p></form>`}
       <div class="block">
         ${done === LEVELS.length ? "" : `<div class="welcome-card"><p class="welcome-text">${escapeHtml(welcomeLine(done, loaded))}</p></div>`}
         <p class="home-links">
@@ -1217,14 +1251,12 @@ function renderHome() {
     </main>
     ${footerHtml()}
   `);
-  document.getElementById("studentNameForm").addEventListener("submit", e=>{
+  document.getElementById("studentNameForm")?.addEventListener("submit", e=>{
     e.preventDefault();const name=document.getElementById("studentNameInput").value.trim().replace(/\s+/g," ");
     if(!name || profileName(rec))return;
     rec.profile=rec.profile || {};rec.profile.name={v:name,t:nowIso()};queueSave("now");
-    document.getElementById("studentNameStatus").textContent="Profile saved. Name and register number cannot be edited. It will sync when connected.";
-    document.getElementById("studentNameInput").readOnly=true;
-    document.querySelector("#studentNameForm .btn-row").remove();
-    const chip=document.querySelector(".topbar-chip");if(chip)setGraphicHtml(chip,`<span data-student-text>${escapeHtml(name)}</span> · ${escapeHtml(student.cls)} · Register No. ${student.reg}`);
+    // Saved: the profile card goes, so "Your route" sits near the top. The name stays in the header chip.
+    renderHome();syncStickyOffsets();
   });
   document.getElementById("howLink").addEventListener("click", (e) => { e.preventDefault(); showBriefing(); });
   document.getElementById("switchLink").addEventListener("click", (e) => { e.preventDefault(); confirmSwitchStudent(); });
@@ -1594,10 +1626,11 @@ function sayHtml(quote) { return `<p class="say">${escapeHtml(quote)}</p>`; }
 // Two images side by side at the same height (stacked on phones). Each image's share of
 // the row is set from its own shape once it loads, so new files of any shape still line up.
 function imgPairHtml(ids) {
-  return `<div class="img-pair">${ids.map(id => `<div class="img-pair-item">${imgHtml(id, "screenshot-img").replace("<img ", `<img onload="fitPairImage(this)" `)}</div>`).join("")}</div>`;
+  return `<div class="img-pair">${ids.map(id => `<div class="img-pair-item">${zoomImgHtml(id, "screenshot-img").replace("<img ", `<img onload="fitPairImage(this)" `)}</div>`).join("")}</div>`;
 }
 function fitPairImage(img) {
-  if (img.naturalWidth && img.naturalHeight && img.parentElement) img.parentElement.style.flexGrow = String(img.naturalWidth / img.naturalHeight);
+  const item = img.closest(".img-pair-item");
+  if (img.naturalWidth && img.naturalHeight && item) item.style.flexGrow = String(img.naturalWidth / img.naturalHeight);
 }
 
 /* ---------------- 🔊 Listen: read a block of notes aloud ----------------
@@ -1851,7 +1884,7 @@ const L2_TABS = [
           { icon: "🗣️", html: "Customers will <strong>recommend</strong> the business to their relatives and friends; and" },
           { icon: "🤝", html: "<strong>Customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>." }
         ], "cols-3")}
-        ${imgHtml("C01", "comic-img")}`),
+        ${zoomImgHtml("C01", "comic-img")}`),
       notesPart(() => `
         <h2 class="section-title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
         <p>Some skills and qualities customer service employees need:</p>
@@ -1868,7 +1901,7 @@ const L2_TABS = [
         <p>Staff need good product knowledge to answer questions accurately, not guess. This includes:</p>
         <p class="product-example-instruction">Tap a card to see the Nexora staff member explain it.</p>
         ${productKnowledgeCardsHtml()}
-        ${imgHtml("N02", "notes-img")}`)
+        ${zoomImgHtml("N02", "notes-img")}`)
     ]
   },
   {
@@ -1883,7 +1916,7 @@ const L2_TABS = [
             ${STAGES.map((s, i) => `<tr class="stage-row stage-${i + 1}"><th scope="row"><span class="stage-head"><span class="stage-icon" aria-hidden="true">${s.icon}</span><span>${i + 1}. ${escapeHtml(s.name)}</span></span></th><td>${escapeHtml(s.text)}</td></tr>`).join("")}
           </tbody>
         </table>
-        ${imgHtml("C02", "comic-img")}`),
+        ${zoomImgHtml("C02", "comic-img")}`),
       notesPart(() => `
         <h2 class="section-title">${hIcon("👋")}Approaching customers: 3 approaches</h2>
         <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> as soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by making eye contact, smiling and greeting them politely.</span></p>
@@ -1919,13 +1952,13 @@ const L2_TABS = [
           { icon: "😊", html: "Make customers feel comfortable or welcome in the store so that they are likely to buy from the business; and" },
           { icon: "🔁", html: "Ensure customers return to the business again in the future." }
         ], "cols-2")}
-        ${imgHtml("C03", "comic-img")}`),
+        ${zoomImgHtml("C03", "comic-img")}`),
       notesPart(() => `
         ${youtubeVideoHtml("betterWelcome", { heading: "Watch: A better welcome at Nexora", prompt: "Watch this video showing poor and good service. Notice what Alex does differently and how June responds.", frameTitle: "Video: A better welcome at Nexora" })}
         ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}`),
       notesPart(() => `
         <h2 class="section-title">${hIcon("🎯")}Presenting product information: suitability</h2>
-        ${imgHtml("SUITABILITY", "notes-img suitability-img")}
+        ${zoomImgHtml("SUITABILITY", "notes-img suitability-img")}
         <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>`)
     ]
   },
@@ -1964,11 +1997,11 @@ const L2_TABS = [
           { icon: "🔄", html: namedCardHtml("Exchange", "Offer to exchange it with a different product.") },
           { icon: "💵", html: namedCardHtml("Refund", "Give a refund.") }
         ], "cols-3")}
-        ${imgHtml("N03", "comic-img")}
+        ${zoomImgHtml("N03", "comic-img")}
 `),
       notesPart((ctx) => `
         <p>Many businesses also set clear rules for returns, such as a time limit and needing the receipt. For example, Uniqlo, as shown below.</p>
-        ${imgHtml("R03", "uniqlo-img")}
+        ${zoomImgHtml("R03", "uniqlo-img")}
         ${reflectionHtml("s2.think2", "Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?")}
         ${recapHtml("The five stages are approaching customers, presenting product information, closing the customer experience positively, providing support services and performing service recovery.")}
         ${finishButtonHtml(2)}`, { wireMore: (el) => { wireFinish(el, 2); } })
@@ -1991,7 +2024,7 @@ function youtubeVideoHtml(key, { heading, prompt, frameTitle }) {
 function afterPathHtml() {
   return `<div class="lesson-video">${youtubeVideoHtml("serviceRecovery", { heading: "Watch: The 8 steps in action", prompt: "Watch Alex use all 8 steps to help June with her cracked phone.", frameTitle: "Video: Alex uses the 8 steps of service recovery to help June with her cracked phone" })}</div>
     <p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
-    ${imgHtml("C04", "comic-img")}`;
+    ${zoomImgHtml("C04", "comic-img")}`;
 }
 
 function wirePath(el, ctx) {
@@ -2416,25 +2449,19 @@ const STYLEZ_INFORMATION = [
   }
 ];
 
-function renderStylezInfo() {
-  setGraphicHtml(app, `
-    ${topBarHtml({ showHome: true, showChip: true })}
-    <main class="page stylez-info-page">
-      <div class="block">
-        <h1 class="page-title">${hIcon("🏬")}Stylez store information</h1>
-        <p>Use this information when serving Suzzie.</p>
-      </div>
-      ${STYLEZ_INFORMATION.map((group, i) => `
-        <section class="block card stylez-info-group" aria-labelledby="stylezGroup${i}">
-          <h2 class="section-title" id="stylezGroup${i}">${hIcon(group.icon)}${escapeHtml(group.title)}</h2>
-          <dl class="stylez-facts">${group.facts.map(([label, value]) => `
-            <div class="stylez-fact"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
-          </dl>
-        </section>`).join("")}
-      <div class="btn-row"><a href="#level4" class="btn secondary" id="stylezBack">Back to Level 4</a></div>
-    </main>
-    ${footerHtml()}
-  `);
+// The store facts fold out on the Level 4 page, next to the chat button, so students keep one tab.
+function stylezFactsHtml() {
+  return `<details class="facts-details" id="stylezFacts">
+    <summary><span class="facts-icon" aria-hidden="true">🏬</span> Stylez store facts</summary>
+    <div class="facts-body">${STYLEZ_INFORMATION.map((group, i) => `
+      <section class="stylez-info-group" aria-labelledby="stylezGroup${i}">
+        <h3 class="facts-title" id="stylezGroup${i}">${hIcon(group.icon)}${escapeHtml(group.title)}</h3>
+        <dl class="stylez-facts">${group.facts.map(([label, value]) => `
+          <div class="stylez-fact"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
+        </dl>
+      </section>`).join("")}
+    </div>
+  </details>`;
 }
 
 const L4_BOXES = [
@@ -2458,7 +2485,6 @@ const L4_TABS = [
         <section class="card stylez-intro" aria-labelledby="aboutStylezTitle">
           <h3 class="section-title" id="aboutStylezTitle">${hIcon("🏬")}About Stylez</h3>
           <p>${escapeHtml(STYLEZ_INTRO)}</p>
-          <div class="btn-row"><a href="#stylez" class="btn secondary" id="stylezInfoBtn">View all Stylez information</a></div>
         </section>
         <div class="start-box">
           <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
@@ -2466,6 +2492,7 @@ const L4_TABS = [
         </div>
         <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the five stages from Level 2: approach Suzzie, present product information, close positively, provide support services, and if there's a problem, perform service recovery.</span></p>
         ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open chat with Suzzie (new tab) ↗")}
+        ${stylezFactsHtml()}
         ${conversationLinkHtml(4,ctx.readOnly)}${tickHtml("s4.tick", "I have finished serving Suzzie.", ctx.readOnly)}`,
       wire: (el) => {wireConversationLink(el,4);wireTick(el, 4, 0, "s4.tick");}
     }]
