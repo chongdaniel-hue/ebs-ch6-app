@@ -1697,3 +1697,6 @@ strong.keyword-emphasis{color:#B45309;}
 /* Distinguish speakers in the four objection quick-check conversations. */
 .qc-lines .customer-say{background:#f1eaff;border-color:#c4ade8;color:#4c2874;}
 .qc-lines .staff-say{background:#eaf2ff;border-color:#9bb8e5;color:#203d70;}
+
+/* Separate consecutive definition boxes in lesson notes. */
+.definition + .definition{margin-top:16px;}

@@ -694,3 +694,11 @@ Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap
 - Preview: removed the redundant uncertainty speech bubble from panel 1 of the objections comic; retained that dialogue in panel 3 and updated image alt text.
 
 - Preview: objection quick-check questions a–d use light purple customer boxes and pale blue staff boxes, retaining explicit speaker labels and all wording.
+
+- Preview: removed the repeated “Closing the customer experience positively” heading beneath the Stage 3 banner.
+
+- Preview: clarified the uppercase Y in BUY in the final panel caption of the closing comic.
+
+- Preview: added a 16px gap between consecutive definition boxes, including service breakdown and service recovery.
+
+- Release 0.11.7 includes underlining ONE in the Uniqlo reflection, the Stage 3 duplicate-heading removal, clearer BUY caption and definition-box spacing.

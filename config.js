@@ -191,7 +191,7 @@ window.APP_CONFIG = {
       alt: "Four-panel comic at a Nexora store. 1, SELLING POINT: The customer, holding a phone: \"This phone is a bit heavy.\" The staff member: \"It's heavier because it has a bigger battery, so it lasts the whole day.\" 2, YES, BUT: Beside a $1,299 price tag, the customer: \"The Nexora Prime is expensive.\" The staff member: \"Yes, it costs more, but its fast processor runs your games smoothly.\" 3, SHARE CONCERNS: The customer: \"Hmm… I'm not so sure if I should get this.\" The staff member: \"What worries you most about switching to a new phone?\" 4, CORRECT MISCONCEPTION: The customer: \"So the warranty covers everything, right?\" The staff member, holding a warranty card: \"Good question! The warranty covers manufacturing defects. Accidental damage, such as dropping the phone, isn't covered.\""
     },
     C07: {
-      file: "assets/img/C07-closing-positively.jpg",
+      file: "assets/img/C07-closing-positively-v2.jpg",
       emoji: "🖼️",
       label: "Closing positively comic",
       alt: "Three-panel comic at a Nexora store. 1, SIGNS OF A POSITIVE EXPERIENCE: The smiling customer holds her new phone and points at phone cases: \"This is exactly the phone I was looking for! Do you have a case for it?\" The staff member: \"Yes, this case fits it perfectly.\" 2, AFTER A SALE: He hands her a Nexora bag: \"Thank you, I'm sure the product will meet your needs. It has been a pleasure serving you.\" 3, IF THE CUSTOMER DOES NOT BUY: A different customer: \"I'd like to think about it first.\" The staff member: \"Certainly, thank you for your interest. Do come back if you decide to buy it another day.\""

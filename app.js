@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.11.6";
+const APP_VERSION = "0.11.7";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -1604,7 +1604,7 @@ function reflectionSaved(key) {
 }
 function reflectionHtml(key, label) {
   return `<div class="card think-card" data-reflection="${key}"><h3 class="think-title">${hIcon("🤔")}Think about it</h3>
-    ${answerBoxHtml(key,{label,hint:`Write at least ${MIN_RESPONSE_CHARS} characters...`,readOnly:isDone(REFLECTION_LEVEL[key] || 2) && reflectionSaved(key)})}
+    ${answerBoxHtml(key,{label,labelHtml:key === "s2.think2" ? escapeHtml(label).replace("ONE", "<u>ONE</u>") : undefined,hint:`Write at least ${MIN_RESPONSE_CHARS} characters...`,readOnly:isDone(REFLECTION_LEVEL[key] || 2) && reflectionSaved(key)})}
     <p class="field-note" role="status" data-reflection-status>Your progress saves automatically. Next saves your answer.</p></div>`;
 }
 function requireReflections(keys) {
@@ -2241,7 +2241,6 @@ const L2_CARDS = [
     check: (el) => QUICK_CHECK2.filter(it => !qcResolved(it)).map(it => ({ el: el.querySelector(`[data-key="${qcKey(it)}"]`), name: it.id + ")" })) },
   { label: "Stage 3: Closing the customer experience positively", ...notesPart(() => `
     ${imgHtml("STAGE3_BANNER", "stage-banner")}
-    <h2 class="section-title">${hIcon("✅")}Closing the customer experience positively</h2>
     <p>The final goal of every salesperson is to <strong class='keyword-emphasis'>complete a sale</strong> and close the customer experience positively.</p>
     <p>Signs that the customer had a positive experience:</p>
     ${iconCardsHtml([
