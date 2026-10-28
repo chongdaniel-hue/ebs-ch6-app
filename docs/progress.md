@@ -712,3 +712,5 @@ Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap
 - Preview: Home from teacher preview returns to the signed-in Teacher Mode landing page.
 
 - Release 0.11.8 publishes matching illustrated route/header icons, consistent Levels 2/3 headers, Teacher Home navigation and Level 6 roleplay wording updates.
+
+- Release 0.11.9: restored the original fresh-chat greeting instruction and example to Level 5 only, removed it from Level 6, and darkened the shared keyword orange to #A84B08 to improve contrast on purple cards while retaining consistent keyword colour.

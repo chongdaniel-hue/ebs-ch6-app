@@ -35,7 +35,7 @@ test('every listed key phrase is bold on its card, and never in a heading, title
     for(const p of phrases) expect(found,`card ${Number(c)+1}: "${p}"`).toContain(p);
     const colours=await page.locator("#lessonCard strong.keyword-emphasis").evaluateAll(els=>els.map(el=>getComputedStyle(el).color));
     expect(colours.length).toBeGreaterThan(0);
-    expect(new Set(colours)).toEqual(new Set(["rgb(180, 83, 9)"]));
+    expect(new Set(colours)).toEqual(new Set(["rgb(168, 75, 8)"]));
     expect(await page.locator('#lessonCard').locator('h2 strong, h3 strong, .technique-title strong, .pk-title strong, .say strong, .think-card strong, button strong, summary strong').count(),`card ${Number(c)+1}`).toBe(0);
     await expectNoSidewaysScroll(page);await expectNoAmpersand(page);
   }

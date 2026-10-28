@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.11.8";
+const APP_VERSION = "0.11.9";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -2752,7 +2752,8 @@ const L4_TABS = [
           <p>${escapeHtml(STYLEZ_INTRO)}</p>
         </section>
         <div class="start-box">
-          <p><strong>You are the customer service officer. Suzzie is your customer.</strong></p>
+          <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
+          ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
         </div>
         <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the four stages from Levels 2 and 3: approach Suzzie, present product information, close positively (including after-sales support), and if there's a problem, perform service recovery.</span></p>
         ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open chat with Suzzie (new tab) ↗")}
@@ -2835,8 +2836,7 @@ const L6_TABS = [
           { icon: "🛠️", html: "Offer a solution, and thank her for bringing the problem to your attention" }
         ], "cols-3 win-back-tips")}
         <div class="start-box">
-          <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
-          ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
+          <p><strong>You are the customer service officer. Suzzie is your customer.</strong></p>
         </div>
         ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzieRecovery, "🛍️ Open chat with angry Suzzie (new tab) ↗")}
         <details class="facts-details steps-details"><summary>Show the 8 steps</summary>${recoveryStepStripHtml()}</details>
