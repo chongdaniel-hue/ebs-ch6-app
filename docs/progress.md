@@ -682,3 +682,11 @@ Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap
 
 ## Consistent orange keywords (28 October 2026, preview 0.11.3)
 - User requested the same orange for all coloured, bold keywords. Marked the existing lesson keyword phrases and the shared boldHtml output with keyword-emphasis, styled #B45309. Covers both notes levels, the home key-term page, recovery path and recovery guides. Headings, term names, labels and other UI retain their colours. Text and progress rules are unchanged.
+
+- Preview: moved the product knowledge benefits sentence before “Product knowledge includes”, into the same definition-box component as the product knowledge definition. Wording unchanged.
+
+- Preview: replaced the Stage 1 label with the approved colourful Nexora approaching-customers banner; retained the text heading and lesson content.
+
+- Teacher preview now follows the student layout: one note card per screen with Back/Next and progress; other activities use their student step tabs and Continue segments. All preview tabs remain unlocked and view-only, with positions isolated from student records.
+
+- Release 0.11.4: added matching orange, green and purple banners for Stages 2, 3 and 4; updated the approach quick-check instruction to “Select the most appropriate approach for each question.” Includes the pending product knowledge box and student-style teacher preview layout.

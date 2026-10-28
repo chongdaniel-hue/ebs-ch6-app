@@ -17,10 +17,8 @@ test("teachers can view all lesson sections immediately without changing student
   await expect(page.locator(".teacher-preview-note")).toBeVisible();
   await expect(page.locator("#continueBtn,#nextBtn")).toHaveCount(0);
   await expect(page.locator(".teacher-lesson-part input:enabled,.teacher-lesson-part textarea:enabled,.teacher-lesson-part select:enabled")).toHaveCount(0);
-  if(n===2){await expect(page.locator(".teacher-lesson-step")).toHaveCount(13);await expect(page.locator(".qc-btn:enabled")).toHaveCount(0);await expect(page.locator('img[data-img="SUITABILITY"]')).toBeVisible();}
-  if(n===3){await expect(page.locator(".teacher-lesson-step")).toHaveCount(7);await expect(page.locator(".path-stop")).toHaveCount(8);}
-  if(n===6){await expect(page.locator(".step-chip")).toHaveCount(8);}
-  if(n===7){await expect(page.locator('[data-answer="s5.q7"]')).toBeVisible();}
+  if(n===2){await expect(page.locator("#lessonCard")).toHaveCount(1);await expect(page.locator("#lessonProgressText")).toContainText("1 of 13");}
+  if(n===3){await expect(page.locator("#lessonCard")).toHaveCount(1);await expect(page.locator("#lessonProgressText")).toContainText("1 of 7");}
   await expectNoSidewaysScroll(page);await expectNoAmpersand(page);await shot(page,testInfo,"teacher-preview-level-"+n);
   expect(await page.evaluate(()=>JSON.stringify(rec))).toBe(before);
   expect(await page.evaluate(()=>localStorage.getItem("ch6_rec_3E1#5"))).toBe(local);

@@ -115,6 +115,10 @@ window.APP_CONFIG = {
     "⚑": "flag"
 } },
   IMAGES: {
+    STAGE2_BANNER: {file:"assets/img/stage-2-banner.jpg",emoji:"📋",label:"Stage 2: Presenting product information",alt:"Stage 2: Presenting product information. The Nexora staff member helps the customer in the phone shop."},
+    STAGE3_BANNER: {file:"assets/img/stage-3-banner.jpg",emoji:"📋",label:"Stage 3: Closing the customer experience positively",alt:"Stage 3: Closing the customer experience positively. The Nexora staff member helps the customer in the phone shop."},
+    STAGE4_BANNER: {file:"assets/img/stage-4-banner.jpg",emoji:"📋",label:"Stage 4: Performing service recovery",alt:"Stage 4: Performing service recovery. The Nexora staff member helps the customer in the phone shop."},
+    STAGE1_BANNER: {file:"assets/img/stage-1-approaching-banner.jpg",emoji:"👋",label:"Stage 1: Approaching customers",alt:"Stage 1: Approaching customers. A smiling Nexora staff member welcomes a customer with a friendly wave."},
     WELCOME: {file:"assets/img/welcome-customer-service-banner.jpg",emoji:"👋",label:"Welcome to Customer Service",alt:"Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity."},
     SUITABILITY: { file: "assets/img/product-suitability-camera.png", emoji: "📱", label: "Matching the phone camera to a customer who enjoys photography", alt: "A customer shows her photo gallery while the Nexora staff member points out a new phone camera and a clear flower photo, matching its camera features to her interest in taking photos." },
     PK_FEATURES: { file: "assets/img/product-knowledge-features-v2.jpg", emoji: "📱", label: "Nexora product knowledge example", alt: "Comic: A Nexora staff member talks to a customer in the shop. He says, \"The Nexora Spark has a large screen for reading and an all-day battery.\"" },

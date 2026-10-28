@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.11.3";
+const APP_VERSION = "0.11.4";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -2149,9 +2149,9 @@ const L2_CARDS = [
   { label: "Good product knowledge", ...notesPart(() => `
     <h2 class="section-title">${hIcon("📱")}Good product knowledge</h2>
     ${definitionHtml(`<p><strong>Product knowledge</strong> refers to knowledge a service staff has of a product's <strong class='keyword-emphasis'>features and benefits</strong>.</p>`, "📖")}
+    ${definitionHtml(`<p>Service staff with good product knowledge will be able to <strong class='keyword-emphasis'>meet the needs and wants of customers</strong> and <strong class='keyword-emphasis'>increase customer satisfaction</strong> so that they will want to come back again.</p>`, "🎯")}
     <p>Product knowledge includes:</p>
-    ${productKnowledgeExamplesHtml()}
-    <p class="pk-why">Service staff with good product knowledge will be able to <strong class='keyword-emphasis'>meet the needs and wants of customers</strong> and <strong class='keyword-emphasis'>increase customer satisfaction</strong> so that they will want to come back again.</p>`) },
+    ${productKnowledgeExamplesHtml()}`) },
   { label: "The four stages", ...notesPart(() => `
     <h2 class="section-title">${hIcon("🗺️")}The four stages of providing customer service</h2>
     <table class="stage-table">
@@ -2162,7 +2162,7 @@ const L2_CARDS = [
     </table>
     ${zoomImgHtml("C02", "comic-img")}`) },
   { label: "Stage 1: Approaching customers", ...notesPart(() => `
-    ${stageLabelHtml(1)}
+    ${imgHtml("STAGE1_BANNER", "stage-banner")}
     <h2 class="section-title">${hIcon("👋")}Approaching customers: 3 approaches</h2>
     <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> As soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by <strong class='keyword-emphasis'>making eye contact, smiling and greeting them politely</strong>.</span></p>
     <ul class="approach-cards">
@@ -2201,18 +2201,18 @@ const L2_CARDS = [
     ${reflectionHtml("s2.video", "What did Alex do to make June feel welcome? Why did she bring her friend back?")}`) },
   { label: "Quick check", html: (ctx) => `
     <h2 class="section-title">${hIcon("🎯")}Quick check: Which approach is this?</h2>
-    <p>Tap one for each.</p>
+    <p>Select the most appropriate approach for each question.</p>
     <ol class="match-list qc-list">${QUICK_CHECK.map(it => quickCheckItemHtml(it, ctx.readOnly)).join("")}</ol>`,
     wire: (el) => wireQuickCheck(el),
     check: (el) => QUICK_CHECK.filter(it => !qcResolved(it)).map(it => ({ el: el.querySelector(`[data-key="s2.qc.${it.id}"]`), name: it.id + ")" })) },
   { label: "Stage 2: Finding out customers' needs and wants", ...notesPart(() => `
-    ${stageLabelHtml(2)}
+    ${imgHtml("STAGE2_BANNER", "stage-banner")}
     <h2 class="section-title">${hIcon("📱")}Presenting product information</h2>
     ${stagePartHtml(1, "🔍", "Finding out customers' needs and wants")}
     <p>Once you have greeted the customer, find out what they need by <strong class='keyword-emphasis'>asking the correct questions and listening carefully</strong>. Then it is easier to show them the correct product.</p>
     ${scenarioTableHtml()}`) },
   { label: "Stage 2: Presenting the product", ...notesPart(() => `
-    ${stageLabelHtml(2)}
+    ${imgHtml("STAGE2_BANNER", "stage-banner")}
     <h2 class="section-title">${hIcon("📱")}Presenting product information</h2>
     ${stagePartHtml(2, "🛍️", "Presenting the product")}
     <p>Techniques for effective product presentation:</p>
@@ -2227,7 +2227,7 @@ const L2_CARDS = [
     <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>
     ${zoomImgHtml("SUITABILITY", "notes-img suitability-img")}`) },
   { label: "Stage 2: Handling questions and objections", ...notesPart(() => `
-    ${stageLabelHtml(2)}
+    ${imgHtml("STAGE2_BANNER", "stage-banner")}
     <h2 class="section-title">${hIcon("📱")}Presenting product information</h2>
     ${stagePartHtml(3, "🙋", "Handling customers' questions and objections")}
     <p>When customers ask questions or raise objections, it is often a sign that they are interested in the product. Use this chance to persuade them to buy.</p>
@@ -2240,7 +2240,7 @@ const L2_CARDS = [
     wire: (el) => wireQuickCheck(el),
     check: (el) => QUICK_CHECK2.filter(it => !qcResolved(it)).map(it => ({ el: el.querySelector(`[data-key="${qcKey(it)}"]`), name: it.id + ")" })) },
   { label: "Stage 3: Closing the customer experience positively", ...notesPart(() => `
-    ${stageLabelHtml(3)}
+    ${imgHtml("STAGE3_BANNER", "stage-banner")}
     <h2 class="section-title">${hIcon("✅")}Closing the customer experience positively</h2>
     <p>The final goal of every salesperson is to <strong class='keyword-emphasis'>complete a sale</strong> and close the customer experience positively.</p>
     <p>Signs that the customer had a positive experience:</p>
@@ -2256,7 +2256,7 @@ const L2_CARDS = [
     </ul>
     ${zoomImgHtml("C07", "comic-img")}`) },
   { label: "Stage 3: After-sales support", ...notesPart(() => `
-    ${stageLabelHtml(3)}
+    ${imgHtml("STAGE3_BANNER", "stage-banner")}
     <h2 class="section-title">${hIcon("🛡️")}After-sales support</h2>
     ${definitionHtml(`<p><strong>After-sales service</strong> refers to the <strong class='keyword-emphasis'>help given to customers after they have bought a product</strong>.</p>`, "📖")}
     <p>Providing good after-sales service is one way businesses can be <strong class='keyword-emphasis'>better than their competitors</strong>.</p>
@@ -2273,7 +2273,7 @@ const L2_CARDS = [
       { icon: "✅", html: "Provide them with <strong class='keyword-emphasis'>relevant and accurate information</strong>." }
     ], "chips")}`) },
   { label: "Stage 4: Service breakdown and service recovery", ...notesPart(() => `
-    ${stageLabelHtml(4)}
+    ${imgHtml("STAGE4_BANNER", "stage-banner")}
     <h2 class="section-title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
     ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers <strong class='keyword-emphasis'>make a complaint</strong> about a product or service.</p><p class="def-more">Common causes: Unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
     ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business <strong class='keyword-emphasis'>takes action</strong> in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}
@@ -2285,7 +2285,7 @@ const L2_CARDS = [
     <p>Follow Nexora's staff member as he uses the 8 steps with a customer whose new phone screen cracked on its own.</p>
     ${recoveryPathHtml()}`) },
   { label: "Watch: The 8 steps in action", ...notesPart(() => `
-    ${stageLabelHtml(4)}
+    ${imgHtml("STAGE4_BANNER", "stage-banner")}
     <div class="lesson-video">${youtubeVideoHtml("serviceRecovery", { heading: "Watch: The 8 steps in action", prompt: "Watch Alex use all 8 steps to help June with her cracked phone.", frameTitle: "Video: Alex uses the 8 steps of service recovery to help June with her cracked phone" })}</div>`) },
   { label: "Real-life example: Poor service recovery", key: "s2.think1", ...notesPart(() => `
     <h2 class="section-title">${hIcon("📉")}Real-life example: Poor service recovery</h2>
@@ -3378,35 +3378,36 @@ function teacherLessonLinksHtml(current) {
   return `<nav class="teacher-lesson-links" aria-label="Teacher lesson preview">${LEVELS.map(level=>`<a class="btn secondary" href="#teacher-preview-${level.pos}" ${current===level.num ? 'aria-current="page"' : ""}>Level ${level.pos}</a>`).join("")}</nav>`;
 }
 
+const teacherPreviewPositions = {};
 function renderTeacherLesson(n) {
-  // Render against an isolated, temporary record. Never load or write student answers.
+  const notes = NOTES_CARDS[n];
+  const tabs = LEVEL_CONTENT[n].tabs;
+  const state = teacherPreviewPositions[n] || (teacherPreviewPositions[n] = {tab:0,part:1});
+  const t = Math.min(state.tab, (notes || tabs).length-1);
+  const tab = tabs[t];
   const previousRecord = rec;
   let content;
   renderingTeacherPreview = true;
   try {
     rec = freshRecord("",0,"");
     rec.agreed = "preview";
-    content = LEVEL_CONTENT[n].tabs.map((tab,t)=>`<section class="teacher-lesson-step" aria-labelledby="teacherStep${t}">
-      <h2 class="teacher-step-title" id="teacherStep${t}">${escapeHtml(tab.label)}</h2>
-      ${tab.parts.map((part,i)=>`<section class="block part teacher-lesson-part" id="teacherPart${n}_${t}_${i}">${part.html({n,t,readOnly:true,fresh:false})}</section>`).join("")}
-    </section>`).join("");
+    const ctx = {n,t,readOnly:true,fresh:false};
+    content = notes ? notes[t].html(ctx) : tab.parts.slice(0,state.part).map((part,i)=>`<section class="block part teacher-lesson-part" id="part${i}">${part.html(ctx)}</section>`).join("");
   } finally {
     rec = previousRecord;
     renderingTeacherPreview = false;
   }
-  setGraphicHtml(app,`${topBarHtml({})}<main class="page teacher-lesson">
-    <div class="block"><h1 class="page-title">Level ${lvl(n).pos}: ${escapeHtml(lvl(n).title)}</h1>
-      <p class="teacher-preview-note">Teacher preview: all sections are open. Activities are view-only and do not change student progress.</p>
-      <div class="btn-row"><a class="btn secondary" href="#teacher">Back to Teacher Mode</a></div>
-      ${teacherLessonLinksHtml(n)}</div>${content}</main>${footerHtml()}`);
-  app.querySelectorAll(".teacher-lesson-part input, .teacher-lesson-part select, .teacher-lesson-part textarea, .teacher-lesson-part button").forEach(el=>{
-    if (!el.matches(".listen-btn, .zoom-btn")) el.disabled = true;
-  });
-  app.querySelectorAll(".teacher-lesson [aria-labelledby]").forEach(el=>{
-    if (!el.getAttribute("aria-labelledby").split(/\s+/).every(id=>document.getElementById(id))) el.removeAttribute("aria-labelledby");
-  });
-  wireListen(app);
-  labelFormControls();
+  const count = (notes || tabs).length;
+  const progress = notes ? `<div class="lesson-card-progress"><p id="lessonProgressText">${t+1} of ${count} · ${escapeHtml(notes[t].label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${count}" aria-valuenow="${t+1}"><div class="progress-fill" style="width:${(t+1)/count*100}%"></div></div></div>` : "";
+  const tabNav = notes || count<2 ? "" : `<nav class="step-tabs" aria-label="Steps in Level ${shown(n)}"><ol class="step-tabs-list" style="--tab-count:${count}">${tabs.map((item,i)=>`<li><button type="button" class="step-tab ${i===t?'current':''}" data-preview-tab="${i}" ${i===t?'aria-current="step"':''}><span class="step-num" aria-hidden="true">${i+1}</span><span class="step-label">${escapeHtml(item.label)}</span></button></li>`).join("")}</ol></nav>`;
+  const more = !notes && state.part<tab.parts.length;
+  setGraphicHtml(app,`${topBarHtml({showHome:true})}<div class="page teacher-preview-tools"><p class="teacher-preview-note">Teacher preview: all sections are accessible. Activities are view-only and do not change student progress.</p><div class="btn-row"><a class="btn secondary" href="#teacher">Back to Teacher Mode</a></div>${teacherLessonLinksHtml(n)}</div>${!notes?`<div class="level-head"><div class="level-head-inner"><h1 class="page-title ${lvl(n).iconImg?'graphic-heading':''}">${levelIconHtml(lvl(n))}<span>Level ${shown(n)}: ${escapeHtml(lvl(n).title)}</span></h1><p class="level-sub">${escapeHtml(lvl(n).desc)}</p></div></div>`:''}${tabNav}<main class="page level-page ${notes?'lesson-single':''}" id="levelMain">${notes?`<h1 class="page-title">Level ${shown(n)}: ${escapeHtml(lvl(n).title)}</h1>${progress}<section class="card lesson-card teacher-lesson-part" id="lessonCard">${content}</section>`:content}<div class="btn-row lesson-card-nav"><button class="btn secondary" id="previewBack" ${t===0 && state.part===1?'disabled':''}>Back</button><button class="btn" id="previewNext">${more?'Continue ↓':t<count-1?'Next →':'Back to Teacher Mode'}</button></div></main>${footerHtml()}`);
+  app.querySelectorAll(".teacher-lesson-part input, .teacher-lesson-part select, .teacher-lesson-part textarea, .teacher-lesson-part button").forEach(el=>{if(!el.matches(".listen-btn, .zoom-btn"))el.disabled=true;});
+  const navigate = () => {stopSpeaking();renderTeacherLesson(n);syncStickyOffsets();revealFocus(document.getElementById('lessonCard') || document.getElementById('levelMain'));};
+  document.getElementById('previewBack').onclick=()=>{if(!notes && state.part>1)state.part--;else{state.tab=Math.max(0,t-1);state.part=1;}navigate();};
+  document.getElementById('previewNext').onclick=()=>{if(more)state.part++;else if(t<count-1){state.tab=t+1;state.part=1;}else{location.hash='#teacher';return;}navigate();};
+  app.querySelectorAll('[data-preview-tab]').forEach(el=>el.onclick=()=>{state.tab=Number(el.dataset.previewTab);state.part=1;navigate();});
+  syncStickyOffsets();wireListen(app);labelFormControls();
 }
 
 function renderTeacherHome() {
