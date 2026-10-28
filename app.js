@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.11.7";
+const APP_VERSION = "0.11.8";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -236,13 +236,13 @@ function levelIconHtml(level) {
 // unlock grants and the s<num>. answer keys, and never changes meaning (see CLAUDE.md).
 // pos is the level number students see. Learn Part 2 was added as 7 and Win Suzzie Back as 6.
 const LEVELS = [
-  { num: 1, icon: "📝", title: "Your Customer Service Stories", desc: "Think about your own experiences as a customer.", badge: "Story Sharer", badgeImg: "BADGE1" },
+  { num: 1, icon: "", iconImg: "ICON_STORIES", title: "Your Customer Service Stories", desc: "Think about your own experiences as a customer.", badge: "Story Sharer", badgeImg: "BADGE1" },
   { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service (Part 1)", desc: "Short notes on quality customer service, approaching customers and presenting product information.", badge: "Service Scholar", badgeImg: "BADGE2" },
   { num: 7, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service (Part 2)", desc: "Short notes on closing positively, after-sales support and service recovery.", badge: "Service Saver", badgeImg: "BADGE_L3" },
-  { num: 3, icon: "💬", title: "Chat with Alex", desc: "Be the customer. Chat with Nexora's customer service officer.", badge: "Service Spotter", badgeImg: "BADGE3" },
-  { num: 4, icon: "🛍️", title: "Serve Suzzie at Stylez", desc: "Switch roles. Now you're the customer service officer.", badge: "Service Star", badgeImg: "BADGE4" },
-  { num: 6, icon: "🛠️", title: "Win Suzzie Back", desc: "Suzzie is upset. Use the 8 steps to turn her bad experience into a good one.", badge: "Service Superstar", badgeImg: "BADGE6" },
-  { num: 5, icon: "✅", title: "Check and Exit Ticket", desc: "Check what you've learnt and tell your teacher how confident you feel.", badge: "Completion Champion", badgeImg: "BADGE5" }
+  { num: 3, icon: "", iconImg: "ICON_ALEX", title: "Chat with Alex", desc: "Be the customer. Chat with Nexora's customer service officer.", badge: "Service Spotter", badgeImg: "BADGE3" },
+  { num: 4, icon: "", iconImg: "ICON_SERVE", title: "Serve Suzzie at Stylez", desc: "Switch roles. Now you're the customer service officer.", badge: "Service Star", badgeImg: "BADGE4" },
+  { num: 6, icon: "", iconImg: "ICON_RECOVER", title: "Win Suzzie Back", desc: "Suzzie is upset. Use the 8 steps to turn her bad experience into a good one.", badge: "Service Superstar", badgeImg: "BADGE6" },
+  { num: 5, icon: "", iconImg: "ICON_CHECK", title: "Check and Exit Ticket", desc: "Check what you've learnt and tell your teacher how confident you feel.", badge: "Completion Champion", badgeImg: "BADGE5" }
 ];
 LEVELS.forEach((l, i) => { l.pos = i + 1; });
 function levelByPos(pos) { return LEVELS[pos - 1]; }
@@ -1048,6 +1048,10 @@ function popConfetti(){
   for(let i=0;i<48;i++){const piece=document.createElement('i');piece.style.cssText=`--x:${(i*37)%100}%;--drift:${(i%2?-1:1)*(30+i%90)}px;--delay:${i%8*0.06}s;background:${STAGE_COLOURS[i%4]}`;layer.appendChild(piece);}document.body.appendChild(layer);setTimeout(()=>layer.remove(),2600);
 }
 // The notes: Level 2 (stored as 2) and Level 3 (stored as 7), one card at a time.
+function levelHeadingHtml(n) {
+  const s = lvl(n);
+  return `<div class="level-head"><div class="level-head-inner"><h1 class="page-title ${s.iconImg ? "graphic-heading" : ""}">${levelIconHtml(s)}<span>Level ${s.pos}: ${escapeHtml(s.title)}</span></h1><p class="level-sub">${escapeHtml(s.desc)}</p></div></div>`;
+}
 function lessonCards(n){ return NOTES_CARDS[n || 2]; }
 function renderLessonCard(n){
   n=n||2;stopSpeaking();setUi('route.level',n);
@@ -1057,7 +1061,7 @@ function renderLessonCard(n){
   const card=cards[pos];
   const ctx={n,t:pos,readOnly:isDone(n),fresh:true};
   const last=pos===cards.length-1;
-  setGraphicHtml(app,`${topBarHtml({showHome:true,showChip:true})}<main class="page level-page lesson-single" id="levelMain"><h1 class="page-title">Level ${s.pos}: ${escapeHtml(s.title)}</h1><div class="lesson-card-progress"><p id="lessonProgressText">${pos+1} of ${cards.length} · ${escapeHtml(card.label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${cards.length}" aria-valuenow="${pos+1}"><div class="progress-fill" style="width:${(pos+1)/cards.length*100}%"></div></div></div><section class="card lesson-card" id="lessonCard">${card.html(ctx)}</section><div class="btn-row lesson-card-nav"><button class="btn secondary" id="lessonBack" ${pos===0?'disabled':''}>Back</button><button class="btn" id="lessonNext">${last?`Finish Level ${s.pos}`:'Next →'}</button></div></main>${footerHtml()}`);
+  setGraphicHtml(app,`${topBarHtml({showHome:true,showChip:true})}${levelHeadingHtml(n)}<main class="page level-page lesson-single" id="levelMain"><div class="lesson-card-progress"><p id="lessonProgressText">${pos+1} of ${cards.length} · ${escapeHtml(card.label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${cards.length}" aria-valuenow="${pos+1}"><div class="progress-fill" style="width:${(pos+1)/cards.length*100}%"></div></div></div><section class="card lesson-card" id="lessonCard">${card.html(ctx)}</section><div class="btn-row lesson-card-nav"><button class="btn secondary" id="lessonBack" ${pos===0?'disabled':''}>Back</button><button class="btn" id="lessonNext">${last?`Finish Level ${s.pos}`:'Next →'}</button></div></main>${footerHtml()}`);
   syncStickyOffsets();const el=document.getElementById('lessonCard');card.wire(el,ctx);wireReflections(el);
   if(rec.agreed && !isStarted(n)){raiseReached(`s${n}.t0`,1);queueSave('soon');}
   document.getElementById('lessonBack').onclick=()=>{setUi(`s${n}.card`,pos-1);queueSave('now');renderLessonCard(n);revealFocus(document.getElementById('lessonCard'));};
@@ -1073,7 +1077,7 @@ function renderLessonCard(n){
 /* ---------------- Router ---------------- */
 
 let routeReturnLevel = null;
-function backToRoute(n){routeReturnLevel=n || Number(getUi("route.level")) || 1;if(location.hash === "#home")render();else location.hash="#home";}
+function backToRoute(n){if(teacher && /^#teacher(?:-preview-[1-7])?$/.test(location.hash)){location.hash="#teacher";return;}routeReturnLevel=n || Number(getUi("route.level")) || 1;if(location.hash === "#home")render();else location.hash="#home";}
 
 function render() {
   const hash = window.location.hash;
@@ -2748,8 +2752,7 @@ const L4_TABS = [
           <p>${escapeHtml(STYLEZ_INTRO)}</p>
         </section>
         <div class="start-box">
-          <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
-          ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
+          <p><strong>You are the customer service officer. Suzzie is your customer.</strong></p>
         </div>
         <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the four stages from Levels 2 and 3: approach Suzzie, present product information, close positively (including after-sales support), and if there's a problem, perform service recovery.</span></p>
         ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open chat with Suzzie (new tab) ↗")}
@@ -2835,7 +2838,7 @@ const L6_TABS = [
           <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
           ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
         </div>
-        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzieRecovery, "🛍️ Open chat with Suzzie (new tab) ↗")}
+        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzieRecovery, "🛍️ Open chat with angry Suzzie (new tab) ↗")}
         <details class="facts-details steps-details"><summary>Show the 8 steps</summary>${recoveryStepStripHtml()}</details>
         ${stylezFactsHtml()}
         ${conversationLinkHtml(6, ctx.readOnly)}${tickHtml("s6.tick", "I have finished helping Suzzie.", ctx.readOnly)}`,
@@ -3400,7 +3403,7 @@ function renderTeacherLesson(n) {
   const progress = notes ? `<div class="lesson-card-progress"><p id="lessonProgressText">${t+1} of ${count} · ${escapeHtml(notes[t].label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${count}" aria-valuenow="${t+1}"><div class="progress-fill" style="width:${(t+1)/count*100}%"></div></div></div>` : "";
   const tabNav = notes || count<2 ? "" : `<nav class="step-tabs" aria-label="Steps in Level ${shown(n)}"><ol class="step-tabs-list" style="--tab-count:${count}">${tabs.map((item,i)=>`<li><button type="button" class="step-tab ${i===t?'current':''}" data-preview-tab="${i}" ${i===t?'aria-current="step"':''}><span class="step-num" aria-hidden="true">${i+1}</span><span class="step-label">${escapeHtml(item.label)}</span></button></li>`).join("")}</ol></nav>`;
   const more = !notes && state.part<tab.parts.length;
-  setGraphicHtml(app,`${topBarHtml({showHome:true})}<div class="page teacher-preview-tools"><p class="teacher-preview-note">Teacher preview: all sections are accessible. Activities are view-only and do not change student progress.</p><div class="btn-row"><a class="btn secondary" href="#teacher">Back to Teacher Mode</a></div>${teacherLessonLinksHtml(n)}</div>${!notes?`<div class="level-head"><div class="level-head-inner"><h1 class="page-title ${lvl(n).iconImg?'graphic-heading':''}">${levelIconHtml(lvl(n))}<span>Level ${shown(n)}: ${escapeHtml(lvl(n).title)}</span></h1><p class="level-sub">${escapeHtml(lvl(n).desc)}</p></div></div>`:''}${tabNav}<main class="page level-page ${notes?'lesson-single':''}" id="levelMain">${notes?`<h1 class="page-title">Level ${shown(n)}: ${escapeHtml(lvl(n).title)}</h1>${progress}<section class="card lesson-card teacher-lesson-part" id="lessonCard">${content}</section>`:content}<div class="btn-row lesson-card-nav"><button class="btn secondary" id="previewBack" ${t===0 && state.part===1?'disabled':''}>Back</button><button class="btn" id="previewNext">${more?'Continue ↓':t<count-1?'Next →':'Back to Teacher Mode'}</button></div></main>${footerHtml()}`);
+  setGraphicHtml(app,`${topBarHtml({showHome:true})}<div class="page teacher-preview-tools"><p class="teacher-preview-note">Teacher preview: all sections are accessible. Activities are view-only and do not change student progress.</p><div class="btn-row"><a class="btn secondary" href="#teacher">Back to Teacher Mode</a></div>${teacherLessonLinksHtml(n)}</div>${levelHeadingHtml(n)}${tabNav}<main class="page level-page ${notes?'lesson-single':''}" id="levelMain">${notes?`${progress}<section class="card lesson-card teacher-lesson-part" id="lessonCard">${content}</section>`:content}<div class="btn-row lesson-card-nav"><button class="btn secondary" id="previewBack" ${t===0 && state.part===1?'disabled':''}>Back</button><button class="btn" id="previewNext">${more?'Continue ↓':t<count-1?'Next →':'Back to Teacher Mode'}</button></div></main>${footerHtml()}`);
   app.querySelectorAll(".teacher-lesson-part input, .teacher-lesson-part select, .teacher-lesson-part textarea, .teacher-lesson-part button").forEach(el=>{if(!el.matches(".listen-btn, .zoom-btn"))el.disabled=true;});
   const navigate = () => {stopSpeaking();renderTeacherLesson(n);syncStickyOffsets();revealFocus(document.getElementById('lessonCard') || document.getElementById('levelMain'));};
   document.getElementById('previewBack').onclick=()=>{if(!notes && state.part>1)state.part--;else{state.tab=Math.max(0,t-1);state.part=1;}navigate();};

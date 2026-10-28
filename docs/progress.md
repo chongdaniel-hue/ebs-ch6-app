@@ -702,3 +702,13 @@ Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap
 - Preview: added a 16px gap between consecutive definition boxes, including service breakdown and service recovery.
 
 - Release 0.11.7 includes underlining ONE in the Uniqlo reflection, the Stage 3 duplicate-heading removal, clearer BUY caption and definition-box spacing.
+
+- Preview: Levels 2 and 3 now use the same icon, title and description header format as Level 1, for students and teachers.
+
+- Preview: removed Level 6’s fresh-chat greeting instruction and example, retaining the role statement.
+
+- Preview: added glossy illustrated icons for Levels 1, 4, 5, 6 and 7 matching the learning icon; updated Level 6 button to “Open chat with angry Suzzie (new tab)”.
+
+- Preview: Home from teacher preview returns to the signed-in Teacher Mode landing page.
+
+- Release 0.11.8 publishes matching illustrated route/header icons, consistent Levels 2/3 headers, Teacher Home navigation and Level 6 roleplay wording updates.
