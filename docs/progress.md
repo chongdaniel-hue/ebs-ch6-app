@@ -612,3 +612,60 @@ Level 2 matched the textbook but felt wordy for G1 students. The textbook wordin
 - Same behaviour as the first quick check (card 9): ✓ or ✗ under each item, one more try with the hint, then the right answer with its reason; every item must be finished before Next; not scored and not in the report or Teacher Mode. Saved as `s2.qc2.<a|b|c|d>.1` and `.2`; the first quick check's answers are untouched.
 - Saved positions: an 18-card position moves to the matching 19-card position (cards after Stage 2, part 3 move one along); 15-card, 10-card and older positions still move correctly.
 - After review: the example speech lines (`.say`, everywhere they appear) are normal weight instead of 600, so the bold key words stand out on busy cards such as Stage 1 and Closing. "Customer:" and "Staff:" stay bold, and the bubble backgrounds are unchanged.
+
+## Seven levels (28 October 2026, version 0.11.0)
+Dan rewrote `docs/storyboard.md` and `docs/storyboard.docx` from the live site, with everything below (7 levels). The storyboard is again the single source of truth, and the "Out of date since 27 October 2026" bullet is removed from CLAUDE.md.
+
+### Level numbers: what students see and what is stored
+Stored level numbers and answer keys never change meaning; a new or split level gets a new stored number and new keys, and only the order and the shown number change.
+
+| Students see | Level | Stored as (`done`, unlock grants, `s<n>.` keys) |
+|---|---|---|
+| Level 1 | Your Customer Service Stories | 1 |
+| Level 2 | Learn: Customer Service (Part 1) | 2 (`s2.*`) |
+| Level 3 | Learn: Customer Service (Part 2) | 7 (position `s7.card`; reflections keep `s2.think1`, `s2.think2`) |
+| Level 4 | Chat with Alex | 3 (`s3.*`, `s3q2.*`) |
+| Level 5 | Serve Suzzie at Stylez | 4 (`s4.*`) |
+| Level 6 | Win Suzzie Back | 6 (`s6.*`) |
+| Level 7 | Check and Exit Ticket | 5 (`s5.*`, `s5q3.*`, `s5q4`) |
+
+Dan agreed this instead of renumbering the stored levels: renumbering would have mixed the two numberings whenever a 0.10.0 copy and a 0.11.0 copy of a record were merged (finished flags are added together), which nothing could undo later.
+
+### Part 1: three new comics
+- C05 (customer service timeline), C06 (handling objections) and C07 (closing positively) are in the image map with the alt text from storyboard section F, shown with Tap to enlarge like C02 to C04: C05 on Level 2 card 2 straight under "It takes place the moment a customer enters…" and before "What is quality customer service?"; C06 on Level 2 card 12 straight under the four technique cards; C07 on Level 3 card 1 straight under the two appreciation lines. Each file is 1600px wide (186 to 232 KB).
+
+### Part 2: the notes split into Levels 2 and 3
+- Level 2, "Learn: Customer Service (Part 1)": the old cards 1 to 13, ending on "Stage 2: Quick check" (13 of 13) with Finish Level 2 and the Service Scholar badge. Card description as in the storyboard.
+- Level 3, "Learn: Customer Service (Part 2)": 7 cards (storyboard 3.1 to 3.7) on the same card engine (progress "{n} of 7 · {label}", sticky Back and Next, Read aloud, Tap to enlarge, Finish Level 3). Same icon as Level 2. Its two Think about it boxes (still `s2.think1`, `s2.think2`) hold back Next and Finish.
+- Level 3 badge: "Service Saver" (placeholder name), image-map id `BADGE_L3`, file `assets/img/badge-level-3.png` (not added yet), emoji 🛡️. The shelf, pop-up and report show the standard placeholder box until the file is dropped in.
+- Card 4, The 8 service recovery steps: all 8 stops at once. The Show Step button, the slide-in, the "Tap Show Step to see all 8 steps." note and the rule that held back Next are gone (and `reached["s2.path"]` is no longer used). Icons, bold key words, staff lines and mood faces are unchanged.
+- Card 5, Watch: The 8 steps in action: the video block moved to its own card, with the purple Stage 4 label above the heading. Nothing holds back Next.
+
+### Part 3: Level 6, Win Suzzie Back
+- `CONFIG.GEMS.suzzieRecovery` added (alex and suzzie unchanged). Route card 🛠️ with the storyboard description; badge Service Superstar (`BADGE6`, `badge-service-superstar.png`, 🌟).
+- Tab 1, Roleplay: N05 with the intro, three icon cards, the start box with its speech line, "🛍️ Open chat with Suzzie (new tab) ↗" (opens `GEMS.suzzieRecovery`), two closed fold-outs ("Show the 8 steps", the same box as Level 3 card 6, and "🏬 Stylez store facts"), the Gemini share-link card, the tick box "I have finished helping Suzzie." and "Next: Reflect →", locked by the same tick plus "gemini" rule and messages as Levels 4 and 5.
+- Tab 2, Reflect: Q1 the 8-step checklist (Listen to Thank, each with its step icon, nothing ticked, one neutral border for every step, so no stage colours), Q2 and Q3 answer boxes with the storyboard hints, Submit ("Not finished yet" names what is missing), the Remember this line, Finish Level 6, the Service Superstar pop-up; Level 7 unlocks.
+- Saved as `s6.link`, `s6.tick`, `s6.steps`, `s6.q1`, `s6.q2` and `submitted.s6`.
+
+### Part 4: seven levels everywhere
+- Before you start point 3, the welcome lines, "{n} of 7 levels done", seven level cards and seven badge slots in level order; Serve Suzzie "from Levels 2 and 3"; the Check Q1 iv hint "in Level 3"; the report ("Level 4, Q2", "Level 7, Q1 and Q2", "Finish Levels 4 and 7…", a Level 3 and a Level 6 section in every answer); the "Look at these again" lines for s3q2.P, s5q3.iii, s5q3.iv and s5q4 now point to Level 3.
+- Teacher Mode: preview buttons Level 1 to 7, the class summary, students table and full report for seven levels, CSV columns for Level 6 (link, steps used, two reflections) and the renamed Level 3 to 5 columns. Footer Unlock: "all seven levels" and Level 1 to 7 tick boxes (each sends the stored number).
+- Completion Champion and the confetti stay on the last level (Level 7).
+- Routes use the number students see (`#level1` to `#level7`, `#teacher-preview-1` to `-7`).
+
+### Saved work from 0.10.0 (`migrateRecord`, the same in `app.js` and `Code.gs`)
+Runs on every record when it loads (device copy, server copy, Teacher Mode results) and before every merge, once per record (`reached.levels7` marks it; new records start with it):
+- Finished the old notes: Level 3 is finished too, with the same date (both badges).
+- An old unlock grant for the notes also opens Level 3. Grants for Alex, Serve Suzzie and the Check keep their stored numbers, so they now show as Levels 4, 5 and 7.
+- Part-way through the notes before card 14: stays in Level 2 on the same card. On card 14 or later (any of the 19-, 18-, 15- and 10-card layouts): Level 2 counts as finished (badge included) and Level 3 opens on the matching card. Only the app moves positions; `Code.gs` has `MIGRATE_POSITIONS = false`, so a student still on the 0.10.0 page during the switch is not sent back a card.
+- Level 6 opens for anyone who has finished Serve Suzzie. A Check started or finished before Level 6 existed stays open (`reached["open.5"]`, set once by the migration), and any finished level stays open. Levels opened only by Teacher Mode's "Unlock all levels on this device" still lock again when it is turned off.
+- `Code.gs` (SCRIPT_VERSION 0.11.0): Unlock accepts the seven stored numbers (1 to 7), stored records are migrated before new grants are added (so a new Level 2 grant does not also open Level 3), "Levels finished" counts the seven levels, and the footer profile list returns migrated grants.
+- **Order for going live: redeploy Apps Script first, then push to Vercel** (steps in `docs/apps-script-setup.md`, "Seven levels"). The new script is safe with the live 0.10.0 app.
+- Test-only: the local server has `/__test/oldRecord`, which stores a record exactly as the 0.10.0 script left it, so the migration can be tested.
+
+### After Dan's test: 0.10.0 pages saving after the server update
+Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap: the server's first merge of any record set the `levels7` marker, so a student who then finished the old Level 2 on the 0.10.0 page (students 31 and 33) never got Level 3, and a student who then started the old Check never got `open.5`.
+- The 0.11.0 app now sends `app` (its version) with every save. A save without it comes from a 0.10.0 page, and `oldAppSave` in `Code.gs` converts what that save adds to the stored record, whatever marker it carries: a newly finished Level 2 also finishes Level 3 (same date), and new Check work (or a newly finished Check) adds `open.5` unless Level 6 is finished.
+- Only what the old page adds is converted, so a student who finished only the new Part 1 in 0.11.0 never gets Part 2, even if a stale 0.10.0 page saves that record again. Saves from the 0.11.0 app are never converted.
+- Tests in `tests/seven-levels.spec.js` ("the 0.10.0 app saving after the server update"): finishing the old Level 2 (students 31 and 33), starting the old Check, Part 1 alone never gaining Part 2, and the app sending its version. The first two fail without the fix.
+- The order stays: redeploy Apps Script first, then push to Vercel.

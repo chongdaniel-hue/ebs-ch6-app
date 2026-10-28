@@ -99,9 +99,9 @@ test.describe("Level 1", () => {
     await badge.locator("button", { hasText: "Back to my route" }).click();
 
     expect(page.url()).toMatch(/#home$/);
-    await expect(page.locator(".journey-count")).toHaveText("1 of 5 levels done");
-    await expect(page.locator(".welcome-text")).toHaveText("Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
-    await expect(page.locator(".status-pill")).toHaveText(["Story Sharer", "Not started", "Locked", "Locked", "Locked"]);
+    await expect(page.locator(".journey-count")).toHaveText("1 of 7 levels done");
+    await expect(page.locator(".welcome-text")).toHaveText("Welcome back! You've finished 1 of 7 levels. Great progress! Carry on with Level 2 below.");
+    await expect(page.locator(".status-pill")).toHaveText(["Story Sharer", "Not started", "Locked", "Locked", "Locked", "Locked", "Locked"]);
     await expect(page.locator(".shelf-name").first()).toHaveText("Story Sharer, earned");
 
     // The server has the stories, the submit time and the finished level.
@@ -138,7 +138,7 @@ test.describe("Level 1", () => {
 });
 
 test.describe("Level 2", () => {
-  // Walks a fresh student through all 19 cards with Back and Next, answering what each card needs.
+  // Walks a student through the notes cards with Next, answering what each card needs.
   async function walkLevel2(page, upTo) {
     for (let i = 0; i < upTo; i++) {
       const label = await page.locator("#lessonProgressText").textContent();
@@ -149,12 +149,10 @@ test.describe("Level 2", () => {
         for (const [id, answer] of [["a", "Greeting"], ["b", "Service"], ["c", "Product"]]) await page.locator(`.qc-item[data-key="s2.qc.${id}"]`).getByRole("button", { name: answer }).click();
       }
       if (/The 8 service recovery steps/.test(label)) {
-        for (let n = 2; n <= 8; n++) {
-          await expect(page.locator("#lessonNext")).toBeDisabled();
-          await page.click("#showStepBtn");
-          await expect(page.locator(".path-stop")).toHaveCount(n);
-          await expect(page.locator(`#pathLabel${n}`)).toHaveText(PATH_LABELS[n - 1]);
-        }
+        // All 8 stops at once (0.11.0), and Next is ready.
+        await expect(page.locator(".path-stop")).toHaveCount(8);
+        for (let n = 1; n <= 8; n++) await expect(page.locator(`#pathLabel${n}`)).toHaveText(PATH_LABELS[n - 1]);
+        await expect(page.locator("#lessonNext")).toBeEnabled();
       }
       if (/Real-life example/.test(label)) await page.fill('textarea[data-answer="s2.think1"]', "No apology and no real solution.");
       if (/Handling returns/.test(label)) await page.fill('textarea[data-answer="s2.think2"]', "Used items, because of hygiene.");
@@ -162,41 +160,51 @@ test.describe("Level 2", () => {
     }
   }
 
-  test("19 cards, Back and Next, the step-by-step path, reflections, recap, badge", async ({ page, request }, testInfo) => {
+  test("Level 2: 13 cards and Service Scholar; Level 3: 7 cards, all 8 steps at once and Service Saver", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
     await newStudent(page, request, 23);
     await finishLevel1(page);
     await page.click("#levelCard2");
-    await expect(page.locator("h1.page-title")).toHaveText("Level 2: Learn: Customer Service");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 2: Learn: Customer Service (Part 1)");
     await expect(page.locator(".step-tab")).toHaveCount(0);
-    await expect(page.locator("#lessonProgressText")).toHaveText("1 of 19 · 4 key terms");
+    await expect(page.locator("#lessonProgressText")).toHaveText("1 of 13 · 4 key terms");
     await checkPage(page, testInfo, "slice3-level2-card1");
-    await walkLevel2(page, 16);
-    await expect(page.locator("#lessonProgressText")).toHaveText("17 of 19 · The 8 service recovery steps");
-    await expect(page.locator(".path-stop")).toHaveCount(1);
-    await expect(page.locator("#pathLabel1")).toHaveText(PATH_LABELS[0]);
-    await expect(page.locator(".path-text")).toHaveCount(0);
-    await expect(page.locator(".video-frame")).toHaveCount(0);
-    await walkLevel2(page, 3);
+    await walkLevel2(page, 12);
+    await expect(page.locator("#lessonProgressText")).toHaveText("13 of 13 · Stage 2: Quick check");
+    await expect(page.locator("#lessonNext")).toHaveText("Finish Level 2");
+    await walkLevel2(page, 1);
     await expect(page.locator("#badgeModal")).toContainText("Service Scholar");
     await page.locator("#badgeModal button").click();
     await expect(page.locator(".status-pill").nth(1)).toHaveText("Service Scholar");
+    await page.click("#levelCard7");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 3: Learn: Customer Service (Part 2)");
+    await walkLevel2(page, 3);
+    await expect(page.locator("#lessonProgressText")).toHaveText("4 of 7 · The 8 service recovery steps");
+    await expect(page.locator(".path-stop")).toHaveCount(8);
+    await expect(page.locator(".path-text")).toHaveCount(0);
+    await expect(page.locator(".video-frame")).toHaveCount(0);
+    await walkLevel2(page, 4);
+    await expect(page.locator("#badgeModal")).toContainText("Service Saver");
+    await page.locator("#badgeModal button").click();
+    await expect(page.locator(".status-pill").nth(2)).toHaveText("Service Saver");
     await expectNoAmpersand(page);
     expect(errors).toEqual([]);
   });
 
-  test("coming back to the path later shows all 8 stops; progress loads on another device", async ({ page, request, browser }, testInfo) => {
+  test("coming back to a notes card opens the same card; progress loads on another device", async ({ page, request, browser }, testInfo) => {
     await newStudent(page, request, 24);
     await finishLevel1(page);
     await page.goto("/#level2");
-    await walkLevel2(page, 16);
-    await page.click("#showStepBtn");
-    await expect(page.locator(".path-stop")).toHaveCount(2);
+    await walkLevel2(page, 13);
+    await page.locator("#badgeModal button").click();
+    await page.goto("/#level3");
+    await walkLevel2(page, 2);
+    const saved = waitForSave(page);
+    await walkLevel2(page, 1);
     // Leave and come back: the same card, all 8 at once, and Next is ready.
     await page.click("#homeBtn");
-    const saved = waitForSave(page);
-    await page.click("#levelCard2");
-    await expect(page.locator("#lessonProgressText")).toContainText("17 of 19");
+    await page.click("#levelCard7");
+    await expect(page.locator("#lessonProgressText")).toContainText("4 of 7");
     await expect(page.locator(".path-stop")).toHaveCount(8);
     await expect(page.locator("#lessonNext")).toBeEnabled();
     await saved;
@@ -205,33 +213,31 @@ test.describe("Level 2", () => {
     const other = await browser.newContext(testInfo.project.use);
     const page2 = await other.newPage();
     await login(page2, "3E1", 24);
-    await expect(page2.locator(".status-pill")).toHaveText(["Story Sharer", "In progress", "Locked", "Locked", "Locked"]);
-    await expect(page2.locator(".welcome-text")).toHaveText("Welcome back! Your work has been loaded. You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
-    await page2.click("#levelCard2");
-    await expect(page2.locator("#lessonProgressText")).toContainText("17 of 19");
+    await expect(page2.locator(".status-pill")).toHaveText(["Story Sharer", "Service Scholar", "In progress", "Locked", "Locked", "Locked", "Locked"]);
+    await expect(page2.locator(".welcome-text")).toHaveText("Welcome back! Your work has been loaded. You've finished 2 of 7 levels. Great progress! Carry on with Level 3 below.");
+    await page2.click("#levelCard7");
+    await expect(page2.locator("#lessonProgressText")).toContainText("4 of 7");
     await expect(page2.locator(".path-stop")).toHaveCount(8);
     // "Your work has been loaded." only on the first home page after logging in.
     await page2.click("#homeBtn");
-    await expect(page2.locator(".welcome-text")).toHaveText("Welcome back! You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
+    await expect(page2.locator(".welcome-text")).toHaveText("Welcome back! You've finished 2 of 7 levels. Great progress! Carry on with Level 3 below.");
     await other.close();
   });
 
-  test("the path slide-in is off when reduced motion is on", async ({ page, request }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
+  test("the path has no slide-in (all 8 steps show at once)", async ({ page, request }) => {
     await newStudent(page, request, 25);
-    await finishLevel1(page);
-    await page.evaluate(() => { setUi("s2.cardLayout", "cards15"); setUi("s2.card", 12); saveLocal(); });
-    await page.goto("/#level2");
-    await page.click("#showStepBtn");
-    const stop = page.locator(".path-stop").nth(1);
-    const duration = await stop.evaluate(el => getComputedStyle(el).animationDuration);
-    expect(parseFloat(duration)).toBeLessThan(0.01);
+    await page.evaluate(() => { localStorage.setItem("ch6_unlock_all", "true"); setUi("s7.card", 3); saveLocal(); });
+    await page.goto("/#level3");
+    await expect(page.locator(".path-stop")).toHaveCount(8);
+    await expect(page.locator(".slide-in")).toHaveCount(0);
+    const names = await page.locator(".path-stop").evaluateAll(els => els.map(el => getComputedStyle(el).animationName));
+    expect(names).toEqual(Array(8).fill("none"));
   });
 
   test("locked level cannot be opened by its address", async ({ page, request }) => {
     await newStudent(page, request, 26);
     await page.goto("/#level2");
     await expect(page).toHaveURL(/#home$/);
-    await expect(page.locator(".journey-count")).toHaveText("0 of 5 levels done");
+    await expect(page.locator(".journey-count")).toHaveText("0 of 7 levels done");
   });
 });

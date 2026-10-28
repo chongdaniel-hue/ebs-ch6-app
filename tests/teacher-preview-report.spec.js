@@ -9,16 +9,18 @@ test("teachers can view all lesson sections immediately without changing student
  const before=await page.evaluate(()=>JSON.stringify(rec));
  const local=await page.evaluate(()=>localStorage.getItem("ch6_rec_3E1#5"));
  await page.goto("/#teacher");await page.fill("#teacherCode",CODE());await page.click("#teacherEnter");
- await expect(page.locator(".teacher-lesson-links a")).toHaveCount(5);
+ await expect(page.locator(".teacher-lesson-links a")).toHaveCount(7);
  let saves=0;page.on("request",request=>{if(request.method()==="POST" && request.postDataJSON()?.action==="save") saves++;});
- for(let n=1;n<=5;n++){
+ for(let n=1;n<=7;n++){
   await page.locator(`a[href="#teacher-preview-${n}"]`).click();
   await expect(page.locator("h1")).toContainText(`Level ${n}:`);
   await expect(page.locator(".teacher-preview-note")).toBeVisible();
   await expect(page.locator("#continueBtn,#nextBtn")).toHaveCount(0);
   await expect(page.locator(".teacher-lesson-part input:enabled,.teacher-lesson-part textarea:enabled,.teacher-lesson-part select:enabled")).toHaveCount(0);
-  if(n===2){await expect(page.locator(".teacher-lesson-step")).toHaveCount(19);await expect(page.locator(".qc-btn:enabled")).toHaveCount(0);await expect(page.locator(".path-stop")).toHaveCount(8);await expect(page.locator('img[data-img="SUITABILITY"]')).toBeVisible();}
-  if(n===5){await expect(page.locator('[data-answer="s5.q7"]')).toBeVisible();}
+  if(n===2){await expect(page.locator(".teacher-lesson-step")).toHaveCount(13);await expect(page.locator(".qc-btn:enabled")).toHaveCount(0);await expect(page.locator('img[data-img="SUITABILITY"]')).toBeVisible();}
+  if(n===3){await expect(page.locator(".teacher-lesson-step")).toHaveCount(7);await expect(page.locator(".path-stop")).toHaveCount(8);}
+  if(n===6){await expect(page.locator(".step-chip")).toHaveCount(8);}
+  if(n===7){await expect(page.locator('[data-answer="s5.q7"]')).toBeVisible();}
   await expectNoSidewaysScroll(page);await expectNoAmpersand(page);await shot(page,testInfo,"teacher-preview-level-"+n);
   expect(await page.evaluate(()=>JSON.stringify(rec))).toBe(before);
   expect(await page.evaluate(()=>localStorage.getItem("ch6_rec_3E1#5"))).toBe(local);
@@ -30,16 +32,16 @@ test("teachers can view all lesson sections immediately without changing student
 });
 
 test("direct lesson preview requires teacher sign-in even with a student login",async({page,request})=>{
- await prepare(page,request);await page.goto("/#teacher-preview-5");
+ await prepare(page,request);await page.goto("/#teacher-preview-7");
  await expect(page.locator("#teacherCode")).toBeVisible();
  await expect(page.locator(".teacher-lesson-part")).toHaveCount(0);
 });
 
 test("learning report includes every saved answer, drafts, retries and unanswered items",async({page,request},testInfo)=>{
  const errors=watchErrors(page);await prepare(page,request);const before=await page.evaluate(()=>JSON.stringify(rec));
- await page.goto("/#report");await expect(page.locator(".report-answer-level")).toHaveCount(5);
+ await page.goto("/#report");await expect(page.locator(".report-answer-level")).toHaveCount(7);
  const answers=page.locator(".learning-answers");
- await expect(answers.locator(".qa")).toHaveCount(31);
+ await expect(answers.locator(".qa")).toHaveCount(36); // 31 before 0.11.0, plus Level 6: link, tick, steps and two reflections
  await expect(answers.locator(".qa-a").first()).toHaveText("A staff member helped me. <script> 😊");
  await expect(answers.locator("script")).toHaveCount(0);
  for(const text of ["Used clothing","Clear communication","Ask more questions","How can I improve?","Not answered yet","Confident"]) await expect(answers).toContainText(text);

@@ -12,7 +12,7 @@ const {
 const BRIEFING = [
   "Go through the levels in order. Each one opens when you finish the one before.",
   "Your work saves automatically. You can stop and come back any time, even on a different device: just log in with the same class and register number.",
-  "Levels 3 and 4 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.",
+  "Levels 4, 5 and 6 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.",
   "After you submit, you'll see a hint for anything you got wrong, and you get one more try.",
   "Your teacher can see your answers, so do your best."
 ];
@@ -87,35 +87,37 @@ test.describe("new student", () => {
     expect(page.url()).toMatch(/#home$/);
 
     await expect(page.locator(".topbar-chip")).toHaveText("Test Student 12 · 3E1 · Register No. 12");
-    await expect(page.locator(".welcome-text")).toHaveText("Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!");
+    await expect(page.locator(".welcome-text")).toHaveText("Welcome to Chapter 6: Customer Service! In 7 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!");
     await expect(page.locator(".notice")).toHaveCount(0);
     await expect(page.locator("#howLink")).toHaveText("How this works");
     await expect(page.locator("#switchLink")).toHaveText("Sharing this device? Switch student");
     await expect(page.locator(".terms-card")).toContainText("Start here: 4 key terms");
     await expect(page.locator(".terms-card")).toContainText("A 1-minute look before Level 2");
-    await expect(page.locator(".journey-count")).toHaveText("0 of 5 levels done");
+    await expect(page.locator(".journey-count")).toHaveText("0 of 7 levels done");
     await expect(page.locator(".level-name")).toHaveText([
-      "Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service",
-      "Level 3: Chat with Alex", "Level 4: Serve Suzzie at Stylez", "Level 5: Check and Exit Ticket"
+      "Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service (Part 1)", "Level 3: Learn: Customer Service (Part 2)",
+      "Level 4: Chat with Alex", "Level 5: Serve Suzzie at Stylez", "Level 6: Win Suzzie Back", "Level 7: Check and Exit Ticket"
     ]);
     await expect(page.locator(".level-desc")).toHaveText([
       "Think about your own experiences as a customer.",
-      "Short notes on quality customer service, the four stages and service recovery.",
+      "Short notes on quality customer service, approaching customers and presenting product information.",
+      "Short notes on closing positively, after-sales support and service recovery.",
       "Be the customer. Chat with Nexora's customer service officer.",
       "Switch roles. Now you're the customer service officer.",
+      "Suzzie is upset. Use the 8 steps to turn her bad experience into a good one.",
       "Check what you've learnt and tell your teacher how confident you feel."
     ]);
-    await expect(page.locator(".status-pill")).toHaveText(["Not started", "Locked", "Locked", "Locked", "Locked"]);
+    await expect(page.locator(".status-pill")).toHaveText(["Not started", "Locked", "Locked", "Locked", "Locked", "Locked", "Locked"]);
     await expect(page.locator(".shelf-name")).toHaveText([
-      "Story Sharer, not earned yet", "Service Scholar, not earned yet", "Service Spotter, not earned yet",
-      "Service Star, not earned yet", "Completion Champion, not earned yet"
+      "Story Sharer, not earned yet", "Service Scholar, not earned yet", "Service Saver, not earned yet", "Service Spotter, not earned yet",
+      "Service Star, not earned yet", "Service Superstar, not earned yet", "Completion Champion, not earned yet"
     ]);
     await expect(page.locator("a[href='#report']")).toHaveCount(0);
     await checkPage(page, testInfo, "slice2-home");
 
     // A locked level cannot be opened: tapping explains, typing its address goes home.
-    await page.click("#levelCard3", { force: true }); // marked aria-disabled; a tap only explains
-    await expect(page.locator("#lockedMsg3")).toHaveText("Finish Level 2 first to open this level.");
+    await page.click("#levelCard7", { force: true }); // Level 3 (stored as 7); marked aria-disabled; a tap only explains
+    await expect(page.locator("#lockedMsg7")).toHaveText("Finish Level 2 first to open this level.");
     expect(page.url()).toMatch(/#home$/);
     await page.goto("/#level2");
     await expect(page.locator(".journey-count")).toBeVisible();
@@ -390,9 +392,9 @@ test.describe("back end rules", () => {
     expect(fromApp.answers["s1.q2"].v).toBe("mine");
     expect(fromApp.first["s3q2.P"].a).toBe("x");         // first attempt never overwritten
     expect(fromApp.first["s3q2.Q"].a).toBe("z");
-    expect(fromApp.done).toEqual({ 1: t(2), 2: t(6) });  // finished levels never removed
+    expect(fromApp.done).toEqual({ 1: t(2), 2: t(6), 7: t(6) });  // finished levels never removed; old notes finish Level 3 too (0.11.0)
     expect(fromApp.agreed).toBe(t(1));
-    expect(fromApp.reached).toEqual({ "s2.tab": 2, "s2.t0.parts": 3 });
+    expect(fromApp.reached).toEqual({ "s2.tab": 2, "s2.t0.parts": 3, levels7: 1 });
     expect(fromApp.updatedAt).toBe(t(6));
   });
 

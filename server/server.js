@@ -121,6 +121,7 @@ const server = http.createServer(async (req, res) => {
   if (TEST_HOOKS && req.method === "POST" && url.pathname.startsWith("/__test/")) {
     if (url.pathname === "/__test/reset") script.reset();
     if (url.pathname === "/__test/busy") script.hooks.busy = Number(url.searchParams.get("n")) || 0;
+    if (url.pathname === "/__test/oldRecord") { const b = JSON.parse(await readBody(req)); script.putOldRecord(b.cls, b.reg, b.record); }
     sendJsonText(res, JSON.stringify({ ok: true }));
     return;
   }

@@ -1,14 +1,15 @@
 // Version 0.9.0: Level 2 lines checked against the textbook (Chapter 6, pp. 118 to 143) and the
 // syllabus (3.2.1, 3.2.2). Every line here is final student wording, copied exactly.
 const {test,expect}=require('@playwright/test');
-const {resetServer,login,watchErrors,expectNoSidewaysScroll,expectNoAmpersand}=require('./helpers');
+const {resetServer,login,watchErrors,expectNoSidewaysScroll,expectNoAmpersand,notesCard}=require('./helpers');
 
 async function open(page,request){
   await resetServer(request,['3E1']);await login(page,'3E1',11);await page.locator('#briefing button').click();
   await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');saveLocal();});
   await page.goto('/#level2');
 }
-async function card(page,c){await page.evaluate(c=>{setUi('s2.card',c);renderLevel(2);},c);await expectNoSidewaysScroll(page);await expectNoAmpersand(page);}
+// c: the card's position in the 19-card notes of 0.10.0 (13 to 18 are now Level 3).
+async function card(page,c){await notesCard(page,c);await expectNoSidewaysScroll(page);await expectNoAmpersand(page);}
 const L='#lessonCard';
 
 test('Part A: corrections to the existing Level 2 cards',async({page,request})=>{
@@ -46,7 +47,7 @@ test('Part B1: Stage 2 in three numbered parts',async({page,request},info)=>{
   const errors=watchErrors(page);await open(page,request);
   // Part 1: needs and wants (p. 129).
   await card(page,9);
-  await expect(page.locator('#lessonProgressText')).toHaveText("10 of 19 · Stage 2: Finding out customers' needs and wants");
+  await expect(page.locator('#lessonProgressText')).toHaveText("10 of 13 · Stage 2: Finding out customers' needs and wants");
   await expect(page.locator(`${L} .stage-label`)).toContainText('Stage 2');
   await expect(page.locator(`${L} h2`)).toHaveText('Presenting product information');
   await expect(page.locator(`${L} .stage-part`)).toHaveText("1Part 1: Finding out customers' needs and wants");
@@ -77,7 +78,7 @@ test('Part B1: Stage 2 in three numbered parts',async({page,request},info)=>{
 test('Part B2 and B3: Stage 3 closing, then after-sales support and enquiries',async({page,request})=>{
   const errors=watchErrors(page);await open(page,request);
   await card(page,13);
-  await expect(page.locator('#lessonProgressText')).toHaveText('14 of 19 · Stage 3: Closing the customer experience positively');
+  await expect(page.locator('#lessonProgressText')).toHaveText('1 of 7 · Stage 3: Closing the customer experience positively');
   await expect(page.locator(`${L} h2`)).toHaveText('Closing the customer experience positively');
   await expect(page.locator(L)).toContainText('The final goal of every salesperson is to complete a sale and close the customer experience positively.');
   await expect(page.locator(L)).toContainText('Signs that the customer had a positive experience:');
@@ -86,7 +87,7 @@ test('Part B2 and B3: Stage 3 closing, then after-sales support and enquiries',a
   await expect(page.locator('.closing-when')).toHaveText(['After a sale:','If the customer does not buy:']);
   await expect(page.locator('.closing-line .say')).toHaveText(['"Thank you, I\'m sure the product will meet your needs. It has been a pleasure serving you."','"Certainly, thank you for your interest. Do come back if you decide to buy it another day."']);
   await card(page,14);
-  await expect(page.locator('#lessonProgressText')).toHaveText('15 of 19 · Stage 3: After-sales support');
+  await expect(page.locator('#lessonProgressText')).toHaveText('2 of 7 · Stage 3: After-sales support');
   await expect(page.locator('.enquiry-lead')).toHaveText("When handling customers' enquiries, salespeople should:");
   await expect(page.locator(`${L} .chips .ic-body`)).toHaveText(['Listen to the customers carefully.','Clarify with them by asking questions to get a better understanding.','Provide them with relevant and accurate information.']);
   expect(errors).toEqual([]);

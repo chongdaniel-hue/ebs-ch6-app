@@ -27,7 +27,7 @@ test('minimum-length guidance and accessible quiz names',async({page,request})=>
   await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');setUi('s2.cardLayout','cards15');setUi('s2.card',7);saveLocal();});
   await page.goto('/#level2');await expect(page.locator('#lessonCard')).toContainText('Watch this video showing poor and good service');
   await page.locator('[data-answer="s2.video"]').fill('ok');await page.locator('#lessonNext').click();await expect(page.locator('#reflectionRequired')).toContainText('Write at least 20 characters');await page.keyboard.press('Escape');await expect(page.locator('#reflectionRequired')).toHaveCount(0);
-  await page.goto('/#level5');
+  await page.goto('/#level7');
   const labels=await page.locator('.mcq-btn').evaluateAll(xs=>xs.map(x=>x.getAttribute('aria-label')));
   expect(labels.length).toBeGreaterThan(0);for(const label of labels){expect(label).toMatch(/^[A-D]\. /);expect(label).not.toMatch(/^([A-D])\1/);}
   await expect(page.locator('body')).toContainText('Q1.');await expect(page.locator('body')).not.toContainText('Q5.');

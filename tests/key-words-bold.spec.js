@@ -1,9 +1,9 @@
 // Version 0.10.0: key words inside Level 2 textbook lines are bold (<strong>). Only how the
 // text looks changes: the words, Read aloud and Levels 3 to 5 stay as they were.
 const {test,expect}=require('@playwright/test');
-const {resetServer,login,watchErrors,expectNoSidewaysScroll,expectNoAmpersand}=require('./helpers');
+const {resetServer,login,watchErrors,expectNoSidewaysScroll,expectNoAmpersand,notesCard}=require('./helpers');
 
-// Card position (0-based) -> phrases that must each be a <strong> on that card, exactly.
+// Card position (0-based, in the 19-card notes: 13 to 18 are now Level 3) -> phrases that must each be a <strong> on that card, exactly.
 const BOLD={
   0:["happy and satisfied","exceed their expectations","make a complaint","takes action","service breakdown or failure"],
   1:["happy and satisfied","the moment a customer enters","continues even after the customer has made a purchase","exceed their expectations"],
@@ -21,10 +21,10 @@ const STEP_BOLD=[["Listen carefully","full attention"],["Be patient","Do not int
 
 async function open(page,request){
   await resetServer(request,['3E1']);await login(page,'3E1',12);await page.locator('#briefing button').click();
-  await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');rec.reached['s2.path']=8;saveLocal();});
+  await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');saveLocal();});
   await page.goto('/#level2');
 }
-async function card(page,c){await page.evaluate(c=>{setUi('s2.card',c);renderLevel(2);},c);}
+async function card(page,c){await notesCard(page,c);}
 const strongs=page=>page.locator('#lessonCard strong').allTextContents();
 
 test('every listed key phrase is bold on its card, and never in a heading, title, speech line or question',async({page,request})=>{
@@ -76,13 +76,13 @@ test('the bold words do not change the wording, and Read aloud reads the sentenc
   expect(spoken2).not.toContain('Listen carefully to the complaint');
 });
 
-test('nothing in Levels 3 to 5 gained bold',async({page,request})=>{
+test('nothing in Levels 4, 5 and 7 (Levels 3 to 5 before 0.11.0) gained bold',async({page,request})=>{
   await open(page,request);
-  // The bold words in Levels 3 to 5 before 0.10.0.
+  // The bold words in Levels 3 to 5 before 0.10.0, by stored level number.
   const BEFORE={"3.0":[],"3.1":[],"4.0":["You are the customer service officer. Suzzie is your customer."],"4.1":["2.","3."],"5.0":[],"5.1":[]};
   const now={};
   for(const n of [3,4,5]){
-    await page.goto('/#home');await page.goto(`/#level${n}`);
+    await page.goto('/#home');await page.goto(`/#level${({3:4,4:5,5:7})[n]}`);
     const tabs=await page.locator('.step-tab').count();
     for(let t=0;t<tabs;t++){await page.locator('.step-tab').nth(t).click();now[`${n}.${t}`]=await page.locator('#levelMain strong').allTextContents();}
   }

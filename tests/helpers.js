@@ -101,3 +101,21 @@ module.exports.apiPost = apiPost;
 module.exports.apiGet = apiGet;
 module.exports.login = login;
 module.exports.waitForSave = waitForSave;
+
+// Opens a notes card by its position in the 19-card notes of 0.10.0 (0 to 18): cards 0 to 12
+// are Level 2, cards 13 to 18 are Level 3 (stored as 7). Level 3 has the video on its own card
+// (card 5), so the 19-card cards 17 and 18 are Level 3 cards 6 and 7.
+function notesPlace(c) { return c < 13 ? [2, c] : [7, c - 13 + (c >= 17 ? 1 : 0)]; }
+async function notesCard(page, c) {
+  await page.evaluate(([n, i]) => { setUi(`s${n}.card`, i); renderLevel(n); }, notesPlace(c));
+}
+// The progress line of a notes card by its 19-card position, e.g. "4 of 7".
+function notesCount(c) { const [n, i] = notesPlace(c); return `${i + 1} of ${n === 2 ? 13 : 7}`; }
+module.exports.notesCard = notesCard;
+module.exports.notesCount = notesCount;
+
+// Opens card c (0 to 19) of the notes as they are now: Level 2 cards 0 to 12, then Level 3.
+async function openNotesCard(page, c) {
+  await page.evaluate(c => { const n = c < 13 ? 2 : 7; setUi(`s${n}.card`, c < 13 ? c : c - 13); renderLevel(n); }, c);
+}
+module.exports.openNotesCard = openNotesCard;

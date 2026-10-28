@@ -157,23 +157,26 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await page.locator("#badgeModal button").click();
   await check(page, testInfo, "home-in-progress", problems);
 
-  // Level 2, every one of the 19 cards (quick check answered, one wrong first, so its feedback is checked too).
+  // Level 2 (13 cards) and Level 3 (7 cards), every card (quick checks answered, one wrong first, so its feedback is checked too).
   await page.evaluate(() => {
     for(const key of REFLECTION_KEYS){setAnswer(key,"A complete reflection.");setUi(`${key}.saved`,rec.answers[key].t);}
     setAnswer("s2.qc.a.1","Greeting");setAnswer("s2.qc.b.1","Greeting");setAnswer("s2.qc.b.2","Service");setAnswer("s2.qc.c.1","Service");setAnswer("s2.qc.c.2","Greeting");
     setAnswer("s2.qc2.a.1","Yes, but");setAnswer("s2.qc2.b.1","Share concerns");setAnswer("s2.qc2.b.2","Correct misconception");setAnswer("s2.qc2.c.1","Negative into selling point");setAnswer("s2.qc2.d.1","Yes, but");setAnswer("s2.qc2.d.2","Correct misconception");
-    rec.reached["s2.path"] = 8; setUi("s2.cardLayout","cards15"); setUi("s2.card",0); saveLocal();
+    setUi("s2.card",0); saveLocal();
   });
-  await page.goto("/#home"); await page.goto("/#level2");
-  for (let c = 1; c <= 19; c++) {
-    await expect(page.locator("#lessonProgressText")).toContainText(`${c} of 19`);
-    await check(page, testInfo, `level2-card${String(c).padStart(2, "0")}`, problems);
-    await page.locator("#lessonNext").click();
+  for (const [level, cards] of [[2, 13], [3, 7]]) {
+    await page.goto("/#home"); await page.goto(`/#level${level}`);
+    for (let c = 1; c <= cards; c++) {
+      await expect(page.locator("#lessonProgressText")).toContainText(`${c} of ${cards}`);
+      await check(page, testInfo, `level${level}-card${String(c).padStart(2, "0")}`, problems);
+      await page.locator("#lessonNext").click();
+    }
+    await check(page, testInfo, `level${level}-badge`, problems);
+    await page.locator("#badgeModal button").click();
   }
-  await page.locator("#badgeModal button").click();
 
-  // Level 3: chat, think back, feedback with a wrong answer, revealed.
-  await page.goto("/#level3");
+  // Level 4 (Chat with Alex): chat, think back, feedback with a wrong answer, revealed.
+  await page.goto("/#level4");
   await check(page, testInfo, "level3-chat", problems);
   await page.locator("input[id^=conversationLink]").fill("https://gemini.google.com/share/AbCd1234");
   await page.locator(".tick-input").check();
@@ -191,8 +194,8 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await page.click("#finishBtn");
   await page.locator("#badgeModal button").click();
 
-  // Level 4.
-  await page.goto("/#level4");
+  // Level 5 (Serve Suzzie).
+  await page.goto("/#level5");
   await check(page, testInfo, "level4-roleplay", problems);
   await page.click("#stylezFacts summary");
   await check(page, testInfo, "stylez-information", problems);
@@ -208,8 +211,24 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await page.click("#finishBtn");
   await page.locator("#badgeModal button").click();
 
-  // Level 5: check, feedback, revealed, exit ticket, champion.
-  await page.goto("/#level5");
+  // Level 6 (Win Suzzie Back): roleplay, the 8-step checklist, recap, badge.
+  await page.goto("/#level6");
+  await check(page, testInfo, "level6-roleplay", problems);
+  await page.locator("input[id^=conversationLink]").fill("https://gemini.google.com/share/AbCd1234");
+  await page.locator(".tick-input").check();
+  await page.click("#nextBtn");
+  await check(page, testInfo, "level6-reflect", problems);
+  await page.locator('[data-recovery-step="Apologise"]').check();
+  await page.fill('textarea[data-answer="s6.q1"]', "Calmer, because I said sorry.");
+  await page.fill('textarea[data-answer="s6.q2"]', "Ask more questions");
+  await page.click("#submitL6");
+  await check(page, testInfo, "level6-recap", problems);
+  await page.click("#finishBtn");
+  await check(page, testInfo, "level6-badge", problems);
+  await page.locator("#badgeModal button").click();
+
+  // Level 7 (the Check): check, feedback, revealed, exit ticket, champion.
+  await page.goto("/#level7");
   await check(page, testInfo, "level5-check", problems);
   for (const [id, label] of [["i", "True"], ["ii", "True"], ["iii", "True"], ["iv", "True"]]) await page.locator(`.tf-item[data-key="s5.q3.${id}"] .tf-btn`, { hasText: label }).click();
   await page.locator(".mcq-btn", { hasText: "Our chargers" }).click();

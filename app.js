@@ -75,9 +75,13 @@
    0.10.0 Key words in bold in Level 2 textbook lines; some of our own lines cut
         or replaced with textbook wording; a second quick check (objection
         techniques): 19 cards.
+   0.11.0 Seven levels: the notes split into Level 2 (13 cards) and Level 3
+        (7 cards), comics C05 to C07, all 8 steps at once and the video on its
+        own card, and Level 6 Win Suzzie Back. Stored level numbers keep their
+        meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.10.0";
+const APP_VERSION = "0.11.0";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -228,13 +232,23 @@ function levelIconHtml(level) {
 
 /* ---------------- Levels (home page route) ---------------- */
 
+// In the order students see them. num is the level's stored number: it keys "finished",
+// unlock grants and the s<num>. answer keys, and never changes meaning (see CLAUDE.md).
+// pos is the level number students see. Learn Part 2 was added as 7 and Win Suzzie Back as 6.
 const LEVELS = [
   { num: 1, icon: "📝", title: "Your Customer Service Stories", desc: "Think about your own experiences as a customer.", badge: "Story Sharer", badgeImg: "BADGE1" },
-  { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service", desc: "Short notes on quality customer service, the four stages and service recovery.", badge: "Service Scholar", badgeImg: "BADGE2" },
+  { num: 2, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service (Part 1)", desc: "Short notes on quality customer service, approaching customers and presenting product information.", badge: "Service Scholar", badgeImg: "BADGE2" },
+  { num: 7, icon: "", iconImg: "ICON_LEARN", title: "Learn: Customer Service (Part 2)", desc: "Short notes on closing positively, after-sales support and service recovery.", badge: "Service Saver", badgeImg: "BADGE_L3" },
   { num: 3, icon: "💬", title: "Chat with Alex", desc: "Be the customer. Chat with Nexora's customer service officer.", badge: "Service Spotter", badgeImg: "BADGE3" },
   { num: 4, icon: "🛍️", title: "Serve Suzzie at Stylez", desc: "Switch roles. Now you're the customer service officer.", badge: "Service Star", badgeImg: "BADGE4" },
+  { num: 6, icon: "🛠️", title: "Win Suzzie Back", desc: "Suzzie is upset. Use the 8 steps to turn her bad experience into a good one.", badge: "Service Superstar", badgeImg: "BADGE6" },
   { num: 5, icon: "✅", title: "Check and Exit Ticket", desc: "Check what you've learnt and tell your teacher how confident you feel.", badge: "Completion Champion", badgeImg: "BADGE5" }
 ];
+LEVELS.forEach((l, i) => { l.pos = i + 1; });
+function levelByPos(pos) { return LEVELS[pos - 1]; }
+// The level number students see, from the stored number.
+function shown(num) { const l = LEVELS.find(x => x.num === num); return l ? l.pos : num; }
+const LAST_LEVEL = LEVELS[LEVELS.length - 1].num;
 
 /* ---------------- Student record ----------------
    One record per student (class plus register number), kept on this device and
@@ -261,7 +275,7 @@ function activeKey() { return student ? studentKey(student.cls, student.reg) : "
 function freshRecord(cls, reg, baseClearedAt) {
   return {
     v: 1, cls, reg, updatedAt: "", baseClearedAt: baseClearedAt || "", agreed: null,
-    done: {}, submitted: {}, reached: {}, first: {}, second: {}, answers: {}, ui: {}
+    done: {}, submitted: {}, reached: { levels7: 1 }, first: {}, second: {}, answers: {}, ui: {}
   };
 }
 
@@ -285,10 +299,72 @@ const MERGE_RULES = {
   first: "keep", second: "keep", answers: "newest", ui: "newest", profile: "keep"
 };
 
+var MIGRATE_POSITIONS = true; // the app moves saved notes positions
+// Version 0.11.0: the notes became Levels 2 and 3, and Win Suzzie Back was added. Stored
+// level numbers keep their meaning, so this only adds what the new levels need, once per
+// record (reached.levels7 marks it done). The same function is in apps-script/Code.gs.
+//   Finished the old notes: Learn Part 2 (stored as 7) is finished too, with the same date.
+//   An old grant to the notes also opens Learn Part 2.
+//   A Check (stored as 5) started or finished before Win Suzzie Back existed stays open
+//   (reached["open.5"]), even though Level 6 now comes before it.
+//   A saved notes position on card 14 or later (old one-level notes) finishes Part 1 and
+//   continues in Part 2 on the matching card. Only the old notes can save such a position.
+var NOTES_OLD_LAYOUTS = { compact10: [1, 2, 3, 5, 6, 9, 11, 12, 13, 14], cards15: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 14, 15, 16, 17], cards18: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18] };
+var NOTES_PART1_CARDS = 13;
+function oldNotesPosition(ui, layout) {
+  var c = ui["s2.card"];
+  if (!c) return null;
+  var pos = Number(c.v) || 0;
+  if (layout === "cards19") return pos;
+  if (layout !== "cards18") {
+    if (layout !== "cards15") {
+      if (layout === "compact10") pos = NOTES_OLD_LAYOUTS.compact10[pos] || 0;
+      else { var first = [0, 1, 2, 2, 3, 4, 4, 5, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 9, 9]; pos = NOTES_OLD_LAYOUTS.compact10[first[pos] || 0] || 0; }
+    }
+    pos = NOTES_OLD_LAYOUTS.cards15[pos] || 0;
+  }
+  return NOTES_OLD_LAYOUTS.cards18[pos] || 0;
+}
+function migrateRecord(r) {
+  if (!isPlainObject(r)) return r;
+  ["done", "reached", "ui"].forEach(function (k) { if (!isPlainObject(r[k])) r[k] = {}; });
+  var seven = Number(r.reached.levels7) >= 1;
+  if (!seven) {
+    if (r.done[2] && !r.done[7]) r.done[7] = r.done[2];
+    if (isPlainObject(r.unlockedLevels) && r.unlockedLevels[2] && !r.unlockedLevels[7]) r.unlockedLevels[7] = r.unlockedLevels[2];
+    var checkStarted = !!r.done[5] || ["answers", "submitted", "first", "reached", "ui"].some(function (k) {
+      return isPlainObject(r[k]) && Object.keys(r[k]).some(function (key) { return /^s5(\D|$)/.test(key); });
+    });
+    if (checkStarted && !r.done[6]) r.reached["open.5"] = 1;
+    r.reached.levels7 = 1;
+  }
+  // Cards 1 to 13 are the same in the 19-card notes and in Part 1, so a 19-card position
+  // below 13 needs nothing; the layout stays "cards19" so the old app reads it the same way.
+  var c = r.ui["s2.card"];
+  if (c && MIGRATE_POSITIONS) {
+    // No layout saved: the first notes layout, unless this record was made by 0.11.0 or later.
+    var layout = r.ui["s2.cardLayout"] ? r.ui["s2.cardLayout"].v : seven ? "cards19" : "";
+    var pos = oldNotesPosition(r.ui, layout), t = c.t || "";
+    if (pos >= NOTES_PART1_CARDS) {
+      if (!r.done[2]) r.done[2] = t || "2026-10-28T00:00:00.000Z";
+      // Level 3 has the 8-steps video on its own card (card 5), so later cards move one along.
+      var part2 = pos - NOTES_PART1_CARDS;
+      if (part2 >= 4) part2++;
+      if (!r.ui["s7.card"] || String(r.ui["s7.card"].t || "") < t) r.ui["s7.card"] = { v: part2, t: t };
+      pos = NOTES_PART1_CARDS - 1;
+    }
+    if (pos !== Number(c.v) || layout !== "cards19") {
+      r.ui["s2.card"] = { v: pos, t: t };
+      r.ui["s2.cardLayout"] = { v: "cards19", t: t };
+    }
+  }
+  return r;
+}
+
 function mergeRecords(primary, other) {
   if (!primary && !other) return null;
-  var p = primary || {};
-  var o = other || {};
+  var p = migrateRecord(primary) || {};
+  var o = migrateRecord(other) || {};
   var out = {
     v: 1,
     cls: p.cls || o.cls,
@@ -472,7 +548,8 @@ async function flushQueue() {
       if (!record) { delete q[key]; saveQueue(q); continue; }
       const generation = resetGenerations.get(key) || 0;
       let reply = null;
-      try { reply = await api("POST", { action: "save", record, name: profileName(record) }, 20000); }
+      // "app" tells the server this save uses the 0.11.0 level meanings (see oldAppSave in Code.gs).
+      try { reply = await api("POST", { action: "save", record, name: profileName(record), app: APP_VERSION }, 20000); }
       catch (e) { networkDown = true; }
       if (generation === (resetGenerations.get(key) || 0)) handleSaveReply(key, record, reply);
     }
@@ -557,7 +634,7 @@ function sendBeaconNow() {
   if (!student || !rec || activeKey() === resettingKey || !navigator.sendBeacon || !apiUrl()) return;
   if (!loadQueue()[activeKey()]) return;
   try {
-    navigator.sendBeacon(apiUrl(), new Blob([JSON.stringify({ action: "save", record: rec, name: profileName(rec) })], { type: "text/plain" }));
+    navigator.sendBeacon(apiUrl(), new Blob([JSON.stringify({ action: "save", record: rec, name: profileName(rec), app: APP_VERSION })], { type: "text/plain" }));
   } catch (e) { /* the queue will send it next time */ }
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") sendBeaconNow(); });
@@ -782,7 +859,7 @@ function showStudentUnlock(mode = "unlock") {
   let code = "", busy = false, profiles = [], requestNumber = 0;
   setGraphicHtml(wrap, `<form class="modal" role="dialog" aria-modal="true" aria-labelledby="studentUnlockTitle">
     <h2 class="modal-title" id="studentUnlockTitle">${resetting ? "Reset student progress" : "Unlock student levels"}</h2>
-    <p>${resetting ? "Select a registered student profile to reset. You will confirm before any work is cleared." : "Select a registered student profile and open selected levels or all five levels. Answers, completed activities and badges will stay unchanged."}</p>
+    <p>${resetting ? "Select a registered student profile to reset. You will confirm before any work is cleared." : "Select a registered student profile and open selected levels or all seven levels. Answers, completed activities and badges will stay unchanged."}</p>
     <div id="unlockSignIn"><label class="field-label" for="unlockPassword">Key in the ${resetting ? "reset" : "unlock"} passcode.</label>
       <input class="text-input" type="password" id="unlockPassword" autocomplete="off" required>
       <div class="btn-row"><button class="btn" type="submit">Continue</button></div></div>
@@ -791,7 +868,7 @@ function showStudentUnlock(mode = "unlock") {
       <div class="field"><label class="field-label" for="unlockStudent">Student profile</label><select class="text-input" id="unlockStudent" disabled><option value="">Choose a student</option></select><p id="unlockIdentity" class="field-note" data-student-text></p></div>
       <p id="unlockExisting" role="status"></p>
       <fieldset class="unlock-levels" ${resetting ? "hidden" : ""}><legend>Select levels to unlock</legend>
-        ${LEVELS.map((l,i)=>`<label class="unlock-level-option"><input type="checkbox" value="${i+1}">Level ${i+1}: ${escapeHtml(l.title)}</label>`).join("")}
+        ${LEVELS.map(l=>`<label class="unlock-level-option"><input type="checkbox" value="${l.num}">Level ${l.pos}: ${escapeHtml(l.title)}</label>`).join("")}
       </fieldset>
       <div class="btn-row"><button class="btn secondary" type="button" id="unlockAllSelection" ${resetting ? "hidden" : ""}>Select all levels</button>
         <button class="btn" type="submit" id="applyUnlock" disabled>${resetting ? "Continue to reset" : "Unlock selected levels"}</button></div>
@@ -839,7 +916,7 @@ function showStudentUnlock(mode = "unlock") {
     checks.forEach(c=>{c.checked=false;});
     const profile=profiles.find(p=>String(p.reg)===reg.value);
     wrap.querySelector("#unlockIdentity").textContent=profile ? `${profile.name || "Name not added yet"} · Register No. ${profile.reg}` : "";
-    const grants=Object.keys((profile && profile.unlockedLevels) || {}).filter(n=>/^[1-5]$/.test(n));
+    const grants=Object.keys((profile && profile.unlockedLevels) || {}).filter(n=>/^[1-7]$/.test(n)).map(n=>shown(Number(n))).sort((a,b)=>a-b);
     wrap.querySelector("#unlockExisting").textContent=profile && !resetting ? (grants.length ? `Previously unlocked levels: ${grants.join(", ")}.` : "No levels have been manually unlocked for this student.") : "";
     update();
   });
@@ -900,7 +977,7 @@ function showStudentUnlock(mode = "unlock") {
       if(key===activeKey()) { rec=merged; saveLocal(); } else lsSet(KEYS.rec(key),merged);
     }
     close(); render();
-    showModal({id:"studentUnlocked",title:"Levels unlocked",bodyHtml:`<p>${escapeHtml(target.name || "Student")}, Class ${escapeHtml(target.cls)}, Register No. ${target.reg}: levels ${levels.join(", ")} are now open. Answers and completion remain unchanged.</p>`,buttons:[{label:"Close",primary:true,onClick:()=>{const b=document.querySelector("[data-unlock-progress]");if(b)b.focus();}}]});
+    showModal({id:"studentUnlocked",title:"Levels unlocked",bodyHtml:`<p>${escapeHtml(target.name || "Student")}, Class ${escapeHtml(target.cls)}, Register No. ${target.reg}: levels ${levels.map(shown).sort((a,b)=>a-b).join(", ")} are now open. Answers and completion remain unchanged.</p>`,buttons:[{label:"Close",primary:true,onClick:()=>{const b=document.querySelector("[data-unlock-progress]");if(b)b.focus();}}]});
   });
   input.focus();
 }
@@ -911,7 +988,7 @@ const BRIEFING_ICONS = ["🗺️", "💾", "🤖", "🔁", "👀"];
 const BRIEFING = [
   "Go through the levels in order. Each one opens when you finish the one before.",
   "Your work saves automatically. You can stop and come back any time, even on a different device: just log in with the same class and register number.",
-  "Levels 3 and 4 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.",
+  "Levels 4, 5 and 6 open an AI chatbot in a new tab. Log in with your school Google account if asked, and don't share personal details in the chat.",
   "After you submit, you'll see a hint for anything you got wrong, and you get one more try.",
   "Your teacher can see your answers, so do your best."
 ];
@@ -970,50 +1047,26 @@ function popConfetti(){
   document.querySelector('.confetti-burst')?.remove();const layer=document.createElement('div');layer.className='confetti-burst';layer.setAttribute('aria-hidden','true');
   for(let i=0;i<48;i++){const piece=document.createElement('i');piece.style.cssText=`--x:${(i*37)%100}%;--drift:${(i%2?-1:1)*(30+i%90)}px;--delay:${i%8*0.06}s;background:${STAGE_COLOURS[i%4]}`;layer.appendChild(piece);}document.body.appendChild(layer);setTimeout(()=>layer.remove(),2600);
 }
-function lessonCards(){ return L2_CARDS; }
-// The Next button on a card that is not ready yet (the 8 steps not all shown) stays greyed.
-function updateLessonNext(){
-  const next=document.getElementById('lessonNext'),note=document.getElementById('lessonNextNote');if(!next)return;
-  const card=L2_CARDS[Number(getUi('s2.card'))||0];const ok=!card || !card.ready || card.ready() || isDone(2);
-  next.disabled=!ok;if(note)note.hidden=ok;
-}
-// The card on screen; arriving at a card (not a redraw of the same one) starts the path count again.
-let lessonCardShown=-1;
-// Old card positions (10-card layout) map to the matching card of the 15-card layout, and
-// 15-card positions to the 18-card layout (Stage 2 in three parts, Stage 3 in two), and
-// 18-card positions to the 19-card layout (a quick check after Stage 2, part 3).
-const L2_OLD_CARDS={compact10:[1,2,3,5,6,9,11,12,13,14],cards15:[0,1,2,3,4,5,6,7,8,9,12,14,15,16,17],cards18:[0,1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18]};
-function renderLessonCard(){
-  stopSpeaking();setUi('route.level',2);
-  const cards=L2_CARDS;
-  if(getUi('s2.cardLayout')!=="cards18" && getUi('s2.cardLayout')!=="cards19"){
-    if(getUi('s2.cardLayout')!=="cards15"){
-      const old=Number(getUi('s2.card'))||0;
-      if(getUi('s2.cardLayout')==="compact10")setUi('s2.card',L2_OLD_CARDS.compact10[old]??0);
-      else if(getUi('s2.card')!==undefined){const map=[0,1,2,2,3,4,4,5,5,6,7,7,7,7,7,7,7,7,8,9,9];setUi('s2.card',L2_OLD_CARDS.compact10[map[old]??0]??0);}
-    }
-    if(getUi('s2.card')!==undefined)setUi('s2.card',L2_OLD_CARDS.cards15[Number(getUi('s2.card'))||0]??0);
-    setUi('s2.cardLayout','cards18');saveLocal();
-  }
-  if(getUi('s2.cardLayout')!=="cards19"){
-    if(getUi('s2.card')!==undefined)setUi('s2.card',L2_OLD_CARDS.cards18[Number(getUi('s2.card'))||0]??0);
-    setUi('s2.cardLayout','cards19');saveLocal();
-  }
-  let pos=Number(getUi('s2.card'))||0;pos=Math.max(0,Math.min(pos,cards.length-1));setUi('s2.card',pos);const card=cards[pos];
-  if(lessonCardShown!==pos){lessonCardShown=pos;pathShownNow=0;}
-  const ctx={n:2,t:pos,readOnly:isDone(2),fresh:true};
+// The notes: Level 2 (stored as 2) and Level 3 (stored as 7), one card at a time.
+function lessonCards(n){ return NOTES_CARDS[n || 2]; }
+function renderLessonCard(n){
+  n=n||2;stopSpeaking();setUi('route.level',n);
+  const cards=lessonCards(n),s=lvl(n);
+  let pos=Number(getUi(`s${n}.card`))||0;pos=Math.max(0,Math.min(pos,cards.length-1));setUi(`s${n}.card`,pos);
+  if(n===2 && getUi('s2.cardLayout')!=='cards19')setUi('s2.cardLayout','cards19'); // Level 2's cards are cards 1 to 13 of the 19-card notes
+  const card=cards[pos];
+  const ctx={n,t:pos,readOnly:isDone(n),fresh:true};
   const last=pos===cards.length-1;
-  setGraphicHtml(app,`${topBarHtml({showHome:true,showChip:true})}<main class="page level-page lesson-single" id="levelMain"><h1 class="page-title">Level 2: Learn: Customer Service</h1><div class="lesson-card-progress"><p id="lessonProgressText">${pos+1} of ${cards.length} · ${escapeHtml(card.label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${cards.length}" aria-valuenow="${pos+1}"><div class="progress-fill" style="width:${(pos+1)/cards.length*100}%"></div></div></div><section class="card lesson-card" id="lessonCard">${card.html(ctx)}</section>${card.notReadyNote?`<p class="next-note lesson-next-note" id="lessonNextNote">${escapeHtml(card.notReadyNote)}</p>`:""}<div class="btn-row lesson-card-nav"><button class="btn secondary" id="lessonBack" ${pos===0?'disabled':''}>Back</button><button class="btn" id="lessonNext" ${card.notReadyNote?'aria-describedby="lessonNextNote"':''}>${last?'Finish Level 2':'Next →'}</button></div></main>${footerHtml()}`);
-  syncStickyOffsets();const el=document.getElementById('lessonCard');card.wire(el,ctx);wireReflections(el);updateLessonNext();
-  if(rec.agreed && !isStarted(2))raiseReached('s2.t0',1);
-  document.getElementById('lessonBack').onclick=()=>{setUi('s2.card',pos-1);queueSave('now');renderLessonCard();revealFocus(document.getElementById('lessonCard'));};
+  setGraphicHtml(app,`${topBarHtml({showHome:true,showChip:true})}<main class="page level-page lesson-single" id="levelMain"><h1 class="page-title">Level ${s.pos}: ${escapeHtml(s.title)}</h1><div class="lesson-card-progress"><p id="lessonProgressText">${pos+1} of ${cards.length} · ${escapeHtml(card.label)}</p><div class="progress-track" role="progressbar" aria-label="Lesson cards" aria-valuemin="1" aria-valuemax="${cards.length}" aria-valuenow="${pos+1}"><div class="progress-fill" style="width:${(pos+1)/cards.length*100}%"></div></div></div><section class="card lesson-card" id="lessonCard">${card.html(ctx)}</section><div class="btn-row lesson-card-nav"><button class="btn secondary" id="lessonBack" ${pos===0?'disabled':''}>Back</button><button class="btn" id="lessonNext">${last?`Finish Level ${s.pos}`:'Next →'}</button></div></main>${footerHtml()}`);
+  syncStickyOffsets();const el=document.getElementById('lessonCard');card.wire(el,ctx);wireReflections(el);
+  if(rec.agreed && !isStarted(n)){raiseReached(`s${n}.t0`,1);queueSave('soon');}
+  document.getElementById('lessonBack').onclick=()=>{setUi(`s${n}.card`,pos-1);queueSave('now');renderLessonCard(n);revealFocus(document.getElementById('lessonCard'));};
   document.getElementById('lessonNext').onclick=()=>{
-    if(card.ready && !card.ready() && !isDone(2))return;
     if(!requireReflections(card.key?[card.key]:[]))return;
-    const missing=card.check && !isDone(2) ? card.check(el) : [];
+    const missing=card.check && !isDone(n) ? card.check(el) : [];
     if(missing.length){showNotFinished(missing);return;}
-    if(last){finishLevel(2);return;}
-    setUi('s2.card',pos+1);raiseReached('s2.cardReached',pos+1);raiseReached(`s2.t${pos}`,1);queueSave('now');renderLessonCard();revealFocus(document.getElementById('lessonCard'));
+    if(last){finishLevel(n);return;}
+    setUi(`s${n}.card`,pos+1);raiseReached(`s${n}.cardReached`,pos+1);raiseReached(`s${n}.t${pos}`,1);queueSave('now');renderLessonCard(n);revealFocus(document.getElementById('lessonCard'));
   };
 }
 
@@ -1024,22 +1077,23 @@ function backToRoute(n){routeReturnLevel=n || Number(getUi("route.level")) || 1;
 
 function render() {
   const hash = window.location.hash;
-  if (hash !== "#level2") lessonCardShown = -1;
   document.querySelectorAll(".modal-backdrop").forEach(m => { if (m.id !== "briefing") m.remove(); });
   document.querySelectorAll(".zoom-backdrop").forEach(m => m.remove());
   if (hash === "#teacher") { renderTeacher(); window.scrollTo(0, 0); return; }
-  const teacherLevel = hash.match(/^#teacher-preview-([1-5])$/);
+  const teacherLevel = hash.match(/^#teacher-preview-([1-7])$/);
   if (teacherLevel) {
-    if (teacher) renderTeacherLesson(Number(teacherLevel[1]));
+    if (teacher) renderTeacherLesson(levelByPos(Number(teacherLevel[1])).num);
     else renderTeacherGate();
     window.scrollTo(0, 0);
     return;
   }
   if (!student) { renderLanding(); return; }
-  const m = hash.match(/^#level([1-5])$/);
+  // #level<n> uses the level number students see.
+  const m = hash.match(/^#level([1-7])$/);
+  const routeLevel = m ? levelByPos(Number(m[1])) : null;
   if (hash === "#terms") renderTerms();
   else if (hash === "#report") renderReport();
-  else if (m && isUnlocked(Number(m[1]))) renderLevel(Number(m[1]));
+  else if (routeLevel && isUnlocked(routeLevel.num)) renderLevel(routeLevel.num);
   else {
     if (hash !== "#home" && hash !== "") { history.replaceState(null, "", "#home"); }
     renderHome();
@@ -1165,7 +1219,7 @@ async function startLogin() {
     // Offline (or the server could not answer): use the work saved on this device.
     serverUnreachable = true;
     returning = !!local;
-    record = local || freshRecord(cls, reg, "");
+    record = migrateRecord(local) || freshRecord(cls, reg, "");
   }
   const savedName = profileName(record);
   if (savedName && savedName.toLocaleLowerCase() !== name.toLocaleLowerCase()) {
@@ -1196,7 +1250,10 @@ function isDone(num) { return !!(rec && rec.done && rec.done[num]); }
 function doneCount() { return LEVELS.filter(s => isDone(s.num)).length; }
 function unlockAllOnDevice() { return lsGet(KEYS.unlockAll) === true; }
 function hasLevelGrant(num) { return !!(rec && rec.unlockedLevels && rec.unlockedLevels[num]); }
-function isUnlocked(num) { return num === 1 || isDone(num - 1) || hasLevelGrant(num) || unlockAllOnDevice(); }
+function prevLevel(num) { const i = LEVELS.findIndex(l => l.num === num); return i > 0 ? LEVELS[i - 1] : null; }
+// Levels open in the order students see. A finished level stays open, and so does a Check
+// started before Win Suzzie Back was added (migrateRecord sets reached["open.5"]).
+function isUnlocked(num) { const prev = prevLevel(num); return !prev || isDone(prev.num) || hasLevelGrant(num) || unlockAllOnDevice() || isDone(num) || Number(rec && rec.reached && rec.reached[`open.${num}`]) >= 1; }
 
 // "In progress" once the student has done anything in the level.
 function isStarted(num) {
@@ -1217,9 +1274,9 @@ function levelStatus(num) {
 // justLoggedIn: the first home page after logging in, when "Your work has been loaded." is shown.
 let justLoggedIn = false;
 function welcomeLine(done, loaded) {
-  if (done === 0) return "👋 Welcome to Chapter 6: Customer Service! In 5 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!";
-  if (done === LEVELS.length) return "🎉 Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.";
-  return `👋 Welcome back! ${loaded ? "Your work has been loaded. " : ""}You've finished ${done} of 5 levels. Great progress! Carry on with Level ${done + 1} below.`;
+  if (done === 0) return "👋 Welcome to Chapter 6: Customer Service! In 7 short levels, you'll find out what great customer service looks like, chat with an AI customer service officer, and even serve a customer yourself. Take your time, and do your best. Start with Level 1 below. You've got this!";
+  if (done === LEVELS.length) return "🎉 Amazing work! You've finished all 7 levels. Have a look at your learning report to see how you did.";
+  return `👋 Welcome back! ${loaded ? "Your work has been loaded. " : ""}You've finished ${done} of 7 levels. Great progress! Carry on with Level ${done + 1} below.`;
 }
 
 function renderLevelCard(s) {
@@ -1231,9 +1288,9 @@ function renderLevelCard(s) {
   return `
     <li class="level-item">
       <button type="button" class="level-card status-${status}" id="levelCard${s.num}" data-num="${s.num}" ${status === "locked" ? `aria-disabled="true" aria-describedby="lockedMsg${s.num}"` : ""}>
-        <span class="num-badge" aria-hidden="true">${status === "done" ? "✓" : status === "locked" ? "🔒" : s.num}</span>
+        <span class="num-badge" aria-hidden="true">${status === "done" ? "✓" : status === "locked" ? "🔒" : s.pos}</span>
         <span class="info">
-          <span class="level-name ${s.iconImg ? "with-graphic" : ""}"><span aria-hidden="true">${levelIconHtml(s)}</span> <span><span class="visually-hidden">Level ${s.num}: </span>${escapeHtml(s.title)}</span></span>
+          <span class="level-name ${s.iconImg ? "with-graphic" : ""}"><span aria-hidden="true">${levelIconHtml(s)}</span> <span><span class="visually-hidden">Level ${s.pos}: </span>${escapeHtml(s.title)}</span></span>
           <span class="level-desc">${escapeHtml(s.desc)}</span>
           ${pill}
         </span>
@@ -1278,7 +1335,7 @@ function renderHome() {
       <section class="block" aria-labelledby="routeTitle">
         <h2 class="section-title" id="routeTitle">Your route</h2>
         <div class="journey-progress" id="routeProgress">
-          <p class="journey-count">${done} of 5 levels done</p>
+          <p class="journey-count">${done} of ${LEVELS.length} levels done</p>
           <div class="progress-track" role="progressbar" aria-label="Levels done" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${done}"><div class="progress-fill" style="width:${done / 5 * 100}%"></div></div>
         </div>
         <ol class="route">${LEVELS.map(renderLevelCard).join("")}</ol>
@@ -1304,11 +1361,11 @@ function renderHome() {
     document.getElementById(`levelCard${s.num}`).addEventListener("click", () => {
       if (levelStatus(s.num) === "locked") {
         const msg = document.getElementById(`lockedMsg${s.num}`);
-        msg.textContent = `Finish Level ${s.num - 1} first to open this level.`;
+        msg.textContent = `Finish Level ${s.pos - 1} first to open this level.`;
         msg.hidden = false;
         return;
       }
-      window.location.hash = `#level${s.num}`;
+      window.location.hash = `#level${s.pos}`;
     });
   });
 }
@@ -1382,7 +1439,7 @@ function renderTerms() {
 
 const ANSWER_MAX = 1500; // characters per answer box (keeps a record well under the Sheet's cell limit)
 
-function lvl(n) { return LEVELS[n - 1]; }
+function lvl(n) { return LEVELS.find(l => l.num === n); } // by stored number
 function tabsUnlocked(n) { return Number(rec.reached[`s${n}.tabs`]) || 0; }
 function partsShown(n, t) { return hasLevelGrant(n) ? LEVEL_CONTENT[n].tabs[t].parts.length : Math.max(1, Number(rec.reached[`s${n}.t${t}`]) || 0); }
 function isTabUnlocked(n, t) { return t === 0 || isDone(n) || tabsUnlocked(n) >= t || hasLevelGrant(n) || unlockAllOnDevice(); }
@@ -1416,7 +1473,7 @@ function tabBarHtml(n, current) {
   const content = LEVEL_CONTENT[n];
   if (content.tabs.length < 2) return "";
   return `
-    <nav class="step-tabs" aria-label="Steps in Level ${n}">
+    <nav class="step-tabs" aria-label="Steps in Level ${shown(n)}">
       <ol class="step-tabs-list" style="--tab-count:${content.tabs.length}">
         ${content.tabs.map((t, i) => {
           const open = isTabUnlocked(n, i);
@@ -1435,9 +1492,8 @@ function tabBarHtml(n, current) {
 
 // Draws the level page: arriving at a level, switching tab, or after Next or Submit.
 function renderLevel(n) {
-  if(n === 2){renderLessonCard();return;}
+  if(NOTES_CARDS[n]){renderLessonCard(n);return;}
   setUi("route.level",n);
-  pathShownNow = 0; // arriving at a level: the path works out again how much to show
   const s = lvl(n);
   const content = LEVEL_CONTENT[n];
   const t = currentTab(n);
@@ -1445,7 +1501,7 @@ function renderLevel(n) {
   setGraphicHtml(app, `
     ${topBarHtml({ showHome: true, showChip: true })}
     <div class="level-head"><div class="level-head-inner">
-      <h1 class="page-title ${s.iconImg ? "graphic-heading" : ""}">${levelIconHtml(s)} <span>Level ${n}: ${escapeHtml(s.title)}</span></h1>
+      <h1 class="page-title ${s.iconImg ? "graphic-heading" : ""}">${levelIconHtml(s)} <span>Level ${s.pos}: ${escapeHtml(s.title)}</span></h1>
       <p class="level-sub">${escapeHtml(s.desc)}</p>
     </div></div>
     ${tabBarHtml(n, t)}
@@ -1542,12 +1598,13 @@ function wireAnswerBoxes(el) {
 const MIN_RESPONSE_CHARS = 20;
 function responseLongEnough(key){return String(getAnswer(key) || "").trim().length >= MIN_RESPONSE_CHARS;}
 const REFLECTION_KEYS = ["s2.video", "s2.think1", "s2.think2"];
+const REFLECTION_LEVEL = { "s2.video": 2, "s2.think1": 7, "s2.think2": 7 }; // the keys stay s2. in Level 3
 function reflectionSaved(key) {
   return responseLongEnough(key);
 }
 function reflectionHtml(key, label) {
   return `<div class="card think-card" data-reflection="${key}"><h3 class="think-title">${hIcon("🤔")}Think about it</h3>
-    ${answerBoxHtml(key,{label,hint:`Write at least ${MIN_RESPONSE_CHARS} characters...`,readOnly:isDone(2) && reflectionSaved(key)})}
+    ${answerBoxHtml(key,{label,hint:`Write at least ${MIN_RESPONSE_CHARS} characters...`,readOnly:isDone(REFLECTION_LEVEL[key] || 2) && reflectionSaved(key)})}
     <p class="field-note" role="status" data-reflection-status>Your progress saves automatically. Next saves your answer.</p></div>`;
 }
 function requireReflections(keys) {
@@ -1555,7 +1612,7 @@ function requireReflections(keys) {
   if(!missing.length){keys.forEach(key=>{if(rec.answers[key])setUi(`${key}.saved`,rec.answers[key].t);});queueSave("now");return true;}
   const short=missing.some(key=>!isBlank(key));
   showModal({id:"reflectionRequired",title:short?"Answer too short":"Complete all questions",bodyHtml:`<p>${short?"Your answer is too short.":"Please complete all questions before moving on."} Write at least ${MIN_RESPONSE_CHARS} characters in each answer.</p>`,buttons:[{label:"Back to questions",primary:true,onClick:()=>{
-    const card=L2_CARDS.findIndex(x=>x.key===missing[0]);if(card>=0 && document.getElementById("lessonCard")){setUi("s2.card",card);renderLessonCard();}
+    const n=REFLECTION_LEVEL[missing[0]] || 2,card=lessonCards(n).findIndex(x=>x.key===missing[0]);if(card>=0 && document.getElementById("lessonCard")){setUi(`s${n}.card`,card);renderLessonCard(n);}
     document.getElementById(`ans_${cssId(missing[0])}`)?.focus();
   }}]});return false;
 }
@@ -1573,7 +1630,7 @@ function recapHtml(text) {
 }
 
 function finishButtonHtml(n) {
-  return isDone(n) ? "" : `<div class="btn-row"><button type="button" class="btn" id="finishBtn">Finish Level ${n}</button></div>`;
+  return isDone(n) ? "" : `<div class="btn-row"><button type="button" class="btn" id="finishBtn">Finish Level ${shown(n)}</button></div>`;
 }
 function wireFinish(el, n) {
   const b = el.querySelector("#finishBtn");
@@ -1582,7 +1639,7 @@ function wireFinish(el, n) {
 
 function finishLevel(n) {
   if(n === 1 && !L1_BOXES.every(b=>responseLongEnough(b.key))){renderLevel(1);return;}
-  if(n === 2 && !requireReflections(REFLECTION_KEYS))return;
+  if(NOTES_CARDS[n] && !requireReflections(REFLECTION_KEYS.filter(k=>REFLECTION_LEVEL[k]===n)))return;
   if (!rec.done[n]) rec.done[n] = nowIso();
   queueSave("now");
   showBadgePopup(n);
@@ -1823,15 +1880,11 @@ const RECOVERY_STEPS = [
   { icon: "😊", bold: ["Thank customers"], text: "Thank customers for bringing the problem to our attention.", bubble: "\"Thank you for letting us know about this.\"", face: "😄", mood: "happy" }
 ];
 
-// How many path stops are on screen. The path starts with Step 1 only; a student
-// coming back to the card later sees all 8 at once.
-let pathShownNow = 0;
-function pathShown() { return Number(rec.reached["s2.path"]) || 0; }
-
-function recoveryStopHtml(step, i, animate) {
+// The Service Recovery Path (Level 3 card 4): all 8 stops at once (version 0.11.0).
+function recoveryStopHtml(step, i) {
   const actionLine = /^\(/.test(step.bubble);
   return `
-    <li class="path-stop ${animate ? "slide-in" : ""}" id="pathStop${i + 1}">
+    <li class="path-stop" id="pathStop${i + 1}">
       <div class="path-circle" aria-hidden="true"><span class="path-icon">${step.icon}</span><span class="path-num">${i + 1}</span></div>
       <div class="path-card">
         <h4 class="path-label" id="pathLabel${i + 1}">${boldHtml(step.text, step.bold)}</h4>
@@ -1841,13 +1894,12 @@ function recoveryStopHtml(step, i, animate) {
     </li>`;
 }
 
-function recoveryPathHtml(count, animateLast) {
+function recoveryPathHtml() {
   return `
     <div class="recovery-path-wrap">
       <ol class="recovery-path" aria-label="The Service Recovery Path">
-        ${RECOVERY_STEPS.slice(0, count).map((s, i) => recoveryStopHtml(s, i, animateLast && i === count - 1)).join("")}
+        ${RECOVERY_STEPS.map((s, i) => recoveryStopHtml(s, i)).join("")}
       </ol>
-      ${count < 8 ? `<div class="btn-row path-more"><button type="button" class="btn secondary" id="showStepBtn">Show Step ${count + 1} ↓</button></div>` : ""}
     </div>`;
 }
 
@@ -2013,28 +2065,6 @@ function youtubeVideoHtml(key, { heading, prompt, frameTitle }) {
     <p class="video-link"><a href="https://youtu.be/${id}" target="_blank" rel="noopener">Video not loading? Watch it on YouTube</a></p>`;
 }
 
-// Below the path once all 8 steps are shown: the 8-steps video.
-function afterPathHtml() {
-  return `<div class="lesson-video">${youtubeVideoHtml("serviceRecovery", { heading: "Watch: The 8 steps in action", prompt: "Watch Alex use all 8 steps to help June with her cracked phone.", frameTitle: "Video: Alex uses the 8 steps of service recovery to help June with her cracked phone" })}</div>`;
-}
-
-function wirePath(el) {
-  const btn = el.querySelector("#showStepBtn");
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    pathShownNow = Math.min(8, pathShownNow + 1);
-    raiseReached("s2.path", pathShownNow);
-    queueSave("soon");
-    setGraphicHtml(el.querySelector("#pathHolder"), recoveryPathHtml(pathShownNow, true));
-    if (pathShownNow >= 8) {
-      setGraphicHtml(el.querySelector("#afterPath"), afterPathHtml());
-      updateLessonNext();
-    }
-    wirePath(el);
-    revealFocus(document.getElementById(`pathLabel${pathShownNow}`));
-  });
-}
-
 // Stage 2 is in three numbered parts, one card each.
 function stagePartHtml(n, icon, title) {
   return `<h3 class="stage-part"><span class="stage-part-num" aria-hidden="true">${n}</span><span class="stage-part-icon" aria-hidden="true">${icon}</span><span><span class="visually-hidden">Part ${n}: </span>${escapeHtml(title)}</span></h3>`;
@@ -2093,6 +2123,7 @@ const L2_CARDS = [
     <h2 class="section-title">${hIcon("🤝")}What is customer service?</h2>
     ${definitionHtml(`<p><strong>Customer service</strong> refers to what businesses do for their customers so that they are <strong>happy and satisfied</strong>.</p>`, "TERM_SERVICE")}
     <p>It takes place <strong>the moment a customer enters</strong> a shop, a restaurant or an attraction, and <strong>continues even after the customer has made a purchase</strong> and left the venue.</p>
+    ${zoomImgHtml("C05", "comic-img")}
     <h2 class="section-title">${hIcon("⭐")}What is quality customer service?</h2>
     ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to <strong>exceed their expectations</strong>.</p>`, "TERM_QUALITY")}`) },
   { label: "Why quality customer service matters", ...notesPart(() => `
@@ -2200,7 +2231,8 @@ const L2_CARDS = [
     <h2 class="section-title">${hIcon("📱")}Presenting product information</h2>
     ${stagePartHtml(3, "🙋", "Handling customers' questions and objections")}
     <p>When customers ask questions or raise objections, it is often a sign that they are interested in the product. Use this chance to persuade them to buy.</p>
-    ${objectionCardsHtml()}`) },
+    ${objectionCardsHtml()}
+    ${zoomImgHtml("C06", "comic-img")}`) },
   { label: "Stage 2: Quick check", html: (ctx) => `
     <h2 class="section-title">${hIcon("🎯")}Quick check: Which technique is this?</h2>
     <p>Tap one for each.</p>
@@ -2221,7 +2253,8 @@ const L2_CARDS = [
     <ul class="closing-lines">
       <li class="closing-line"><p class="closing-when"><span aria-hidden="true">🧾</span> After a sale:</p>${sayHtml("\"Thank you, I'm sure the product will meet your needs. It has been a pleasure serving you.\"")}</li>
       <li class="closing-line"><p class="closing-when"><span aria-hidden="true">👋</span> If the customer does not buy:</p>${sayHtml("\"Certainly, thank you for your interest. Do come back if you decide to buy it another day.\"")}</li>
-    </ul>`) },
+    </ul>
+    ${zoomImgHtml("C07", "comic-img")}`) },
   { label: "Stage 3: After-sales support", ...notesPart(() => `
     ${stageLabelHtml(3)}
     <h2 class="section-title">${hIcon("🛡️")}After-sales support</h2>
@@ -2247,17 +2280,13 @@ const L2_CARDS = [
     ${zoomImgHtml("C04", "comic-img")}
     <p>A customer's complaint provides an opportunity for a business to <strong>build customer loyalty</strong>. This is because if the complaint is handled well, the customer's <strong>bad experience can be turned into a good one</strong>.</p>
     <p>A business will <strong>lose its customers to competitors</strong> if it does not try to win a customer back.</p>`) },
-  { label: "The 8 service recovery steps", ...notesPart((ctx) => {
-      // First time on the path: Step 1 only. Coming back later (or a teacher grant): all 8 at once.
-      if (!pathShownNow) pathShownNow = hasLevelGrant(2) || isDone(2) || pathShown() >= 1 ? 8 : 1;
-      if (pathShown() < pathShownNow) { raiseReached("s2.path", pathShownNow); saveLocal(); }
-      return `
-        <h2 class="section-title">${hIcon("🛤️")}The 8 service recovery steps</h2>
-        <p>Follow Nexora's staff member as he uses the 8 steps with a customer whose new phone screen cracked on its own.</p>
-        <div id="pathHolder">${recoveryPathHtml(pathShownNow, false)}</div>
-        <div id="afterPath">${pathShownNow >= 8 ? afterPathHtml() : ""}</div>`;
-    }, { wireMore: (el) => wirePath(el) }),
-    ready: () => pathShownNow >= 8, notReadyNote: "Tap Show Step to see all 8 steps." },
+  { label: "The 8 service recovery steps", ...notesPart(() => `
+    <h2 class="section-title">${hIcon("🛤️")}The 8 service recovery steps</h2>
+    <p>Follow Nexora's staff member as he uses the 8 steps with a customer whose new phone screen cracked on its own.</p>
+    ${recoveryPathHtml()}`) },
+  { label: "Watch: The 8 steps in action", ...notesPart(() => `
+    ${stageLabelHtml(4)}
+    <div class="lesson-video">${youtubeVideoHtml("serviceRecovery", { heading: "Watch: The 8 steps in action", prompt: "Watch Alex use all 8 steps to help June with her cracked phone.", frameTitle: "Video: Alex uses the 8 steps of service recovery to help June with her cracked phone" })}</div>`) },
   { label: "Real-life example: Poor service recovery", key: "s2.think1", ...notesPart(() => `
     <h2 class="section-title">${hIcon("📉")}Real-life example: Poor service recovery</h2>
     <p>A customer complained to a food delivery app that their orders from one restaurant had been cancelled 4 times. The replies? "oh" and "so sad", followed by a $3.30 voucher "to say we're sorry".</p>
@@ -2277,6 +2306,9 @@ const L2_CARDS = [
     ${zoomImgHtml("R03", "uniqlo-img")}
     ${reflectionHtml("s2.think2", "Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?")}`) }
 ];
+
+// Level 2 is the first 13 cards (Stages 1 and 2), Level 3 the rest (Stages 3 and 4).
+const NOTES_CARDS = { 2: L2_CARDS.slice(0, 13), 7: L2_CARDS.slice(13) };
 
 /* ---------------- Marked questions: hint, one retry, then the answer ----------------
    Level 3 Q2 and Level 5 Q1 and Q2. Submit records the first attempt (never
@@ -2451,15 +2483,15 @@ const STAGE_NAMES = STAGES.map(st => st.name);
 // "Look at these again" (agreed wording): the topic and where to find it, for each marked item.
 // Used by the summary card after feedback and by the learning report.
 const LOOK_AGAIN = {
-  "s3q2.P": "Performing service recovery (Level 2, Stage 4: Service breakdown and service recovery)",
+  "s3q2.P": "Performing service recovery (Level 3, Stage 4: Service breakdown and service recovery)",
   "s3q2.Q": "Presenting product information (Level 2, The four stages)",
   "s3q2.R": "Closing the customer experience positively (Level 2, The four stages)",
   "s3q2.S": "Approaching customers (Level 2, The four stages)",
   "s5q3.i": "What customer service is (Level 2, What is customer service?)",
   "s5q3.ii": "Good product knowledge (Level 2, Good product knowledge)",
-  "s5q3.iii": "The 8 steps of service recovery (Level 2, The 8 service recovery steps)",
-  "s5q3.iv": "Service breakdown (Level 2, Stage 4: Service breakdown and service recovery)",
-  "s5q4": "The 8 steps of service recovery (Level 2, The 8 service recovery steps)"
+  "s5q3.iii": "The 8 steps of service recovery (Level 3, The 8 service recovery steps)",
+  "s5q3.iv": "Service breakdown (Level 3, Stage 4: Service breakdown and service recovery)",
+  "s5q4": "The 8 steps of service recovery (Level 3, The 8 service recovery steps)"
 };
 
 const L3_Q2 = [
@@ -2720,7 +2752,7 @@ const L4_TABS = [
           <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
           ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
         </div>
-        <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the four stages from Level 2: approach Suzzie, present product information, close positively (including after-sales support), and if there's a problem, perform service recovery.</span></p>
+        <p class="stages-box"><span class="when-icon" aria-hidden="true">🗺️</span> <span>Try to use the four stages from Levels 2 and 3: approach Suzzie, present product information, close positively (including after-sales support), and if there's a problem, perform service recovery.</span></p>
         ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzie, "🛍️ Open chat with Suzzie (new tab) ↗")}
         ${stylezFactsHtml()}
         ${conversationLinkHtml(4,ctx.readOnly)}${tickHtml("s4.tick", "I have finished serving Suzzie.", ctx.readOnly)}`,
@@ -2763,7 +2795,92 @@ const L4_TABS = [
   }
 ];
 
-/* ---------------- Level 5: Check and Exit Ticket ---------------- */
+/* ---------------- Level 6: Win Suzzie Back (stored as 6) ----------------
+   A second Suzzie chatbot (GEMS.suzzieRecovery), where she is upset. Built from the same
+   pieces as Serve Suzzie. Saved as s6.link, s6.tick, s6.steps, s6.q1, s6.q2 and submitted.s6. */
+
+const RECOVERY_STEP_NAMES = ["Listen", "Be patient", "Apologise", "Acknowledge", "Ask questions", "Offer solutions", "Refer", "Thank"];
+// Recall, not reading: every step in one neutral style (no stage colours), nothing ticked at first.
+function recoveryStepsChecklistHtml(readOnly) {
+  const chosen = getAnswer("s6.steps") || [];
+  return `<fieldset class="card roleplay-stages recovery-steps-check"><legend class="field-label">1. Which of the 8 steps did you use?</legend><p>Select every step you used.</p><div class="stage-checklist step-checklist">${RECOVERY_STEP_NAMES.map((name, i) => `<label class="stage-chip step-chip"><input type="checkbox" data-recovery-step="${name}" ${chosen.includes(name) ? "checked" : ""} ${readOnly ? "disabled" : ""}>${uiGraphicHtml(RECOVERY_STEPS[i].icon)} ${name}</label>`).join("")}</div></fieldset>`;
+}
+function wireRecoveryStepsChecklist(el) {
+  el.querySelectorAll("[data-recovery-step]").forEach(x => x.addEventListener("change", () => setAnswer("s6.steps", Array.from(el.querySelectorAll("[data-recovery-step]:checked")).map(x => x.dataset.recoveryStep), "soon")));
+}
+
+const L6_BOXES = [
+  { key: "s6.q1", num: 2, icon: "🙂", text: "How did Suzzie feel at the end of the chat? What did you do that helped?", hint: "At the end, Suzzie felt... because I..." },
+  { key: "s6.q2", num: 3, icon: "🔄", text: "What is one thing you would do differently next time?", hint: "Next time, I would..." }
+];
+
+const L6_TABS = [
+  {
+    label: "Roleplay",
+    next: "Next: Reflect →",
+    nextDisabledNote: "Tick the box above when you've finished.",
+    nextState: () => ((getAnswer("s6.tick") === true && conversationReady(6)) || isDone(6) ? "show" : "disabled"),
+    parts: [{
+      html: (ctx) => `
+        <h2 class="visually-hidden">Roleplay</h2>
+        <div class="intro-with-pic">
+          <div class="intro-pic">${imgHtml("N05", "avatar-img")}</div>
+          <p>This time, Suzzie is upset about a problem with something she bought at Stylez. You are the customer service officer. Use the 8 service recovery steps to win her back. During your chat, try to:</p>
+        </div>
+        ${iconCardsHtml([
+          { icon: "👂", html: "Listen, be patient and apologise for the inconvenience caused" },
+          { icon: "💙", html: "Acknowledge her feelings and ask questions to find out what happened" },
+          { icon: "🛠️", html: "Offer a solution, and thank her for bringing the problem to your attention" }
+        ], "cols-3 win-back-tips")}
+        <div class="start-box">
+          <p><strong>You are the customer service officer. Suzzie is your customer.</strong> In a fresh chat, greet Suzzie to begin. Try:</p>
+          ${sayHtml("\"Hi, welcome to Stylez! How may I assist you?\"")}
+        </div>
+        ${gemButtonHtml(CONFIG.GEMS && CONFIG.GEMS.suzzieRecovery, "🛍️ Open chat with Suzzie (new tab) ↗")}
+        <details class="facts-details steps-details"><summary>Show the 8 steps</summary>${recoveryStepStripHtml()}</details>
+        ${stylezFactsHtml()}
+        ${conversationLinkHtml(6, ctx.readOnly)}${tickHtml("s6.tick", "I have finished helping Suzzie.", ctx.readOnly)}`,
+      wire: (el) => { wireConversationLink(el, 6); wireTick(el, 6, 0, "s6.tick"); }
+    }]
+  },
+  {
+    label: "Reflect",
+    parts: [{
+      html: (ctx) => {
+        const submitted = !!rec.submitted.s6;
+        return `
+          <h2 class="visually-hidden">Reflect</h2>
+          <p>Think about your chat with Suzzie.</p>${recoveryStepsChecklistHtml(submitted || ctx.readOnly)}
+          <div class="story-cards cols-2-cards">
+            ${L6_BOXES.map(b => answerBoxHtml(b.key, {
+              cls: "story-card", icon: b.icon,
+              labelHtml: `<strong>${b.num}.</strong> ${escapeHtml(b.text)}`, hint: b.hint, readOnly: submitted || ctx.readOnly, rows: 5
+            })).join("")}
+          </div>
+          ${submitted ? `${recapHtml("If a complaint is handled well, the customer's bad experience can be turned into a good one.")}${finishButtonHtml(6)}`
+            : `<div class="btn-row"><button type="button" class="btn" id="submitL6">Submit</button></div>`}`;
+      },
+      wire: (el) => {
+        wireAnswerBoxes(el);
+        wireRecoveryStepsChecklist(el);
+        wireFinish(el, 6);
+        const btn = el.querySelector("#submitL6");
+        if (btn) btn.addEventListener("click", () => {
+          const missing = [];
+          if (!Array.isArray(getAnswer("s6.steps")) || !getAnswer("s6.steps").length) missing.push({ el: el.querySelector(".recovery-steps-check"), name: "Q1: Choose the steps you used" });
+          L6_BOXES.filter(b => isBlank(b.key)).forEach(b => missing.push({ el: el.querySelector(`[data-key="${b.key}"]`), name: `Box ${b.num}` }));
+          if (missing.length) { showNotFinished(missing); return; }
+          rec.submitted.s6 = nowIso();
+          queueSave("now");
+          redrawInPlace(6, 1);
+          revealFocus(document.querySelector(".recap-card"));
+        });
+      }
+    }]
+  }
+];
+
+/* ---------------- Level 7: Check and Exit Ticket (stored as 5) ---------------- */
 
 const L5_Q3 = [
   { id: "i", text: "Customer service ends once the customer has paid.", correct: false,
@@ -2776,7 +2893,7 @@ const L5_Q3 = [
     hint: "Count the 8 steps of service recovery. Is apologising the last step?",
     right: "Correct: Apologising is only Step 3; the officer still needs to acknowledge feelings, ask questions and offer solutions." },
   { id: "iv", text: "A service breakdown occurs when customers make a complaint about a product or service.", correct: true,
-    hint: "Look at the definition of service breakdown in Level 2. When does a service breakdown occur?",
+    hint: "Look at the definition of service breakdown in Level 3. When does a service breakdown occur?",
     right: "Correct: That is the textbook definition of service breakdown." }
 ].map(it => Object.assign(it, {
   type: "tf", answerKey: `s5.q3.${it.id}`, attemptKey: `s5q3.${it.id}`, answerLabel: it.correct ? "True" : "False",
@@ -2951,10 +3068,12 @@ function showChampionPopup() {
 
 const LEVEL_CONTENT = {
   1: { tabs: [{ label: "Your stories", parts: [L1_PART] }] },
-  2: { tabs: L2_CARDS.map(card => ({ label: card.label, parts: [card] })) },
+  2: { tabs: NOTES_CARDS[2].map(card => ({ label: card.label, parts: [card] })) },
+  7: { tabs: NOTES_CARDS[7].map(card => ({ label: card.label, parts: [card] })) },
   3: { tabs: L3_TABS },
   4: { tabs: L4_TABS },
-  5: { tabs: L5_TABS }
+  5: { tabs: L5_TABS },
+  6: { tabs: L6_TABS }
 };
 
 /* ---------------- Reading any student's record ----------------
@@ -2963,7 +3082,7 @@ const LEVEL_CONTENT = {
 const ALL_MARKED = () => L3_Q2.concat(L5_MARKED);
 function recAnswer(r, key) { const a = r && r.answers && r.answers[key]; return a ? a.v : undefined; }
 function recDone(r, n) { return r && r.done ? r.done[n] : null; }
-function recLevelsDone(r) { return r && r.done ? Object.keys(r.done).length : 0; }
+function recLevelsDone(r) { return r && r.done ? LEVELS.filter(l => r.done[l.num]).length : 0; }
 // Right on the first try, out of the items, or null until every item has a first try.
 function recFirstTry(r, items) {
   const first = (r && r.first) || {};
@@ -3031,14 +3150,17 @@ function reportMarkedHtml(item, r) {
 function learningAnswersHtml(r) {
   const qa = (label, key) => reportAnswerHtml(label, recAnswer(r, key));
   const tick = key => recAnswer(r,key) === true ? "Yes" : recAnswer(r,key) === false ? "No" : undefined;
-  const groups = [
-    L1_BOXES.map(b => qa(`${b.num}. ${b.text}`,b.key)).join(""),
-    qa("What did Alex do to make June feel welcome? Why did she bring her friend back?","s2.video") + qa("Was this good service recovery? Which of the 8 service recovery steps were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
-    reportAnswerHtml("Alex conversation link",recAnswer(r,"s3.link")) + reportAnswerHtml("I have finished chatting with Alex.",tick("s3.tick")) + qa("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed. Skill or quality:","s3.q1a") + qa("This is important to customers because","s3.q1b") + L3_Q2.map(it=>reportMarkedHtml(it,r)).join(""),
-    reportAnswerHtml("Suzzie conversation link",recAnswer(r,"s4.link")) + reportAnswerHtml("Which stages did you do?",(recAnswer(r,"s4.stages") || []).join(", ")) + reportAnswerHtml("I have finished serving Suzzie.",tick("s4.tick")) + L4_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
-    L5_MARKED.map(it=>reportMarkedHtml(it,r)).join("") + qa("Q3. Quality customer service matters because","s5.q5") + qa("Q4. What is one thing you have learnt about customer service?","s5.q6") + qa("Q5. What is one question you still have about this chapter?","s5.q7") + CONFIDENCE_ROWS.map((row,i)=>{const v=recAnswer(r,`s5.q8.${i+1}`);return reportAnswerHtml(`Q6. ${row}`,typeof v==="number" && FACES[v] ? FACES[v][1] : undefined);}).join("")
-  ];
-  return groups.map((html,i)=>`<section class="card report-answer-level" aria-labelledby="answerLevel${i+1}"><h3 class="section-title" id="answerLevel${i+1}">Level ${i+1}: ${escapeHtml(LEVELS[i].title)}</h3>${html}</section>`).join("");
+  // By stored level number; shown in the order students see.
+  const groups = {
+    1: L1_BOXES.map(b => qa(`${b.num}. ${b.text}`,b.key)).join(""),
+    2: qa("What did Alex do to make June feel welcome? Why did she bring her friend back?","s2.video"),
+    7: qa("Was this good service recovery? Which of the 8 service recovery steps were missing?","s2.think1") + qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?","s2.think2"),
+    6: reportAnswerHtml("Suzzie (upset) conversation link",recAnswer(r,"s6.link")) + reportAnswerHtml("I have finished helping Suzzie.",tick("s6.tick")) + reportAnswerHtml("Which of the 8 steps did you use?",(recAnswer(r,"s6.steps") || []).join(", ")) + L6_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
+    3: reportAnswerHtml("Alex conversation link",recAnswer(r,"s3.link")) + reportAnswerHtml("I have finished chatting with Alex.",tick("s3.tick")) + qa("Q1. Think back to your conversation with Alex. Identify ONE skill or quality he showed. Skill or quality:","s3.q1a") + qa("This is important to customers because","s3.q1b") + L3_Q2.map(it=>reportMarkedHtml(it,r)).join(""),
+    4: reportAnswerHtml("Suzzie conversation link",recAnswer(r,"s4.link")) + reportAnswerHtml("Which stages did you do?",(recAnswer(r,"s4.stages") || []).join(", ")) + reportAnswerHtml("I have finished serving Suzzie.",tick("s4.tick")) + L4_BOXES.map(b=>qa(`${b.num}. ${b.text}`,b.key)).join(""),
+    5: L5_MARKED.map(it=>reportMarkedHtml(it,r)).join("") + qa("Q3. Quality customer service matters because","s5.q5") + qa("Q4. What is one thing you have learnt about customer service?","s5.q6") + qa("Q5. What is one question you still have about this chapter?","s5.q7") + CONFIDENCE_ROWS.map((row,i)=>{const v=recAnswer(r,`s5.q8.${i+1}`);return reportAnswerHtml(`Q6. ${row}`,typeof v==="number" && FACES[v] ? FACES[v][1] : undefined);}).join("")
+  };
+  return LEVELS.map(l=>`<section class="card report-answer-level" aria-labelledby="answerLevel${l.pos}"><h3 class="section-title" id="answerLevel${l.pos}">Level ${l.pos}: ${escapeHtml(l.title)}</h3>${groups[l.num]}</section>`).join("");
 }
 
 /* ---------------- 6.1 My learning report ---------------- */
@@ -3065,7 +3187,7 @@ function renderReport() {
             return `<li class="report-level ${when ? "done" : ""}">
               <div class="report-badge">${imgHtml(s.badgeImg, "badge-img")}</div>
               <div class="report-level-body">
-                <p class="report-level-name">Level ${s.num}: ${escapeHtml(s.title)}</p>
+                <p class="report-level-name">Level ${s.pos}: ${escapeHtml(s.title)}</p>
                 <p class="report-level-when">${when ? `✅ ${escapeHtml(shortDate(when))}` : "Not finished yet"}</p>
                 <p class="report-level-badge ${s.iconImg ? "graphic-heading" : ""}">${when ? `${badge} ${escapeHtml(s.badge)}` : ""}</p>
               </div>
@@ -3075,14 +3197,14 @@ function renderReport() {
       </div>
       <div class="block">
         ${iconCardsHtml([
-          { icon: "🎯", html: `Level 3, Q2: First try <strong>${q2 == null ? "–" : q2} / 4</strong>.` },
-          { icon: "🎯", html: `Level 5, Q1 and Q2: First try <strong>${q34 == null ? "–" : q34} / 5</strong>.` }
+          { icon: "🎯", html: `Level 4, Q2: First try <strong>${q2 == null ? "–" : q2} / 4</strong>.` },
+          { icon: "🎯", html: `Level 7, Q1 and Q2: First try <strong>${q34 == null ? "–" : q34} / 5</strong>.` }
         ], "cols-2 report-scores")}
       </div>
       <section class="block" aria-labelledby="lookTitle">
         <h2 class="section-title" id="lookTitle">${hIcon("🔁")}Look at these again</h2>
         ${look.length ? `<ul class="look-list">${look.map(t => `<li>${escapeHtml(t)}</li>`).join("")}</ul>` : ""}
-        ${!allTried ? `<p class="look-none">Finish Levels 3 and 5 to see what to look at again.</p>`
+        ${!allTried ? `<p class="look-none">Finish Levels 4 and 7 to see what to look at again.</p>`
           : !look.length ? `<p class="look-none">Nothing to look at again. You got everything right on the first try! 🎉</p>` : ""}
       </section>
       <section class="block" aria-labelledby="confTitle">
@@ -3168,7 +3290,7 @@ function renderTeacherGate() {
       return;
     }
     teacher = { code, classes: reply.classes || [], removed: reply.removed || [], hidden: reply.hidden || [], tab: "classes", results: null, view: null, notice: "" };
-    if (/^#teacher-preview-[1-5]$/.test(window.location.hash)) render();
+    if (/^#teacher-preview-[1-7]$/.test(window.location.hash)) render();
     else renderTeacherHome();
   });
 }
@@ -3253,31 +3375,27 @@ function renderClassesTab(el, message) {
 }
 
 function teacherLessonLinksHtml(current) {
-  return `<nav class="teacher-lesson-links" aria-label="Teacher lesson preview">${LEVELS.map(level=>`<a class="btn secondary" href="#teacher-preview-${level.num}" ${current===level.num ? 'aria-current="page"' : ""}>Level ${level.num}</a>`).join("")}</nav>`;
+  return `<nav class="teacher-lesson-links" aria-label="Teacher lesson preview">${LEVELS.map(level=>`<a class="btn secondary" href="#teacher-preview-${level.pos}" ${current===level.num ? 'aria-current="page"' : ""}>Level ${level.pos}</a>`).join("")}</nav>`;
 }
 
 function renderTeacherLesson(n) {
   // Render against an isolated, temporary record. Never load or write student answers.
   const previousRecord = rec;
-  const previousPath = pathShownNow;
   let content;
   renderingTeacherPreview = true;
   try {
     rec = freshRecord("",0,"");
     rec.agreed = "preview";
-    rec.reached["s2.path"] = 8;
-    pathShownNow = 8;
     content = LEVEL_CONTENT[n].tabs.map((tab,t)=>`<section class="teacher-lesson-step" aria-labelledby="teacherStep${t}">
       <h2 class="teacher-step-title" id="teacherStep${t}">${escapeHtml(tab.label)}</h2>
       ${tab.parts.map((part,i)=>`<section class="block part teacher-lesson-part" id="teacherPart${n}_${t}_${i}">${part.html({n,t,readOnly:true,fresh:false})}</section>`).join("")}
     </section>`).join("");
   } finally {
     rec = previousRecord;
-    pathShownNow = previousPath;
     renderingTeacherPreview = false;
   }
   setGraphicHtml(app,`${topBarHtml({})}<main class="page teacher-lesson">
-    <div class="block"><h1 class="page-title">Level ${n}: ${escapeHtml(lvl(n).title)}</h1>
+    <div class="block"><h1 class="page-title">Level ${lvl(n).pos}: ${escapeHtml(lvl(n).title)}</h1>
       <p class="teacher-preview-note">Teacher preview: all sections are open. Activities are view-only and do not change student progress.</p>
       <div class="btn-row"><a class="btn secondary" href="#teacher">Back to Teacher Mode</a></div>
       ${teacherLessonLinksHtml(n)}</div>${content}</main>${footerHtml()}`);
@@ -3334,6 +3452,7 @@ async function loadResults(cls) {
   const reply = await teacherCall({ action: "results", "class": cls });
   if (!reply.ok) { teacher.results = { cls, error: teacherErrorText(reply), students: [] }; return; }
   teacher.results = { cls, students: reply.students || [] };
+  teacher.results.students.forEach(s => migrateRecord(s.record)); // records not opened since 0.11.0
 }
 
 function renderResultsTab(el) {
@@ -3384,7 +3503,7 @@ function renderClassResults(body, panel) {
       <h2 class="section-title" id="sumTitle">Class summary: ${escapeHtml(res.cls)}</h2>
       <p class="muted">${n} student${n === 1 ? "" : "s"} with saved work.</p>
       <h3 class="sum-head">Levels finished</h3>
-      <ul class="sum-list">${LEVELS.map(s => `<li>Level ${s.num}: ${withWork.filter(x => recDone(x.record, s.num)).length} of ${n}</li>`).join("")}</ul>
+      <ul class="sum-list">${LEVELS.map(s => `<li>Level ${s.pos}: ${withWork.filter(x => recDone(x.record, s.num)).length} of ${n}</li>`).join("")}</ul>
       <h3 class="sum-head">Most missed on the first try</h3>
       ${missed.length ? `<ul class="sum-list">${missed.map(m => `<li>${escapeHtml(itemTeacherLabel(m.it))}: wrong for ${m.wrong} of ${m.tried}</li>`).join("")}</ul>` : `<p class="muted">Nothing missed on the first try yet.</p>`}
       <h3 class="sum-head">Confidence</h3>
@@ -3441,21 +3560,24 @@ function renderStudentReport(body, panel) {
     <div class="btn-row"><button type="button" class="btn secondary" id="backToClass">← Back to the class</button></div>
     <section class="card student-report" aria-labelledby="stuTitle">
       <h2 class="section-title" id="stuTitle"><span data-student-text>${escapeHtml(profileName(r))}</span>${profileName(r) ? " · " : ""}Class ${escapeHtml(res.cls)}, Register No. ${s.reg}</h2>
-      <p class="muted">Levels done: ${recLevelsDone(r)} of 5${s.lastSaved ? ` · Last saved ${escapeHtml(s.lastSaved)}` : ""}${s.clearedAt ? ` · Work cleared ${escapeHtml(s.clearedAt)}` : ""}</p>
+      <p class="muted">Levels done: ${recLevelsDone(r)} of ${LEVELS.length}${s.lastSaved ? ` · Last saved ${escapeHtml(s.lastSaved)}` : ""}${s.clearedAt ? ` · Work cleared ${escapeHtml(s.clearedAt)}` : ""}</p>
       <h3 class="sum-head">Level 1: stories</h3>
       ${L1_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
       <h3 class="sum-head">Level 2: Think about it</h3>
       ${qa("What did Alex do to make June feel welcome? Why did she bring her friend back?", recAnswer(r, "s2.video"))}
+      <h3 class="sum-head">Level 3: Think about it</h3>
       ${qa("Was this good service recovery? Which of the 8 service recovery steps were missing?", recAnswer(r, "s2.think1"))}
       ${qa("Name ONE item Uniqlo will not accept for return. Why do you think a business would have this rule?", recAnswer(r, "s2.think2"))}
-      <h3 class="sum-head">Level 3: Q1</h3>
+      <h3 class="sum-head">Level 4: Q1</h3>
       ${qa("Skill or quality:", recAnswer(r, "s3.q1a"))}
       ${qa("This is important to customers because", recAnswer(r, "s3.q1b"))}
-      <h3 class="sum-head">Level 3: Q2</h3>
+      <h3 class="sum-head">Level 4: Q2</h3>
       ${attemptsTable(withR(L3_Q2), "Line")}
-      <h3 class="sum-head">Level 4: reflections</h3>
+      <h3 class="sum-head">Level 5: reflections</h3>
       ${qa("Which stages did you do?",(recAnswer(r,"s4.stages") || []).join(", "))}${qa("Suzzie conversation link",recAnswer(r,"s4.link"))}${L4_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
-      <h3 class="sum-head">Level 5: Q1 and Q2</h3>
+      <h3 class="sum-head">Level 6: steps used and reflections</h3>
+      ${qa("Which of the 8 steps did you use?",(recAnswer(r,"s6.steps") || []).join(", "))}${qa("Suzzie (upset) conversation link",recAnswer(r,"s6.link"))}${L6_BOXES.map(b => qa(`${b.num}. ${b.text}`, recAnswer(r, b.key))).join("")}
+      <h3 class="sum-head">Level 7: Q1 and Q2</h3>
       ${attemptsTable(withR(L5_MARKED), "Item")}
       ${qa("Q3. Quality customer service matters because", recAnswer(r, "s5.q5"))}
       <h3 class="sum-head">Exit ticket</h3>
@@ -3497,12 +3619,13 @@ function csvCell(v) {
 }
 function downloadClassCsv(res) {
   const header = ["Class", "Register No.", "Student name", "Levels done"]
-    .concat(LEVELS.map(s => `Level ${s.num} finished`))
+    .concat(LEVELS.map(s => `Level ${s.pos} finished`))
     .concat(["Q2 first try (/4)", "Q1 and Q2 first try (/5)"])
     .concat(L1_BOXES.map(b => `Level 1 story ${b.num}`))
-    .concat(["Level 2 Video reflection", "Level 2 Think about it 1", "Level 2 Think about it 2", "Level 3 Q1 skill or quality", "Level 3 Q1 why important"])
+    .concat(["Level 2 Video reflection", "Level 3 Think about it 1", "Level 3 Think about it 2", "Level 4 Q1 skill or quality", "Level 4 Q1 why important"])
     .concat(L3_Q2.reduce((a, it) => a.concat([`Q2 ${it.id} first try`, `Q2 ${it.id} second try`]), []))
-    .concat(["Alex conversation link","Suzzie conversation link","Level 4 stages used"]).concat(L4_BOXES.map(b => `Level 4 reflection ${b.num}`))
+    .concat(["Alex conversation link","Suzzie conversation link","Level 5 stages used"]).concat(L4_BOXES.map(b => `Level 5 reflection ${b.num}`))
+    .concat(["Level 6 Suzzie (upset) conversation link", "Level 6 steps used"]).concat(L6_BOXES.map(b => `Level 6 reflection ${b.num}`))
     .concat(L5_Q3.reduce((a, it) => a.concat([`Q1 ${it.id} first try`, `Q1 ${it.id} second try`]), []))
     .concat(["Q2 first try", "Q2 second try", "Q3", "Q4", "Q5"])
     .concat(CONFIDENCE_ROWS.map((row, i) => `Q6 confidence ${i + 1}: ${row}`))
@@ -3518,6 +3641,7 @@ function downloadClassCsv(res) {
       .concat(["s2.video", "s2.think1", "s2.think2", "s3.q1a", "s3.q1b"].map(k => recAnswer(r, k)))
       .concat(L3_Q2.reduce((a, it) => a.concat([att(it, "first"), att(it, "second")]), []))
       .concat([recAnswer(r,"s3.link"),recAnswer(r,"s4.link"),(recAnswer(r,"s4.stages") || []).join("; ")]).concat(L4_BOXES.map(b => recAnswer(r, b.key)))
+      .concat([recAnswer(r,"s6.link"),(recAnswer(r,"s6.steps") || []).join("; ")]).concat(L6_BOXES.map(b => recAnswer(r, b.key)))
       .concat(L5_MARKED.reduce((a, it) => a.concat([att(it, "first"), att(it, "second")]), []))
       .concat(["s5.q5", "s5.q6", "s5.q7"].map(k => recAnswer(r, k)))
       .concat(CONFIDENCE_ROWS.map((row, i) => { const v = recAnswer(r, `s5.q8.${i + 1}`); return typeof v === "number" ? FACES[v][1] : ""; }))
@@ -3565,7 +3689,7 @@ function renderDeviceTab(el, message) {
   const saved = lsGet(KEYS.active);
   if (saved && saved.cls && saved.reg) {
     student = { cls: saved.cls, reg: saved.reg };
-    rec = lsGet(KEYS.rec(activeKey())) || freshRecord(saved.cls, saved.reg, "");
+    rec = migrateRecord(lsGet(KEYS.rec(activeKey()))) || freshRecord(saved.cls, saved.reg, "");
     syncActiveFromServer();
   }
   render();

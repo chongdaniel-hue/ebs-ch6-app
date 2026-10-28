@@ -4,7 +4,7 @@ const resetCode = () => process.env.TEST_RESET_CODE;
 const T = "2026-10-20T02:00:00.000Z";
 function record(reg = 5) {
   return {v:1, cls:"3E1", reg, updatedAt:T, baseClearedAt:"", agreed:T,
-    done:{1:T,2:T,3:T,4:T,5:T}, submitted:{q:T}, reached:{"s4.tabs":1},
+    done:{1:T,2:T,3:T,4:T,5:T,6:T}, submitted:{q:T}, reached:{"s4.tabs":1},
     first:{q:{a:"test",ok:true,t:T}}, second:{q:{a:"test",ok:true,t:T}},
     answers:{"s1.q1":{v:"Sample answer",t:T}}, ui:{"s4.tab":{v:1,t:T}}};
 }
@@ -95,7 +95,7 @@ test("offline reset preserves progress; delayed saves cannot revive cleared answ
 
 test("server enforces password, independent lockout and successive reset epochs",async({request})=>{
   await resetServer(request,["3E1"]);
-  expect((await apiGet(request,{action:"classes"})).version).toBe("0.6.32");
+  expect((await apiGet(request,{action:"classes"})).version).toBe("0.11.0");
   await apiPost(request,{action:"save",record:record()});
   for(const code of ["",process.env.TEST_TEACHER_CODE,"wrong-test-password"])
     expect((await apiPost(request,{action:"resetProgress",code,class:"3E1",reg:5})).error).toBe("bad_code");

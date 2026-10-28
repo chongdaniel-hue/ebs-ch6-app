@@ -1,16 +1,17 @@
 // Tap to enlarge: every zoomable picture in Level 2 opens visibly larger than it is drawn
 // inline, never wider than its own file, at laptop and phone widths.
 const {test,expect}=require('@playwright/test');
-const {resetServer,login,watchErrors,expectNoSidewaysScroll}=require('./helpers');
+const {resetServer,login,watchErrors,expectNoSidewaysScroll,notesCard}=require('./helpers');
 
-test('every Level 2 picture opens larger than inline, sharp and no wider than its file',async({page,request},info)=>{
+test('every Level 2 and 3 picture opens larger than inline, sharp and no wider than its file',async({page,request},info)=>{
   const errors=watchErrors(page);
   await resetServer(request,['3E1']);await login(page,'3E1',9);await page.locator('#briefing button').click();
   await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');saveLocal();});
   await page.goto('/#level2');
   const seen=[];
+  // The 19 cards of the old notes: Level 2 cards 1 to 13, then Level 3.
   for(let c=0;c<19;c++){
-    await page.evaluate(c=>{setUi('s2.card',c);renderLevel(2);},c);
+    await notesCard(page,c);
     const buttons=page.locator('#lessonCard .zoom-btn');
     const count=await buttons.count();
     for(let i=0;i<count;i++){
@@ -41,6 +42,6 @@ test('every Level 2 picture opens larger than inline, sharp and no wider than it
     }
   }
   // All the Level 2 comics and screenshots were checked.
-  expect(seen).toEqual(expect.arrayContaining(['C01','PK_FEATURES','PK_PRICE','PK_CARE','PK_WARRANTY','PK_SELLING_POINT','C02','C03','SUITABILITY','C04','R01','R02','N03','R03']));
+  expect(seen).toEqual(expect.arrayContaining(['C05','C06','C07','C01','PK_FEATURES','PK_PRICE','PK_CARE','PK_WARRANTY','PK_SELLING_POINT','C02','C03','SUITABILITY','C04','R01','R02','N03','R03']));
   expect(errors).toEqual([]);
 });

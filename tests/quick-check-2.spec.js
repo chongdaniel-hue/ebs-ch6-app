@@ -7,9 +7,9 @@ const OPTIONS=["Negative into selling point","Yes, but","Share concerns","Correc
 test('quick check 2: nothing pre-selected, hint, one more try, the answer, required before Next, not scored',async({page,request},info)=>{
   const errors=watchErrors(page);
   await resetServer(request,['3E1']);await login(page,'3E1',14);await page.locator('#briefing button').click();
-  await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');setAnswer('s2.qc.a.1','Greeting');saveLocal();});
+  await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');setAnswer('s2.qc.a.1','Greeting');setAnswer('s2.video','Alex greeted June warmly and by name.');saveLocal();});
   await page.goto('/#level2');await page.evaluate(()=>{setUi('s2.card',12);renderLevel(2);});
-  await expect(page.locator('#lessonProgressText')).toHaveText('13 of 19 · Stage 2: Quick check');
+  await expect(page.locator('#lessonProgressText')).toHaveText('13 of 13 · Stage 2: Quick check');
   await expect(page.locator('#lessonCard h2')).toHaveText('Quick check: Which technique is this?');
   await expect(page.locator('#lessonCard')).toContainText('Tap one for each.');
   await expect(page.locator('#lessonCard .listen-btn')).toHaveCount(0);
@@ -62,7 +62,7 @@ test('quick check 2: nothing pre-selected, hint, one more try, the answer, requi
   await expect(item('a').locator('.feedback.right')).toBeVisible();
   // Not scored and not in the learning report.
   expect(await page.evaluate(()=>ALL_MARKED().some(it=>/qc/.test(it.attemptKey)) || Object.keys(rec.first).some(k=>/qc/.test(k)))).toBe(false);
-  await page.locator('#lessonNext').click();await expect(page.locator('#lessonProgressText')).toContainText('14 of 19 · Stage 3: Closing the customer experience positively');
+  await page.locator('#lessonNext').click();await expect(page.locator('#badgeModal')).toContainText('Service Scholar');
   await page.goto('/#report');await expect(page.locator('main')).not.toContainText('Which technique');await expect(page.locator('main')).not.toContainText('Negative into selling point');
   expect(errors).toEqual([]);
 });

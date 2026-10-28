@@ -14,7 +14,7 @@ test("landing page shell", async ({ page }, testInfo) => {
   await expect.poll(() => banner.evaluate(el => el.complete && el.naturalWidth > 0)).toBe(true);
   await expect(banner).toHaveAttribute("alt", "Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity.");
   await expect(page.locator(".credits")).toContainText("A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)");
-  await expect(page.locator(".credits")).toContainText("Version 0.10.0");
+  await expect(page.locator(".credits")).toContainText("Version 0.11.0");
   await expect(page.locator(".credits a.teacher-link")).toHaveText("Teacher Mode");
   // Zoom allowed.
   const vp = await page.locator('meta[name="viewport"]').getAttribute("content");
@@ -48,13 +48,15 @@ test("image map: all artwork loads, failed requests show accessible placeholders
   page.on("pageerror", e => pageErrors.push(String(e)));
   await page.goto("/");
   const ids = await page.evaluate(() => Object.keys(window.APP_CONFIG.IMAGES));
-  expect(ids).toEqual(["WELCOME", "SUITABILITY", "PK_FEATURES", "PK_PRICE", "PK_CARE", "PK_WARRANTY", "PK_SELLING_POINT", "ICON_TERMS", "ICON_LEARN", "TERM_SERVICE", "TERM_QUALITY", "TERM_BREAKDOWN", "TERM_RECOVERY", "N01", "N03", "N04", "N05", "C01", "C02", "C03", "C04", "R01", "R02", "R03", "BADGE1", "BADGE2", "BADGE3", "BADGE4", "BADGE5"]);
+  expect(ids).toEqual(["WELCOME", "SUITABILITY", "PK_FEATURES", "PK_PRICE", "PK_CARE", "PK_WARRANTY", "PK_SELLING_POINT", "ICON_TERMS", "ICON_LEARN", "TERM_SERVICE", "TERM_QUALITY", "TERM_BREAKDOWN", "TERM_RECOVERY", "N01", "N03", "N04", "N05", "C01", "C02", "C03", "C04", "C05", "C06", "C07", "R01", "R02", "R03", "BADGE1", "BADGE2", "BADGE3", "BADGE4", "BADGE_L3", "BADGE6", "BADGE5"]);
   // Draw every image into the page, as the levels will.
   await page.evaluate(ids => {
     document.querySelector(".page").innerHTML = ids.map(id => `<div class="block test-img" data-id="${id}"><p><strong>${id}</strong></p>${imgHtml(id)}</div>`).join("");
   }, ids);
   await page.waitForTimeout(800);
-  for (const id of ids) {
+  // The Level 3 badge is not drawn yet: it shows its placeholder box until the file is added.
+  await expect(page.locator('.test-img[data-id="BADGE_L3"] .img-placeholder')).toBeVisible();
+  for (const id of ids.filter(id => id !== "BADGE_L3")) {
     const box = page.locator(`.test-img[data-id="${id}"]`);
     const img = box.locator("img");
     await expect(img, `${id} should load`).toBeVisible();

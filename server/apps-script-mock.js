@@ -159,6 +159,17 @@ function createAppsScript({ dataDir, teacherCode, resetCode, maxRows, urlFetch }
       save();
       return out.getContent();
     },
+    // Tests only: store a record exactly as the 0.10.0 script left it (no migration), so the
+    // 0.11.0 migration can be tested on old-style rows.
+    putOldRecord(cls, reg, record) {
+      const c = context, sheet = c.ensureSheets().students, key = c.studentKey(cls, reg);
+      let row = c.findStudentRow(sheet, key);
+      if (row === -1) row = c.nextRow(sheet);
+      const values = c.studentRowValues(key, record, c.nowText(), "", JSON.stringify(record));
+      values[3] = String(Object.keys(record.done || {}).length);
+      sheet.getRange(row, 1, 1, values.length).setNumberFormat("@").setValues([values]);
+      save();
+    },
     reset() { book = {}; properties={};saveProperties(); cacheStore.clear(); hooks.busy = 0; Object.keys(extraRows).forEach(k => delete extraRows[k]); save(); },
     hooks,
     context

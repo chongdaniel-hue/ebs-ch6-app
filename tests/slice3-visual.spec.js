@@ -1,6 +1,6 @@
 // Slice 3 visual and Mayer pass: equal cards, images in full, the 🔊 Read aloud button.
 const { test, expect } = require("@playwright/test");
-const { watchErrors, resetServer, login } = require("./helpers");
+const { watchErrors, resetServer, login, openNotesCard } = require("./helpers");
 
 // A stand-in for the browser's speech, so the test can see what would be read aloud.
 const FAKE_SPEECH = () => {
@@ -22,7 +22,6 @@ async function student(page, request, reg) {
   await page.evaluate(() => {
     localStorage.setItem("ch6_unlock_all", "true");
     for(const key of REFLECTION_KEYS){setAnswer(key,"A complete reflection.");setUi(`${key}.saved`,rec.answers[key].t);}
-    rec.reached["s2.path"] = 8; setUi("s2.cardLayout", "cards15");
     saveLocal();
   });
 }
@@ -47,8 +46,8 @@ test("Level 1: the three question cards line up and the boxes are the same size"
 test("images are shown in full and the Foodpanda pair is the same height", async ({ page, request }, testInfo) => {
   await student(page, request, 32);
   await page.goto("/#level2");
-  for (let c = 0; c < 19; c++) {
-    await page.evaluate(c => { setUi("s2.card", c); renderLevel(2); }, c);
+  for (let c = 0; c < 20; c++) {
+    await openNotesCard(page, c);
     await page.waitForTimeout(300);
     const cropped = await page.locator("img.content-img").evaluateAll(imgs => imgs.filter(i => i.naturalWidth).map(i => {
       const r = i.getBoundingClientRect();
@@ -56,7 +55,7 @@ test("images are shown in full and the Foodpanda pair is the same height", async
     }).filter(x => x.off > 0.02));
     expect(cropped, "no image squashed or cut").toEqual([]);
   }
-  await page.evaluate(() => { setUi("s2.card",17); renderLevel(2); });
+  await openNotesCard(page, 18); // Level 3, Real-life example
   await page.waitForTimeout(300);
   const heights = await page.locator(".img-pair img").evaluateAll(imgs => imgs.map(i => Math.round(i.getBoundingClientRect().height)));
   expect(heights.length).toBe(2);
@@ -98,12 +97,13 @@ test("blocks line up: same left and right edges on every page", async ({ page, r
     expect(await edgeProblems(page), name).toEqual([]);
   }
   await page.goto("/#level2");
-  for (let c = 0; c < 19; c++) {
-    await page.evaluate(c => { setUi("s2.card", c); renderLevel(2); }, c);
+  for (let c = 0; c < 20; c++) {
+    await openNotesCard(page, c);
     await page.waitForTimeout(300);
-    expect(await edgeProblems(page), `level2 card ${c + 1}`).toEqual([]);
+    expect(await edgeProblems(page), `notes card ${c + 1}`).toEqual([]);
   }
-  for (const n of [3, 4, 5]) {
+  // Levels 4 to 7, by the number students see.
+  for (const n of [4, 5, 6, 7]) {
     for (const t of [0, 1]) {
       await page.goto("/#home");
       await page.goto(`/#level${n}`);
@@ -138,14 +138,14 @@ test("Read aloud reads a block of notes, not the questions, and stops on a secon
   // Level 2: one Read aloud button per card of notes; the question box is not read.
   await page.goto("/#level2");
   const readCard = async (c) => {
-    await page.evaluate(c => { setUi("s2.card", c); renderLevel(2); window.__spoken = []; }, c);
+    await page.evaluate(c => { const n = c < 13 ? 2 : 7; setUi(`s${n}.card`, c < 13 ? c : c - 13); renderLevel(n); window.__spoken = []; }, c);
     await expect(page.locator("#lessonCard .listen-btn")).toHaveCount(1);
     await page.locator("#lessonCard .listen-btn").click();
     const text = (await page.evaluate(() => window.__spoken)).join(" ");
     await page.locator("#lessonCard .listen-btn").click();
     return text;
   };
-  const poor = await readCard(17);
+  const poor = await readCard(18);
   expect(poor).toContain("A customer complained to a food delivery app");
   expect(poor).not.toContain("Was this good service recovery");
   // Cards: the words read aloud are the words shown, name and description kept apart.
@@ -155,7 +155,7 @@ test("Read aloud reads a block of notes, not the questions, and stops on a secon
   expect(await readCard(4)).toContain("The Nexora Core is $799.");
   expect(await readCard(4)).toContain("The Nexora Spark has a large screen for reading and an all-day battery.");
   // The quick check is a question: no Read aloud.
-  await page.evaluate(() => { setUi("s2.card", 8); renderLevel(2); });
+  await openNotesCard(page, 8);
   await expect(page.locator("#lessonCard .listen-btn")).toHaveCount(0);
 
   // Level 1 is questions only: no Read aloud button.

@@ -1676,3 +1676,15 @@ fieldset.roleplay-stages{margin-left:0;margin-right:0;min-width:0;}
 .qc-options.qc-qc2{grid-template-columns:repeat(2, minmax(0, 1fr));max-width:560px;}
 .qc-options.qc-qc2 .qc-btn{min-height:44px;height:100%;white-space:normal;line-height:1.25;}
 @media (min-width:760px){ .qc-options.qc-qc2{grid-template-columns:repeat(4, minmax(0, 1fr));max-width:none;} }
+
+/* ---------- 0.11.0: Level 6 step checklist and tips ---------- */
+/* One neutral style for every step (no stage colours, so nothing hints at an answer). */
+.step-checklist .step-chip{border-left:6px solid var(--brand-light);box-shadow:0 0 0 1px var(--border, #E8DADF);}
+@media(min-width:601px){.step-checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}}
+.step-checklist .step-chip input{flex-shrink:0;}
+.win-back-tips{margin-top:16px;}
+/* Seven badges: one row on wider screens, 4 then 3 on phones. */
+.badge-shelf{grid-template-columns:repeat(4,minmax(0,1fr));}
+@media(min-width:700px){.badge-shelf{grid-template-columns:repeat(7,minmax(0,1fr));}}
+/* Level 3 card 5: the Stage 4 label sits as close to the video heading as on the other stage cards. */
+.lesson-card .stage-label + .lesson-video{margin:4px 0 0;}

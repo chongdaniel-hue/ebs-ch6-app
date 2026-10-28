@@ -12,7 +12,8 @@
      GET  ?action=classes                      list of classes (anyone)
      POST {action:"load", class, reg, name}     name-checked student work
      POST {action:"resetProgress", code, class, reg} protected by RESET_CODE
-     POST {action:"save", record, name}        name-checked save
+     POST {action:"save", record, name, app}   name-checked save (app: the
+                                               app version, sent from 0.11.0 on)
      POST {action:"teacherCheck", code}        check the teacher code
      POST {action:"addClass", code, name}
      POST {action:"removeClass", code, name}
@@ -27,7 +28,7 @@
    JavaScript that Apps Script accepts (no ?. or ?? operators).
    ============================================================ */
 
-var SCRIPT_VERSION = "0.6.32";
+var SCRIPT_VERSION = "0.11.0";
 
 var CLASSES_SHEET = "Classes";
 var STUDENTS_SHEET = "Students";
@@ -47,7 +48,11 @@ var BAD_CODE_WINDOW_SECONDS = 600; // ...in this many seconds,
 var LOCKOUT_SECONDS = 600;         // then every code is refused for this long
 var TIME_ZONE = "Asia/Singapore";
 
-// Items scored on the first try (Level 3 Q2; Level 5 Q3 and Q4). The app
+// Stored level numbers never change meaning (app.js LEVELS): 1 stories, 2 notes Part 1,
+// 7 notes Part 2, 3 Chat with Alex, 4 Serve Suzzie, 6 Win Suzzie Back, 5 the Check.
+var LEVEL_NUMBERS = [1, 2, 7, 3, 4, 6, 5];
+
+// Items scored on the first try (Level 4 Q2; Level 7 Q1 and Q2, saved as s5q3 and s5q4). The app
 // records whether each first try was right, so no answer key is needed here.
 var Q2_ITEMS = ["s3q2.P", "s3q2.Q", "s3q2.R", "s3q2.S"];
 var Q34_ITEMS = ["s5q3.i", "s5q3.ii", "s5q3.iii", "s5q3.iv", "s5q4"];
@@ -77,7 +82,7 @@ function doPost(e) {
     switch (body.action) {
       case "validateConversationLink": return validateConversationLink(body["class"],body.reg,body.name,body.url);
       case "load": return loadStudent(body["class"], body.reg, body.name);
-      case "save": return saveStudent(body.record, body.name);
+      case "save": return saveStudent(body.record, body.name, body.app);
       case "resetProgress": return resetOnly(body.code, function () { return clearStudent(body["class"], body.reg); });
       case "profileClasses": return profileOnly(body.code, body.purpose, function () { return {ok:true,classes:classLists().classes}; });
       case "profileList": return profileOnly(body.code, body.purpose, function () { return registeredProfiles(body["class"]); });
@@ -320,7 +325,7 @@ function loadStudent(cls, reg, name) {
   return { ok: true, record: s.record, clearedAt: s.clearedAt };
 }
 
-function saveStudent(record, name) {
+function saveStudent(record, name, app) {
   var requiredName=studentNameError(null,name);if(requiredName)return requiredName;
   if (!record || typeof record !== "object") return { ok: false, error: "bad_request" };
   var who = checkStudent(record.cls, record.reg);
@@ -343,6 +348,7 @@ function saveStudent(record, name) {
       if (!studentName || typeof studentName !== "object" || typeof studentName.v !== "string" || !studentName.v.trim() || studentName.v.length > 80) return {ok:false,error:"bad_name"};
     }
     var incoming = capTimes(record, nowIso());
+    if (!app) incoming = oldAppSave(stored.record, incoming);
     var merged = mergeRecords(stored.record, incoming);
     merged.cls = who.cls;
     merged.reg = who.reg;
@@ -357,7 +363,7 @@ function saveStudent(record, name) {
 }
 
 function studentRowValues(key, rec, lastSaved, clearedAt, json) {
-  var finished = rec ? Object.keys(rec.done || {}).length : "";
+  var finished = rec ? LEVEL_NUMBERS.filter(function (n) { return rec.done && rec.done[n]; }).length : "";
   var conf = CONFIDENCE_KEYS.map(function (k) {
     var a = rec && rec.answers && rec.answers[k];
     return a && typeof a.v === "number" && CONFIDENCE_LABELS[a.v] ? CONFIDENCE_LABELS[a.v] : "";
@@ -419,8 +425,8 @@ function clearStudent(cls, reg) {
 function unlockStudent(cls, reg, levels) {
   var who = checkStudent(cls, reg);
   if (who.error) return { ok: false, error: who.error };
-  if (!Array.isArray(levels) || !levels.length || levels.length > 5 || levels.some(function (n) {
-    return typeof n !== "number" || Math.floor(n) !== n || n < 1 || n > 5;
+  if (!Array.isArray(levels) || !levels.length || levels.length > LEVEL_NUMBERS.length || levels.some(function (n) {
+    return typeof n !== "number" || LEVEL_NUMBERS.indexOf(n) === -1;
   })) return { ok: false, error: "bad_levels" };
   return withLock(function () {
     var sheet = ensureSheets().students;
@@ -429,7 +435,8 @@ function unlockStudent(cls, reg, levels) {
     if (row === -1) return { ok: false, error: "no_student" };
     var stored = readStudent(sheet, row);
     if (!stored.record) return { ok: false, error: "no_student" };
-    var record = stored.record;
+    // Migrate first, so an old grant to the notes opens Part 2 but a new one does not.
+    var record = migrateRecord(stored.record);
     var grants = isPlainObject(record.unlockedLevels) ? record.unlockedLevels : {};
     var time = nowIso();
     levels.forEach(function (n) { if (!grants[n]) grants[n] = time; });
@@ -446,6 +453,7 @@ function unlockStudent(cls, reg, levels) {
 function registeredProfiles(cls) {
   var result=classResults(cls);
   return {ok:true,students:result.students.filter(function(s){return !!s.record;}).map(function(s){
+    migrateRecord(s.record);
     var name=s.record.profile && s.record.profile.name;
     return {reg:s.reg,name:name ? String(name.v || "") : "",unlockedLevels:s.record.unlockedLevels || {}};
   })};
@@ -507,10 +515,90 @@ var MERGE_RULES = {
   first: "keep", second: "keep", answers: "newest", ui: "newest", profile: "keep"
 };
 
+var MIGRATE_POSITIONS = false; // the server never moves saved notes positions, so a student still on the 0.10.0 page is not sent back a card
+// Version 0.11.0: the notes became Levels 2 and 3, and Win Suzzie Back was added. Stored
+// level numbers keep their meaning, so this only adds what the new levels need, once per
+// record (reached.levels7 marks it done). The same function is in app.js; keep the two identical.
+//   Finished the old notes: Learn Part 2 (stored as 7) is finished too, with the same date.
+//   An old grant to the notes also opens Learn Part 2.
+//   A Check (stored as 5) started or finished before Win Suzzie Back existed stays open
+//   (reached["open.5"]), even though Level 6 now comes before it.
+//   A saved notes position on card 14 or later (old one-level notes) finishes Part 1 and
+//   continues in Part 2 on the matching card. Only the old notes can save such a position.
+var NOTES_OLD_LAYOUTS = { compact10: [1, 2, 3, 5, 6, 9, 11, 12, 13, 14], cards15: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 14, 15, 16, 17], cards18: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18] };
+var NOTES_PART1_CARDS = 13;
+function oldNotesPosition(ui, layout) {
+  var c = ui["s2.card"];
+  if (!c) return null;
+  var pos = Number(c.v) || 0;
+  if (layout === "cards19") return pos;
+  if (layout !== "cards18") {
+    if (layout !== "cards15") {
+      if (layout === "compact10") pos = NOTES_OLD_LAYOUTS.compact10[pos] || 0;
+      else { var first = [0, 1, 2, 2, 3, 4, 4, 5, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 9, 9]; pos = NOTES_OLD_LAYOUTS.compact10[first[pos] || 0] || 0; }
+    }
+    pos = NOTES_OLD_LAYOUTS.cards15[pos] || 0;
+  }
+  return NOTES_OLD_LAYOUTS.cards18[pos] || 0;
+}
+function migrateRecord(r) {
+  if (!isPlainObject(r)) return r;
+  ["done", "reached", "ui"].forEach(function (k) { if (!isPlainObject(r[k])) r[k] = {}; });
+  var seven = Number(r.reached.levels7) >= 1;
+  if (!seven) {
+    if (r.done[2] && !r.done[7]) r.done[7] = r.done[2];
+    if (isPlainObject(r.unlockedLevels) && r.unlockedLevels[2] && !r.unlockedLevels[7]) r.unlockedLevels[7] = r.unlockedLevels[2];
+    var checkStarted = !!r.done[5] || ["answers", "submitted", "first", "reached", "ui"].some(function (k) {
+      return isPlainObject(r[k]) && Object.keys(r[k]).some(function (key) { return /^s5(\D|$)/.test(key); });
+    });
+    if (checkStarted && !r.done[6]) r.reached["open.5"] = 1;
+    r.reached.levels7 = 1;
+  }
+  // Cards 1 to 13 are the same in the 19-card notes and in Part 1, so a 19-card position
+  // below 13 needs nothing; the layout stays "cards19" so the old app reads it the same way.
+  var c = r.ui["s2.card"];
+  if (c && MIGRATE_POSITIONS) {
+    // No layout saved: the first notes layout, unless this record was made by 0.11.0 or later.
+    var layout = r.ui["s2.cardLayout"] ? r.ui["s2.cardLayout"].v : seven ? "cards19" : "";
+    var pos = oldNotesPosition(r.ui, layout), t = c.t || "";
+    if (pos >= NOTES_PART1_CARDS) {
+      if (!r.done[2]) r.done[2] = t || "2026-10-28T00:00:00.000Z";
+      // Level 3 has the 8-steps video on its own card (card 5), so later cards move one along.
+      var part2 = pos - NOTES_PART1_CARDS;
+      if (part2 >= 4) part2++;
+      if (!r.ui["s7.card"] || String(r.ui["s7.card"].t || "") < t) r.ui["s7.card"] = { v: part2, t: t };
+      pos = NOTES_PART1_CARDS - 1;
+    }
+    if (pos !== Number(c.v) || layout !== "cards19") {
+      r.ui["s2.card"] = { v: pos, t: t };
+      r.ui["s2.cardLayout"] = { v: "cards19", t: t };
+    }
+  }
+  return r;
+}
+
+// A save from the 0.10.0 app (it sends no "app") always uses the old level meanings, even
+// when its record carries the levels7 marker it loaded from this server: there, "finished
+// Level 2" means the whole notes, and Level 5 is the Check with no Level 6 before it. Only
+// what this save adds to the stored record is converted, so a student who finished only the
+// new Part 1 in 0.11.0 never gets Part 2 from an old page that loaded that record.
+function oldAppSave(stored, incoming) {
+  var s = isPlainObject(stored) ? stored : {};
+  var sDone = isPlainObject(s.done) ? s.done : {};
+  ["done", "reached"].forEach(function (k) { if (!isPlainObject(incoming[k])) incoming[k] = {}; });
+  if (incoming.done[2] && !sDone[2] && !incoming.done[7]) incoming.done[7] = incoming.done[2];
+  var newCheckWork = (incoming.done[5] && !sDone[5]) || ["answers", "submitted", "first", "reached", "ui"].some(function (k) {
+    var mine = isPlainObject(incoming[k]) ? incoming[k] : {}, theirs = isPlainObject(s[k]) ? s[k] : {};
+    return Object.keys(mine).some(function (key) { return /^s5(\D|$)/.test(key) && !Object.prototype.hasOwnProperty.call(theirs, key); });
+  });
+  if (newCheckWork && !incoming.done[6] && !sDone[6]) incoming.reached["open.5"] = 1;
+  return incoming;
+}
+
 function mergeRecords(primary, other) {
   if (!primary && !other) return null;
-  var p = primary || {};
-  var o = other || {};
+  var p = migrateRecord(primary) || {};
+  var o = migrateRecord(other) || {};
   var out = {
     v: 1,
     cls: p.cls || o.cls,

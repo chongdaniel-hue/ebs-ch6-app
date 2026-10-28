@@ -212,3 +212,17 @@ Replace Code.gs with the current file, save, run `setup` in the editor to approv
 This release adds validateConversationLink. It accepts only HTTPS Gemini public conversation-share URLs (including the g.co/gemini/share shortcut), checks the student name, and requests only the canonical Gemini URL without following redirects. Invalid URLs, missing/deleted pages and restricted/unverifiable responses prevent completion. Brief caching and a per-profile request limit reduce repeated requests. The checker verifies URL format and HTTP availability/error signals; a Google page returning a generic HTML shell does not independently prove the conversation content or ownership. Redirects/sign-in restrictions and network failures return “could not verify”, rather than claiming an invalid URL is valid.
 
 The local preview uses a deterministic stand-in for UrlFetchApp and does not fetch any student’s conversation. The real fetch must be tested after Google deployment with a teacher-owned test share link. Older deployed backends that lack this action show an explicit “ask your teacher to update” message; there is no browser-only fallback that marks a chat complete.
+
+## Seven levels (version 0.11.0)
+
+The app now has seven levels. `Code.gs` changes in three ways: Unlock accepts all seven levels, the Sheet's "Levels finished" column counts the seven levels, and saved work from 0.10.0 is migrated when it is saved or unlocked (an old "finished the notes" also finishes the new Level 3). No new Google permission, Script Property or sheet column is needed, and nothing in the Sheet is renamed.
+
+**Order: redeploy Apps Script first, then push the app to Vercel.** The new `Code.gs` is safe while students still use the live 0.10.0 app: stored level numbers keep their meaning, so a 0.10.0 Unlock of "Level 3" still opens Chat with Alex, and the migration only adds the new Level 3's "finished" mark, which the 0.10.0 app ignores. Saves from a 0.10.0 page after the update are still converted correctly: the 0.11.0 app sends its version with every save, and a save without it is read with the old level meanings (finishing the old notes also finishes Level 3; starting the old Check keeps it open).
+
+1. Open the Apps Script editor of the EBS Sheet (Extensions > Apps Script).
+2. Select everything in `Code.gs`, delete it, and paste the whole of `apps-script/Code.gs` from the repository. Click **Save**.
+3. Deploy > **Manage deployments** > select the web app > **pencil icon** (Edit) > Version: **New version** (description: `0.11.0`) > **Deploy**. Keep the same URL; do not choose "New deployment". You do not need to run `setup` again.
+4. Check: open the web app URL with `?action=classes` on the end. The reply should end with `"version":"0.11.0"`.
+5. Then push the app (version 0.11.0) to Vercel.
+
+Stored level numbers (they never change meaning): 1 Your Customer Service Stories, 2 Learn Part 1, 7 Learn Part 2 (Level 3), 3 Chat with Alex (Level 4), 4 Serve Suzzie (Level 5), 6 Win Suzzie Back (Level 6), 5 Check and Exit Ticket (Level 7). The "Record" column keeps them; the app shows the level numbers students see.

@@ -36,7 +36,7 @@ function finishedRecord(reg, { wrong = [], q7 = "", faces = [2, 3, 1, 0] } = {})
   faces.forEach((f, i) => { answers[`s5.q8.${i + 1}`] = a(f); });
   return {
     v: 1, cls: "3E1", reg, updatedAt: T, baseClearedAt: "", agreed: T,
-    done: { 1: T, 2: T, 3: T, 4: T, 5: T }, submitted: {}, reached: { "s2.tabs": 2, "s3.tabs": 1, "s4.tabs": 1, "s5.tabs": 1 },
+    done: { 1: T, 2: T, 3: T, 4: T, 5: T, 6: T }, submitted: {}, reached: { "s2.tabs": 2, "s3.tabs": 1, "s4.tabs": 1, "s5.tabs": 1 },
     first, second, answers, ui: {}
   };
 }
@@ -49,7 +49,7 @@ test.describe("6.1 My learning report", () => {
     delete record.second["s5q4"]; // Q2: wrong on the first try, no second try yet
     expect((await apiPost(request, { action: "save", record })).ok).toBe(true);
     await login(page, "3E1", 5);
-    await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
+    await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 7 levels. Have a look at your learning report to see how you did.");
     await expect(page.locator(".home-learning-report a.btn")).toHaveText("My learning report");
     // Dates are in Singapore time: 1:30am on 20 Oct in Singapore is still 19 Oct in UTC.
     expect(await page.evaluate(() => shortDate("2026-10-19T17:30:00.000Z"))).toBe("20 Oct 2026");
@@ -57,17 +57,17 @@ test.describe("6.1 My learning report", () => {
     await expect(page.locator("h1.page-title")).toHaveText("My learning report");
     await expect(page.locator(".level-sub")).toHaveText("Test Student 5 · Class 3E1, Register No. 5");
     await expect(page.locator(".report-level-name")).toHaveText([
-      "Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service", "Level 3: Chat with Alex",
-      "Level 4: Serve Suzzie at Stylez", "Level 5: Check and Exit Ticket"
+      "Level 1: Your Customer Service Stories", "Level 2: Learn: Customer Service (Part 1)", "Level 3: Learn: Customer Service (Part 2)",
+      "Level 4: Chat with Alex", "Level 5: Serve Suzzie at Stylez", "Level 6: Win Suzzie Back", "Level 7: Check and Exit Ticket"
     ]);
     await expect(page.locator(".report-level-when").first()).toHaveText("20 Oct 2026");
-    await expect(page.locator(".report-level-badge")).toHaveText(["Story Sharer", "Service Scholar", "Service Spotter", "Service Star", "Completion Champion"]);
-    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: First try 3 / 4.", "Level 5, Q1 and Q2: First try 2 / 5."]);
+    await expect(page.locator(".report-level-badge")).toHaveText([/^\s*Story Sharer$/, /^\s*Service Scholar$/, /^\s*Service Saver$/, /^\s*Service Spotter$/, /^\s*Service Star$/, /^\s*Service Superstar$/, /^\s*Completion Champion$/]);
+    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 4, Q2: First try 3 / 4.", "Level 7, Q1 and Q2: First try 2 / 5."]);
     await expect(page.locator("#lookTitle")).toHaveText("Look at these again");
     await expect(page.locator(".look-list li")).toHaveText([
       "Closing the customer experience positively (Level 2, The four stages)",
       "What customer service is (Level 2, What is customer service?)",
-      "The 8 steps of service recovery (Level 2, The 8 service recovery steps)"
+      "The 8 steps of service recovery (Level 3, The 8 service recovery steps)"
     ]);
     await expect(page.locator("#confTitle")).toHaveText("How confident you felt");
     await expect(page.locator(".conf-row .conf-face")).toHaveText(["Confident", "Very confident", "A little", "Not yet"]);
@@ -84,14 +84,14 @@ test.describe("6.1 My learning report", () => {
     expect(errors).toEqual([]);
   });
 
-  test("all right first time; opened from the Level 5 pop-up", async ({ page, request }, testInfo) => {
+  test("all right first time; opened from the Level 7 pop-up", async ({ page, request }, testInfo) => {
     await resetServer(request, ["3E1"]);
     const r = finishedRecord(6, { q7: "What is a refund?" });
     delete r.done["5"];
     await apiPost(request, { action: "save", record: r });
     await login(page, "3E1", 6);
     await expect(page.locator(".welcome-card")).toBeVisible();
-    await page.goto("/#level5");
+    await page.goto("/#level7");
     await page.locator(".step-tab").nth(1).click();
     // Exit ticket answers are already saved; submit finishes the level.
     await page.evaluate(() => { rec.submitted["s5.check"] = new Date().toISOString(); saveLocal(); });
@@ -99,7 +99,7 @@ test.describe("6.1 My learning report", () => {
     await page.locator("#badgeModal button", { hasText: "See my learning report" }).click();
     await expect(page).toHaveURL(/#report$/);
     await expect(page.locator(".look-none")).toHaveText("Nothing to look at again. You got everything right on the first try!");
-    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 3, Q2: First try 4 / 4.", "Level 5, Q1 and Q2: First try 5 / 5."]);
+    await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 4, Q2: First try 4 / 4.", "Level 7, Q1 and Q2: First try 5 / 5."]);
     await checkPage(page, testInfo, "slice5-report-allright");
   });
 });
@@ -138,7 +138,7 @@ test.describe("T.3 Results", () => {
 
     const sum = page.locator(".results-summary");
     await expect(sum.locator("#sumTitle")).toHaveText("Class summary: 3E1");
-    await expect(sum.locator(".sum-list").first().locator("li")).toHaveText(["Level 1: 3 of 3", "Level 2: 3 of 3", "Level 3: 2 of 3", "Level 4: 2 of 3", "Level 5: 2 of 3"]);
+    await expect(sum.locator(".sum-list").first().locator("li")).toHaveText(["Level 1: 3 of 3", "Level 2: 3 of 3", "Level 3: 3 of 3", "Level 4: 2 of 3", "Level 5: 2 of 3", "Level 6: 2 of 3", "Level 7: 2 of 3"]); // a 0.10.0 record that finished the notes has Level 3 too
     await expect(sum.locator(".sum-list").nth(1).locator("li").first()).toHaveText("Q2 R (answer: Closing the customer experience positively): wrong for 2 of 2");
     await expect(sum.locator(".sum-list").nth(1).locator("li").nth(1)).toHaveText("Q2 (answer: B): wrong for 1 of 2");
     // Confidence spread, row 1: Confident for students 1 and 3, Very confident for student 2.
@@ -147,8 +147,8 @@ test.describe("T.3 Results", () => {
 
     const rows = page.locator(".students-table tbody tr");
     await expect(rows).toHaveCount(3);
-    await expect(rows.nth(0).locator("td")).toHaveText(["Test Student 1 · No. 1", "5", "3 / 4", "5 / 5", ""]);
-    await expect(rows.nth(2).locator("td")).toHaveText(["Test Student 3 · No. 3", "2", "–", "–", ""]);
+    await expect(rows.nth(0).locator("td")).toHaveText(["Test Student 1 · No. 1", "7", "3 / 4", "5 / 5", ""]);
+    await expect(rows.nth(2).locator("td")).toHaveText(["Test Student 3 · No. 3", "3", "–", "–", ""]);
     await checkPage(page, testInfo, "slice5-results");
 
     // CSV for the chosen class, named with the Singapore date (1:30am on 20 Oct in Singapore).
@@ -160,7 +160,7 @@ test.describe("T.3 Results", () => {
     expect(lines).toHaveLength(4);
     expect(lines[0]).toContain("Register No.,Student name,Levels done,Level 1 finished");
     expect(lines[0]).toContain("Q2 R first try,Q2 R second try");
-    expect(lines[1]).toContain("3E1,1,Test Student 1,5,");
+    expect(lines[1]).toContain("3E1,1,Test Student 1,7,");
     expect(lines[1]).toContain("Closing the customer experience positively (right)");
     expect(lines[1]).toContain("How do I close positively?");
 
@@ -202,7 +202,7 @@ test.describe("T.4 This device", () => {
     await resetServer(request, ["3E1"]);
     await login(page, "3E1", 7);
     await page.click("#briefing button");
-    await expect(page.locator(".status-pill").nth(4)).toHaveText("Locked");
+    await expect(page.locator(".status-pill").nth(6)).toHaveText("Locked");
     await teacherSignIn(page);
     await page.click("#tab_device");
     await page.click("#unlockToggle");
@@ -210,15 +210,15 @@ test.describe("T.4 This device", () => {
     await expect(page.locator("#unlockToggle")).toHaveText("Turn off");
     await checkPage(page, testInfo, "slice5-device");
     await page.goto("/#home");
-    await expect(page.locator(".status-pill").nth(4)).toHaveText("Not started");
-    await page.click("#levelCard5");
-    await expect(page.locator("h1.page-title")).toHaveText("Level 5: Check and Exit Ticket");
+    await expect(page.locator(".status-pill").nth(6)).toHaveText("Not started");
+    await page.click("#levelCard5"); // stored as 5: Level 7
+    await expect(page.locator("h1.page-title")).toHaveText("Level 7: Check and Exit Ticket");
     await teacherSignIn(page);
     await page.click("#tab_device");
     await page.click("#unlockToggle");
     await expect(page.locator("#unlockToggle")).toHaveText("Unlock all levels on this device");
     await page.goto("/#home");
-    await expect(page.locator(".status-pill").nth(4)).toHaveText("Locked");
+    await expect(page.locator(".status-pill").nth(6)).toHaveText("Locked");
   });
 
   test("Reset this device uses the shared protected profile reset and releases identity", async ({ page, request }, testInfo) => {

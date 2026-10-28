@@ -17,12 +17,27 @@ Hosting and back end (different from V45, which ran its own back end on Vercel):
 
 ## Source of truth
 
-- **Out of date since 27 October 2026.** `docs/storyboard.md` has not caught up with the group's recent changes. The current app and `docs/progress.md` are the reference until this storyboard is refreshed. Do not revert app changes to match the storyboard; record every change in `docs/progress.md`.
 - `docs/storyboard.md` is the single source of truth for every screen, every word students see, every hint and every piece of feedback. `docs/storyboard.docx` is the same document for the teachers; if the two ever differ, ask.
 - Copy student-facing wording exactly from the storyboard. Do not reword, shorten, "improve" or add to it. Textbook definitions, the 8 service recovery steps, the returns lines and the "If a business provides quality customer service" list are word for word from the textbook and must stay exactly as written.
 - Rows marked "Teacher only" in the storyboard are notes for you. Never show them on student screens.
 - Text marked ⚑ in the storyboard is a placeholder or still open. Build it as a clearly marked placeholder (for example the About Stylez card) and do not invent content for it.
 - If the build and the storyboard disagree, the storyboard wins. If the user asks for something different from the storyboard, check whether they want the storyboard updated too, then make the change.
+
+## Level numbers: what students see and what is stored
+
+Stored level numbers and answer keys never change meaning. When a level is added, moved or split, give it a new stored number and new answer keys, and change only the order and the number students see.
+
+| Students see | Level | Stored as (`done`, unlock grants, `s<n>.` keys) |
+|---|---|---|
+| Level 1 | Your Customer Service Stories | 1 |
+| Level 2 | Learn: Customer Service (Part 1) | 2 (`s2.*`) |
+| Level 3 | Learn: Customer Service (Part 2) | 7 (position `s7.card`; its reflections keep `s2.think1` and `s2.think2`) |
+| Level 4 | Chat with Alex | 3 (`s3.*`, `s3q2.*`) |
+| Level 5 | Serve Suzzie at Stylez | 4 (`s4.*`) |
+| Level 6 | Win Suzzie Back | 6 (`s6.*`) |
+| Level 7 | Check and Exit Ticket | 5 (`s5.*`, `s5q3.*`, `s5q4`; `Code.gs` reads these for the Sheet) |
+
+`LEVELS` in `app.js` is in the order students see: `num` is the stored number, `pos` the number shown. Routes (`#level4`) use the number shown. Records saved before 0.11.0 are migrated by `migrateRecord`, which is the same in `app.js` and `apps-script/Code.gs`.
 
 ## Writing rules for anything students see
 

@@ -7,13 +7,14 @@ test('authenticated selected and all levels persist without completion, cannot b
  await seed(request);
  const action={action:'unlockStudent',class:'3E1',reg:5,levels:[3,5]};
  expect((await apiPost(request,{...action,code:'wrong-unlock-test'})).error).toBe('bad_code');
- expect((await apiPost(request,{...action,levels:[6],code:CODE()})).error).toBe('bad_levels');
+ expect((await apiPost(request,{...action,levels:[8],code:CODE()})).error).toBe('bad_levels');
  expect((await apiPost(request,{...action,reg:7,code:CODE()})).error).toBe('no_student');
  let saved=await apiPost(request,{action:'save',record:{...record(),unlockedLevels:{4:T}}});
  expect(saved.record.unlockedLevels).toEqual({});
  const unlocked=await apiPost(request,{...action,code:'  '+CODE().toLowerCase()+'  '});
  expect(unlocked.ok).toBe(true);expect(Object.keys(unlocked.record.unlockedLevels)).toEqual(['3','5']);
- for(const k of ['answers','done','submitted','first','second','reached','ui'])expect(unlocked.record[k]).toEqual(record()[k]);
+ for(const k of ['answers','done','submitted','first','second','ui'])expect(unlocked.record[k]).toEqual(record()[k]);
+ expect(unlocked.record.reached).toEqual({levels7:1}); // only the 0.11.0 migration marker is added
  saved=await apiPost(request,{action:'save',record:{...record(),unlockedLevels:{4:T}}});
  expect(Object.keys(saved.record.unlockedLevels)).toEqual(['3','5']);
  expect((await apiGet(request,{action:'load',class:'3E1',reg:6})).record.unlockedLevels).toEqual({});
@@ -45,13 +46,13 @@ test('footer unlock chooses a profile, selected/all levels, password errors, per
  const ctx=await browser.newContext({viewport:testInfo.project.use.viewport});const other=await ctx.newPage();
  await other.goto('http://localhost:8788/');await expect(other.locator('#classInput')).toHaveValue('3E1');await other.locator('#regInput').selectOption('6');await other.locator('#nameInput').fill('Test Student 6');await other.locator('#startBtn').click();await expect(other.locator('.welcome-card')).toBeVisible();
  expect(await other.evaluate(()=>isUnlocked(3))).toBe(true);expect(await other.evaluate(()=>isUnlocked(4))).toBe(false);
- await other.goto('http://localhost:8788/#level3');await expect(other.locator('h1.page-title')).toContainText('Level 3');
+ await other.goto('http://localhost:8788/#level4');await expect(other.locator('h1.page-title')).toContainText('Level 4'); // stored as 3
  await expect(other.locator('.step-tab[aria-disabled=true]')).toHaveCount(0);expect(await other.evaluate(()=>Object.keys(rec.done))).toEqual([]);
  await ctx.close();
  // Grant all levels to the current profile too, without switching identity.
- await page.locator('[data-unlock-progress]').click();await password.fill(CODE());await modal.getByRole('button',{name:'Continue',exact:true}).click();await modal.locator('#unlockClass').selectOption('3E1');await expect(modal.locator('#unlockStudent option')).toHaveCount(3);await modal.locator('#unlockStudent').selectOption('5');await modal.locator('#unlockAllSelection').click();await expect(modal.locator('input[type=checkbox]:checked')).toHaveCount(5);await modal.locator('#applyUnlock').click();await expect(page.locator('#studentUnlocked')).toBeVisible();await page.locator('#studentUnlocked button').click();
- expect(await page.evaluate(()=>[1,2,3,4,5].every(isUnlocked))).toBe(true);expect(await page.evaluate(()=>Object.keys(rec.done))).toEqual([]);await page.reload();await expect.poll(()=>page.evaluate(()=>Object.keys(rec.unlockedLevels || {}).length)).toBe(5);
- await page.goto('/#level2');await page.evaluate(()=>{setUi('s2.card',16);renderLevel(2);});await expect(page.locator('#pathLabel8')).toBeVisible();await expect(page.locator('#lessonNext')).toBeEnabled();
+ await page.locator('[data-unlock-progress]').click();await password.fill(CODE());await modal.getByRole('button',{name:'Continue',exact:true}).click();await modal.locator('#unlockClass').selectOption('3E1');await expect(modal.locator('#unlockStudent option')).toHaveCount(3);await modal.locator('#unlockStudent').selectOption('5');await modal.locator('#unlockAllSelection').click();await expect(modal.locator('input[type=checkbox]:checked')).toHaveCount(7);await modal.locator('#applyUnlock').click();await expect(page.locator('#studentUnlocked')).toBeVisible();await page.locator('#studentUnlocked button').click();
+ expect(await page.evaluate(()=>[1,2,3,4,5,6,7].every(isUnlocked))).toBe(true);expect(await page.evaluate(()=>Object.keys(rec.done))).toEqual([]);await page.reload();await expect.poll(()=>page.evaluate(()=>Object.keys(rec.unlockedLevels || {}).length)).toBe(7);
+ await page.goto('/#level3');await page.evaluate(()=>{setUi('s7.card',3);renderLevel(7);});await expect(page.locator('#pathLabel8')).toBeVisible();await expect(page.locator('#lessonNext')).toBeEnabled();
  await expectNoSidewaysScroll(page);expect((await apiGet(request,{action:'load',class:'3E1',reg:5})).record.answers['s1.q1'].v).toBe('Keep this answer');
 });
 

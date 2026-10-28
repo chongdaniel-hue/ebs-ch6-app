@@ -26,7 +26,8 @@ window.APP_CONFIG = {
 
   GEMS: {
     alex: "https://gemini.google.com/share/d/1QRxLwDMbt93_M7IEil2jxrtNOEu74pwi?usp=sharing",
-    suzzie: "https://gemini.google.com/share/d/1D1h2fvX3L6KnSJHjCGQSm1ZkVWUnu8E3?usp=sharing"
+    suzzie: "https://gemini.google.com/share/d/1D1h2fvX3L6KnSJHjCGQSm1ZkVWUnu8E3?usp=sharing",
+    suzzieRecovery: "https://gemini.google.com/share/d/195NZFPCmJGy2oOoT9Kg-rpIayst2Zjdb?usp=sharing"
   },
 
   /* ---------- 3. Images ----------
@@ -78,6 +79,7 @@ window.APP_CONFIG = {
     "🧑‍💼": "staff",
     "🤝": "handshake",
     "⭐": "star",
+    "🌟": "star",
     "🗣️": "recommend",
     "🎯": "target",
     "🧠": "knowledge",
@@ -172,6 +174,24 @@ window.APP_CONFIG = {
       label: "Service breakdown to service recovery comic",
       alt: "Two-panel comic. \"SERVICE BREAKDOWN\": The customer holds a cracked phone: \"I just bought this phone and the screen is already cracked!\" The staff member: \"I'm really sorry to hear that. Let me take a look and help you with this.\" \"SERVICE RECOVERY\": The staff member hands over a new phone box: \"You're welcome! If you need any further help, just let us know.\" The customer: \"Thank you so much for helping me! I'm really happy with the new phone.\""
     },
+    C05: {
+      file: "assets/img/C05-customer-service-timeline.jpg",
+      emoji: "🖼️",
+      label: "Customer service timeline comic",
+      alt: "Three-panel comic. 1, WALKS IN: The Nexora staff member waves at a customer entering the store: \"Welcome to Nexora!\" 2, PAYS: At the counter, he hands her a Nexora bag with a new phone: \"Here's your new phone. Enjoy!\" 3, A WEEK LATER: At home, the customer messages Nexora Online Chat 24/7 on her phone: \"I bought a phone last week. How do I back up my photos?\" The reply: \"Happy to help! Let me show you the steps.\""
+    },
+    C06: {
+      file: "assets/img/C06-handling-objections.jpg",
+      emoji: "🖼️",
+      label: "Handling objections comic",
+      alt: "Four-panel comic at a Nexora store. 1, SELLING POINT: The customer, holding a phone: \"This phone is a bit heavy.\" \"Hmm… I'm not so sure if I should get this.\" The staff member: \"It's heavier because it has a bigger battery, so it lasts the whole day.\" 2, YES, BUT: Beside a $1,299 price tag, the customer: \"The Nexora Prime is expensive.\" The staff member: \"Yes, it costs more, but its fast processor runs your games smoothly.\" 3, SHARE CONCERNS: The customer: \"Hmm… I'm not so sure if I should get this.\" The staff member: \"What worries you most about switching to a new phone?\" 4, CORRECT MISCONCEPTION: The customer: \"So the warranty covers everything, right?\" The staff member, holding a warranty card: \"Good question! The warranty covers manufacturing defects. Accidental damage, such as dropping the phone, isn't covered.\""
+    },
+    C07: {
+      file: "assets/img/C07-closing-positively.jpg",
+      emoji: "🖼️",
+      label: "Closing positively comic",
+      alt: "Three-panel comic at a Nexora store. 1, SIGNS OF A POSITIVE EXPERIENCE: The smiling customer holds her new phone and points at phone cases: \"This is exactly the phone I was looking for! Do you have a case for it?\" The staff member: \"Yes, this case fits it perfectly.\" 2, AFTER A SALE: He hands her a Nexora bag: \"Thank you, I'm sure the product will meet your needs. It has been a pleasure serving you.\" 3, IF THE CUSTOMER DOES NOT BUY: A different customer: \"I'd like to think about it first.\" The staff member: \"Certainly, thank you for your interest. Do come back if you decide to buy it another day.\""
+    },
     R01: {
       file: "assets/img/R01-foodpanda-chat.jpg",
       emoji: "💬",
@@ -194,6 +214,8 @@ window.APP_CONFIG = {
     BADGE2: { file: "assets/img/badge-service-scholar-vibrant.png", emoji: "🎓", label: "Service Scholar", alt: "Service Scholar badge" },
     BADGE3: { file: "assets/img/badge-service-spotter-vibrant.png", emoji: "🔍", label: "Service Spotter", alt: "Service Spotter badge" },
     BADGE4: { file: "assets/img/badge-service-star-vibrant.png", emoji: "⭐", label: "Service Star", alt: "Service Star badge" },
+    BADGE_L3: { file: "assets/img/badge-level-3.png", emoji: "🛡️", label: "Service Saver", alt: "Service Saver badge" }, // placeholder until the file is added
+    BADGE6: { file: "assets/img/badge-service-superstar.png", emoji: "🌟", label: "Service Superstar", alt: "Service Superstar badge" },
     BADGE5: { file: "assets/img/badge-completion-champion.png", emoji: "🏆", label: "Completion Champion", alt: "Completion Champion badge" }
   }
 };

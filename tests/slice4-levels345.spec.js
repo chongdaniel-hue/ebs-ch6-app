@@ -14,13 +14,14 @@ async function checkPage(page, testInfo, name) {
   if (name) await shot(page, testInfo, name);
 }
 
-// A student who has finished Levels 1 to (upTo - 1); those levels are tested in slice 3.
+// A student who has finished every level before the one stored as upTo (in the order
+// students see); those levels are tested in slice 3.
 async function studentAt(page, request, reg, upTo) {
   await resetServer(request, ["3E1"]);
   await login(page, "3E1", reg);
   await page.click("#briefing button");
   await page.evaluate((upTo) => {
-    for (let n = 1; n < upTo; n++) rec.done[n] = new Date().toISOString();
+    LEVELS.slice(0, LEVELS.findIndex(l => l.num === upTo)).forEach(l => { rec.done[l.num] = new Date().toISOString(); });
     saveLocal();
   }, upTo);
   await page.goto("/#home");
@@ -35,7 +36,7 @@ test.describe("Level 3: Chat with Alex", () => {
     const errors = watchErrors(page);
     await studentAt(page, request, 21, 3);
     await page.click("#levelCard3");
-    await expect(page.locator("h1.page-title")).toHaveText("Level 3: Chat with Alex");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 4: Chat with Alex");
     await expect(page.locator(".level-sub")).toHaveText("Be the customer. Chat with Nexora's customer service officer.");
     await expect(page.locator(".step-label")).toHaveText(["Chat", "Think back (locked)"]);
 
@@ -157,14 +158,14 @@ test.describe("Level 3: Chat with Alex", () => {
       return !!(c.compareDocumentPosition(r) & Node.DOCUMENT_POSITION_FOLLOWING);
     })).toBe(true);
     await expect(page.locator(".recap-card p")).toHaveText("The same four stages happen in every customer interaction, whether it's in a shop or in a chat.");
-    await expect(page.locator("#finishBtn")).toHaveText("Finish Level 3");
+    await expect(page.locator("#finishBtn")).toHaveText("Finish Level 4");
     await checkPage(page, testInfo, "slice4-level3-resolved");
     await page.click("#finishBtn");
     await expect(page.locator("#badgeModal h2")).toHaveText("Service Spotter");
     await expect(page.locator("#badgeModal .badge-pop-text")).toHaveText("You earned the Service Spotter badge!");
     await page.locator("#badgeModal button").click();
-    await expect(page.locator(".status-pill").nth(2)).toHaveText("Service Spotter");
-    await expect(page.locator(".status-pill").nth(3)).toHaveText("Not started");
+    await expect(page.locator(".status-pill").nth(3)).toHaveText("Service Spotter");
+    await expect(page.locator(".status-pill").nth(4)).toHaveText("Not started");
 
     // The server has both attempts; the readable Q2 column shows the first try.
     const row = await apiGet(request, { action: "load", class: "3E1", reg: "21" });
@@ -200,7 +201,7 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     const errors = watchErrors(page);
     await studentAt(page, request, 22, 4);
     await page.click("#levelCard4");
-    await expect(page.locator("h1.page-title")).toHaveText("Level 4: Serve Suzzie at Stylez");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 5: Serve Suzzie at Stylez");
     await expect(page.locator(".intro-with-pic p")).toHaveText("Now switch roles. You are a customer service officer at Stylez, a retail store. The AI plays Suzzie, a customer with a question or a problem.");
     await expect(page.locator('.intro-pic img[data-img="N05"]')).toBeVisible();
     await expect(page.locator("#aboutStylezTitle")).toHaveText("About Stylez");
@@ -214,7 +215,7 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await checkPage(page, testInfo, "slice4-stylez-information");
     await expect(page.locator("#nextBtn")).toBeDisabled();
     await expect(page.locator(".start-box")).toHaveText("You are the customer service officer. Suzzie is your customer. In a fresh chat, greet Suzzie to begin. Try: \"Hi, welcome to Stylez! How may I assist you?\"");
-    await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Level 2: approach Suzzie, present product information, close positively (including after-sales support), and if there's a problem, perform service recovery.");
+    await expect(page.locator(".stages-box")).toHaveText("Try to use the four stages from Levels 2 and 3: approach Suzzie, present product information, close positively (including after-sales support), and if there's a problem, perform service recovery.");
     await expect(page.locator(".gem-btn")).toHaveText("Open chat with Suzzie (new tab)");
     await expect(page.locator(".gem-btn")).toHaveAttribute("href", "https://gemini.google.com/share/d/1D1h2fvX3L6KnSJHjCGQSm1ZkVWUnu8E3?usp=sharing");
     await expect(page.locator(".tick-row")).toHaveText("I have finished serving Suzzie.");
@@ -248,7 +249,8 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
     await expect(page.locator("#badgeModal h2")).toHaveText("Service Star");
     await expect(page.locator("#badgeModal .badge-pop-text")).toHaveText("You earned the Service Star badge!");
     await page.locator("#badgeModal button").click();
-    await expect(page.locator(".status-pill").nth(3)).toHaveText("Service Star");
+    await expect(page.locator(".status-pill").nth(4)).toHaveText("Service Star");
+    await expect(page.locator(".status-pill").nth(5)).toHaveText("Not started"); // Level 6 opens
     expect(errors).toEqual([]);
   });
 });
@@ -258,7 +260,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     const errors = watchErrors(page);
     await studentAt(page, request, 23, 5);
     await page.click("#levelCard5");
-    await expect(page.locator("h1.page-title")).toHaveText("Level 5: Check and Exit Ticket");
+    await expect(page.locator("h1.page-title")).toHaveText("Level 7: Check and Exit Ticket");
     await expect(page.locator(".step-label")).toHaveText(["Check", "Exit ticket (locked)"]);
     await expect(page.locator("#part0 > p").first()).toHaveText("Try these without going back to the notes. It is okay to get some wrong!");
     await expect(page.locator("#l5q3")).toHaveText("Q1. True or false? Tap True or False for each.");
@@ -335,7 +337,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
     await expect(card.locator("li")).toHaveText([
       "What customer service is (Level 2, What is customer service?)",
-      "The 8 steps of service recovery (Level 2, The 8 service recovery steps)"
+      "The 8 steps of service recovery (Level 3, The 8 service recovery steps)"
     ]);
     await expect(page.locator("#nextBtn")).toHaveText("Next: Exit ticket →");
     await checkPage(page, testInfo, "slice4-level5-resolved");
@@ -374,15 +376,15 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await checkPage(page, testInfo, "slice4-champion");
     await saved;
     await modal.locator("button", { hasText: "Back to my route" }).click();
-    await expect(page.locator(".journey-count")).toHaveText("5 of 5 levels done");
-    await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 5 levels. Have a look at your learning report to see how you did.");
+    await expect(page.locator(".journey-count")).toHaveText("7 of 7 levels done");
+    await expect(page.locator(".welcome-text")).toHaveText("Amazing work! You've finished all 7 levels. Have a look at your learning report to see how you did.");
     await expect(page.locator(".welcome-card a.btn")).toHaveText("My learning report"); // inside the welcome card
     await expect(page.locator("a.btn", { hasText: "My learning report" })).toHaveCount(1);
 
     // Readable columns in the Sheet: Q1 and Q2 first try (2 of 5 right) and confidence.
     const sheet = JSON.parse(fs.readFileSync(path.join(os.tmpdir(), "ebs-ch6-playwright-data", "sheets.json"), "utf8"));
     const r = sheet.Students.find(x => x[0] === "3E1#23");
-    expect(r[3]).toBe("5");
+    expect(r[3]).toBe("7");
     expect(r[5]).toBe("2 / 5");
     expect(r.slice(6, 10)).toEqual(["Confident", "Very confident", "A little", "Not yet"]);
 
@@ -397,7 +399,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
 
   test("all right first time: no Check again, Next straight away", async ({ page, request }) => {
     await studentAt(page, request, 24, 5);
-    await page.goto("/#level5");
+    await page.goto("/#level7");
     for (const [id, label] of [["i", "False"], ["ii", "True"], ["iii", "False"], ["iv", "True"]]) {
       await page.locator(`.tf-item[data-key="s5.q3.${id}"] .tf-btn`, { hasText: label }).click();
     }
