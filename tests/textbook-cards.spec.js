@@ -26,18 +26,18 @@ test('Part A: corrections to the existing Level 2 cards',async({page,request})=>
   await card(page,5);
   await expect(page.locator('.stage-row.stage-1 td')).toHaveText("Greet the customer and show you're happy to help.");
   // A3 After-sales support (p. 138).
-  await card(page,13);
+  await card(page,14);
   await expect(page.locator(`${L} .definition`)).toHaveText('After-sales service refers to the help given to customers after they have bought a product.');
   await expect(page.locator(`${L} .grid-4 .icon-card`).nth(2)).toHaveText(/^\s*Hotline and online chat\s*Answer customers' enquiries and complaints in-store, by phone or through online chat\.\s*$/);
   await expect(page.locator(L)).not.toContainText('Multi-channel');
   // A5 Stage 4 (pp. 140 and 141).
-  await card(page,14);
+  await card(page,15);
   await expect(page.locator(L)).toContainText("A customer's complaint provides an opportunity for a business to build customer loyalty. This is because if the complaint is handled well, the customer's bad experience can be turned into a good one.");
   await expect(page.locator(L)).toContainText('A business will lose its customers to competitors if it does not try to win a customer back.');
   await expect(page.locator(L)).not.toContainText('second chance');
   await expect(page.locator(L)).not.toContainText('Handled well, a service breakdown');
   // A1 Returns (p. 139).
-  await card(page,17);
+  await card(page,18);
   await expect(page.locator(`${L} .icon-card`).first()).toHaveText(/Replacement\s*Replace it with a similar product\./);
   expect(errors).toEqual([]);
 });
@@ -46,7 +46,7 @@ test('Part B1: Stage 2 in three numbered parts',async({page,request},info)=>{
   const errors=watchErrors(page);await open(page,request);
   // Part 1: needs and wants (p. 129).
   await card(page,9);
-  await expect(page.locator('#lessonProgressText')).toHaveText("10 of 18 · Stage 2: Finding out customers' needs and wants");
+  await expect(page.locator('#lessonProgressText')).toHaveText("10 of 19 · Stage 2: Finding out customers' needs and wants");
   await expect(page.locator(`${L} .stage-label`)).toContainText('Stage 2');
   await expect(page.locator(`${L} h2`)).toHaveText('Presenting product information');
   await expect(page.locator(`${L} .stage-part`)).toHaveText("1Part 1: Finding out customers' needs and wants");
@@ -76,8 +76,8 @@ test('Part B1: Stage 2 in three numbered parts',async({page,request},info)=>{
 
 test('Part B2 and B3: Stage 3 closing, then after-sales support and enquiries',async({page,request})=>{
   const errors=watchErrors(page);await open(page,request);
-  await card(page,12);
-  await expect(page.locator('#lessonProgressText')).toHaveText('13 of 18 · Stage 3: Closing the customer experience positively');
+  await card(page,13);
+  await expect(page.locator('#lessonProgressText')).toHaveText('14 of 19 · Stage 3: Closing the customer experience positively');
   await expect(page.locator(`${L} h2`)).toHaveText('Closing the customer experience positively');
   await expect(page.locator(L)).toContainText('The final goal of every salesperson is to complete a sale and close the customer experience positively.');
   await expect(page.locator(L)).toContainText('Signs that the customer had a positive experience:');
@@ -85,8 +85,8 @@ test('Part B2 and B3: Stage 3 closing, then after-sales support and enquiries',a
   await expect(page.locator('.closing-lead')).toHaveText('Show appreciation to customers when closing, even if they do not buy:');
   await expect(page.locator('.closing-when')).toHaveText(['After a sale:','If the customer does not buy:']);
   await expect(page.locator('.closing-line .say')).toHaveText(['"Thank you, I\'m sure the product will meet your needs. It has been a pleasure serving you."','"Certainly, thank you for your interest. Do come back if you decide to buy it another day."']);
-  await card(page,13);
-  await expect(page.locator('#lessonProgressText')).toHaveText('14 of 18 · Stage 3: After-sales support');
+  await card(page,14);
+  await expect(page.locator('#lessonProgressText')).toHaveText('15 of 19 · Stage 3: After-sales support');
   await expect(page.locator('.enquiry-lead')).toHaveText("When handling customers' enquiries, salespeople should:");
   await expect(page.locator(`${L} .chips .ic-body`)).toHaveText(['Listen to the customers carefully.','Clarify with them by asking questions to get a better understanding.','Provide them with relevant and accurate information.']);
   expect(errors).toEqual([]);

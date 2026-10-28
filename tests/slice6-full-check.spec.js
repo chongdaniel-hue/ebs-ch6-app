@@ -157,15 +157,16 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await page.locator("#badgeModal button").click();
   await check(page, testInfo, "home-in-progress", problems);
 
-  // Level 2, every one of the 18 cards (quick check answered, one wrong first, so its feedback is checked too).
+  // Level 2, every one of the 19 cards (quick check answered, one wrong first, so its feedback is checked too).
   await page.evaluate(() => {
     for(const key of REFLECTION_KEYS){setAnswer(key,"A complete reflection.");setUi(`${key}.saved`,rec.answers[key].t);}
     setAnswer("s2.qc.a.1","Greeting");setAnswer("s2.qc.b.1","Greeting");setAnswer("s2.qc.b.2","Service");setAnswer("s2.qc.c.1","Service");setAnswer("s2.qc.c.2","Greeting");
+    setAnswer("s2.qc2.a.1","Yes, but");setAnswer("s2.qc2.b.1","Share concerns");setAnswer("s2.qc2.b.2","Correct misconception");setAnswer("s2.qc2.c.1","Negative into selling point");setAnswer("s2.qc2.d.1","Yes, but");setAnswer("s2.qc2.d.2","Correct misconception");
     rec.reached["s2.path"] = 8; setUi("s2.cardLayout","cards15"); setUi("s2.card",0); saveLocal();
   });
   await page.goto("/#home"); await page.goto("/#level2");
-  for (let c = 1; c <= 18; c++) {
-    await expect(page.locator("#lessonProgressText")).toContainText(`${c} of 18`);
+  for (let c = 1; c <= 19; c++) {
+    await expect(page.locator("#lessonProgressText")).toContainText(`${c} of 19`);
     await check(page, testInfo, `level2-card${String(c).padStart(2, "0")}`, problems);
     await page.locator("#lessonNext").click();
   }

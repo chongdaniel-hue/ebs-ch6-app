@@ -138,12 +138,14 @@ test.describe("Level 1", () => {
 });
 
 test.describe("Level 2", () => {
-  // Walks a fresh student through all 18 cards with Back and Next, answering what each card needs.
+  // Walks a fresh student through all 19 cards with Back and Next, answering what each card needs.
   async function walkLevel2(page, upTo) {
     for (let i = 0; i < upTo; i++) {
       const label = await page.locator("#lessonProgressText").textContent();
       if (/Watch: A better welcome/.test(label)) await page.fill('textarea[data-answer="s2.video"]', "Alex welcomed June and offered help.");
-      if (/Quick check/.test(label)) {
+      if (/Stage 2: Quick check/.test(label)) {
+        for (const [id, answer] of [["a", "Yes, but"], ["b", "Correct misconception"], ["c", "Negative into selling point"], ["d", "Share concerns"]]) await page.locator(`.qc-item[data-key="s2.qc2.${id}"]`).getByRole("button", { name: answer, exact: true }).click();
+      } else if (/Quick check/.test(label)) {
         for (const [id, answer] of [["a", "Greeting"], ["b", "Service"], ["c", "Product"]]) await page.locator(`.qc-item[data-key="s2.qc.${id}"]`).getByRole("button", { name: answer }).click();
       }
       if (/The 8 service recovery steps/.test(label)) {
@@ -160,17 +162,17 @@ test.describe("Level 2", () => {
     }
   }
 
-  test("18 cards, Back and Next, the step-by-step path, reflections, recap, badge", async ({ page, request }, testInfo) => {
+  test("19 cards, Back and Next, the step-by-step path, reflections, recap, badge", async ({ page, request }, testInfo) => {
     const errors = watchErrors(page);
     await newStudent(page, request, 23);
     await finishLevel1(page);
     await page.click("#levelCard2");
     await expect(page.locator("h1.page-title")).toHaveText("Level 2: Learn: Customer Service");
     await expect(page.locator(".step-tab")).toHaveCount(0);
-    await expect(page.locator("#lessonProgressText")).toHaveText("1 of 18 · 4 key terms");
+    await expect(page.locator("#lessonProgressText")).toHaveText("1 of 19 · 4 key terms");
     await checkPage(page, testInfo, "slice3-level2-card1");
-    await walkLevel2(page, 15);
-    await expect(page.locator("#lessonProgressText")).toHaveText("16 of 18 · The 8 service recovery steps");
+    await walkLevel2(page, 16);
+    await expect(page.locator("#lessonProgressText")).toHaveText("17 of 19 · The 8 service recovery steps");
     await expect(page.locator(".path-stop")).toHaveCount(1);
     await expect(page.locator("#pathLabel1")).toHaveText(PATH_LABELS[0]);
     await expect(page.locator(".path-text")).toHaveCount(0);
@@ -187,14 +189,14 @@ test.describe("Level 2", () => {
     await newStudent(page, request, 24);
     await finishLevel1(page);
     await page.goto("/#level2");
-    await walkLevel2(page, 15);
+    await walkLevel2(page, 16);
     await page.click("#showStepBtn");
     await expect(page.locator(".path-stop")).toHaveCount(2);
     // Leave and come back: the same card, all 8 at once, and Next is ready.
     await page.click("#homeBtn");
     const saved = waitForSave(page);
     await page.click("#levelCard2");
-    await expect(page.locator("#lessonProgressText")).toContainText("16 of 18");
+    await expect(page.locator("#lessonProgressText")).toContainText("17 of 19");
     await expect(page.locator(".path-stop")).toHaveCount(8);
     await expect(page.locator("#lessonNext")).toBeEnabled();
     await saved;
@@ -206,7 +208,7 @@ test.describe("Level 2", () => {
     await expect(page2.locator(".status-pill")).toHaveText(["Story Sharer", "In progress", "Locked", "Locked", "Locked"]);
     await expect(page2.locator(".welcome-text")).toHaveText("Welcome back! Your work has been loaded. You've finished 1 of 5 levels. Great progress! Carry on with Level 2 below.");
     await page2.click("#levelCard2");
-    await expect(page2.locator("#lessonProgressText")).toContainText("16 of 18");
+    await expect(page2.locator("#lessonProgressText")).toContainText("17 of 19");
     await expect(page2.locator(".path-stop")).toHaveCount(8);
     // "Your work has been loaded." only on the first home page after logging in.
     await page2.click("#homeBtn");

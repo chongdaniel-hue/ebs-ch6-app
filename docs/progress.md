@@ -588,3 +588,27 @@ Dan compared every student-facing line with Chapter 6 of the EBS textbook (pp. 1
 - Tests: Level 2 tests moved to 18 cards (counter, card positions, the 15-card layout move, teacher preview count). New `tests/textbook-cards.spec.js` checks every new and corrected line word for word, with no sideways scroll and no ampersand, at 1280px and 360px. Full suite after the fixes: all passing apart from 2 intentional skips. The shared console-error check now ignores messages logged by YouTube's own embedded player (an intermittent "permissions policy" line), which had made one run fail.
 - Visual check (1280px and 360px, cards 4, 5, 6, 10 to 15 and 18): fixed the definition box touching the card heading; replaced emoji that are not in the app's icon set (gift, open hands, phone with arrow, telephone), which showed in colour while every other icon is a line icon; stopped the technique cards' examples being pushed to the bottom (a gap in card 3); let chips on phones take their own height instead of all matching the tallest.
 - After review: on card 11 the suitability paragraph ("Don't just list every good feature…") now sits above the camera picture, so the picture is directly under the text it explains. Full suite end to end: 174 passed, 2 intentional skips.
+
+## Level 2 made easier to read (28 October 2026, version 0.10.0)
+Level 2 matched the textbook but felt wordy for G1 students. The textbook wording stays; these changes are in Level 2 only. **`docs/storyboard.md` (and `.docx`) still need all of them.**
+
+### Part 1: key words in bold
+- Every phrase on Dan's list is wrapped in `<strong>` (bold, `--brand-dark`, no highlight), matched exactly, on these cards: 4 key terms (also on the home "Start here: 4 key terms" page, which uses the same cards), What is customer service?, Why quality customer service matters, Good product knowledge, Stage 1, Stage 2 parts 1 to 3 (technique explanations only), Stage 3 closing, Stage 3 after-sales support, Stage 4, and the 8 steps (path card and the fold-out on the real-life example card). All the phrases were found exactly as listed.
+- Nothing is bold in headings, card titles, speech lines, quotes, buttons or the Think about it questions. Levels 3 to 5 are unchanged (checked by test against their bold words before 0.10.0).
+- On the path card each step sentence is the heading of its stop and was all bold (0.8.0); it is now normal weight so that the listed key words show in bold. The product-knowledge reason line (`.pk-why`) is also normal weight now.
+- Read aloud reads the sentences as before. A full stop or semicolon straight after a bold word is now joined on without a space in the spoken text.
+- Cards with bold in almost every line: Stage 1 (every paragraph and both purpose cards), Stage 2 part 2 (all six chips), Stage 3 closing (every line), and the 8 steps (every step).
+
+### Part 2: our own lines cut or replaced
+- Good product knowledge: "Product knowledge includes:" (was "Staff need good product knowledge to answer questions accurately, not guess. This includes:"); the last line is now the textbook's reason (p. 127): "Service staff with good product knowledge will be able to meet the needs and wants of customers and increase customer satisfaction so that they will want to come back again."
+- The four stages: the Remember this box under the comic is removed. Row 2: "Find out the customer's needs, present a suitable product and handle questions or objections." Row 3: "Thank the customer, sum up what they decided and give after-sales support."
+- After-sales support: "Providing good after-sales service is one way businesses can be better than their competitors." (p. 138) replaces our sentence.
+- The 8 service recovery steps: one lead-in line, "Follow Nexora's staff member as he uses the 8 steps with a customer whose new phone screen cracked on its own."
+- Real-life example: Poor service recovery: the 8-step list is in a fold-out labelled "Show the 8 steps", closed by default, opened by tap or click (a `<details>`, styled like the Stylez store facts fold-out). It does not hold back Next, and Read aloud skips it while closed.
+- Handling returns: the Remember this box at the end is removed. (`recapHtml` and `.recap-card` stay: Levels 1, 3 and 5 still use them.)
+
+### Part 3: a second quick check (Level 2 now has 19 cards)
+- Card 13, progress label "Stage 2: Quick check", straight after Stage 2, part 3. Heading "Quick check: Which technique is this?", instruction "Tap one for each.", four items (a to d) with Dan's customer and staff lines, hints and reasons. Options in technique-card order: "Negative into selling point", "Yes, but", "Share concerns", "Correct misconception"; 2 by 2 on phones (each at least 44px, wrapping onto two lines), four in a row on laptops.
+- Same behaviour as the first quick check (card 9): ✓ or ✗ under each item, one more try with the hint, then the right answer with its reason; every item must be finished before Next; not scored and not in the report or Teacher Mode. Saved as `s2.qc2.<a|b|c|d>.1` and `.2`; the first quick check's answers are untouched.
+- Saved positions: an 18-card position moves to the matching 19-card position (cards after Stage 2, part 3 move one along); 15-card, 10-card and older positions still move correctly.
+- After review: the example speech lines (`.say`, everywhere they appear) are normal weight instead of 600, so the bold key words stand out on busy cards such as Stage 1 and Closing. "Customer:" and "Staff:" stay bold, and the bubble backgrounds are unchanged.

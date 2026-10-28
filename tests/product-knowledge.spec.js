@@ -25,8 +25,8 @@ test("good product knowledge shows each aspect with its comic, the line in the b
   const errors=watchErrors(page);
   await openKnowledge(page,request);
   await expect(page.locator("#lessonCard .definition")).toHaveText("Product knowledge refers to knowledge a service staff has of a product's features and benefits.");
-  await expect(page.locator("#lessonCard")).toContainText("Staff need good product knowledge to answer questions accurately, not guess. This includes:");
-  await expect(page.locator(".pk-why")).toHaveText("Customers trust staff who know their products, so they buy with confidence and come back again.");
+  await expect(page.locator("#lessonCard")).toContainText("Product knowledge includes:");
+  await expect(page.locator(".pk-why")).toHaveText("Service staff with good product knowledge will be able to meet the needs and wants of customers and increase customer satisfaction so that they will want to come back again.");
   await expect(page.locator("#lessonCard")).not.toContainText("The staff member says");
   const before=await page.evaluate(()=>JSON.stringify(rec));
   for(const [id,[title,line]] of Object.entries(LINES)){

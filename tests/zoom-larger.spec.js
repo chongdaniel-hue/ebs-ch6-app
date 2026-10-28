@@ -9,7 +9,7 @@ test('every Level 2 picture opens larger than inline, sharp and no wider than it
   await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');saveLocal();});
   await page.goto('/#level2');
   const seen=[];
-  for(let c=0;c<18;c++){
+  for(let c=0;c<19;c++){
     await page.evaluate(c=>{setUi('s2.card',c);renderLevel(2);},c);
     const buttons=page.locator('#lessonCard .zoom-btn');
     const count=await buttons.count();

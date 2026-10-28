@@ -51,7 +51,7 @@ test('footer unlock chooses a profile, selected/all levels, password errors, per
  // Grant all levels to the current profile too, without switching identity.
  await page.locator('[data-unlock-progress]').click();await password.fill(CODE());await modal.getByRole('button',{name:'Continue',exact:true}).click();await modal.locator('#unlockClass').selectOption('3E1');await expect(modal.locator('#unlockStudent option')).toHaveCount(3);await modal.locator('#unlockStudent').selectOption('5');await modal.locator('#unlockAllSelection').click();await expect(modal.locator('input[type=checkbox]:checked')).toHaveCount(5);await modal.locator('#applyUnlock').click();await expect(page.locator('#studentUnlocked')).toBeVisible();await page.locator('#studentUnlocked button').click();
  expect(await page.evaluate(()=>[1,2,3,4,5].every(isUnlocked))).toBe(true);expect(await page.evaluate(()=>Object.keys(rec.done))).toEqual([]);await page.reload();await expect.poll(()=>page.evaluate(()=>Object.keys(rec.unlockedLevels || {}).length)).toBe(5);
- await page.goto('/#level2');await page.evaluate(()=>{setUi('s2.card',15);renderLevel(2);});await expect(page.locator('#pathLabel8')).toBeVisible();await expect(page.locator('#lessonNext')).toBeEnabled();
+ await page.goto('/#level2');await page.evaluate(()=>{setUi('s2.card',16);renderLevel(2);});await expect(page.locator('#pathLabel8')).toBeVisible();await expect(page.locator('#lessonNext')).toBeEnabled();
  await expectNoSidewaysScroll(page);expect((await apiGet(request,{action:'load',class:'3E1',reg:5})).record.answers['s1.q1'].v).toBe('Keep this answer');
 });
 
