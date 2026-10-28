@@ -195,7 +195,7 @@ test('Level 2 ends on Stage 2: Quick check with Finish Level 2, then Level 3 ope
   await expectNoAmpersand(page);expect(errors).toEqual([]);
 });
 
-test('Level 3: 7 cards, all 8 steps at once, the video on its own card, reflections hold back Next, placeholder badge',async({page,request},info)=>{
+test('Level 3: 7 cards, all 8 steps at once, the video on its own card, reflections hold back Next, Service Saver badge',async({page,request},info)=>{
   const errors=watchErrors(page);await freshStudent(page,request,21);
   await page.evaluate(T=>{rec.done[1]=T;rec.done[2]=T;saveLocal();},T);
   await page.goto('/#level3');
@@ -235,13 +235,13 @@ test('Level 3: 7 cards, all 8 steps at once, the video on its own card, reflecti
   await page.locator('#lessonNext').click();
   const modal=page.locator('#badgeModal');
   await expect(modal).toContainText('You earned the Service Saver badge!');
-  await expect(modal.locator('.img-placeholder')).toBeVisible();
-  await expect(modal.locator('.img-placeholder-label')).toHaveText('Service Saver');
+  await expect(modal.getByAltText('Service Saver badge')).toBeVisible();
+  await expect(modal.getByAltText('Service Saver badge')).toHaveAttribute('src','assets/img/badge-service-saver.png');
   await modal.screenshot({path:`tests/screenshots/level3-badge-${info.project.name}.png`});
   await modal.getByRole('button',{name:'Back to my route'}).click();
   // The keys are unchanged: s2.think1 and s2.think2.
   expect(await page.evaluate(()=>[!!getAnswer('s2.think1'),!!getAnswer('s2.think2'),!!rec.done[7]])).toEqual([true,true,true]);
-  await expect(page.locator('.shelf-badge').nth(2).locator('.img-placeholder')).toBeVisible();
+  await expect(page.locator('.shelf-badge').nth(2).getByAltText('Service Saver badge')).toBeVisible();
   await page.reload();
   expect(await statuses(page)).toEqual(['done','done','done','new','locked','locked','locked']);
   expect(errors).toEqual([]);
@@ -340,7 +340,7 @@ test('home route and badge shelf of seven, report and Teacher Mode for seven lev
   await expect(page.locator('.level-card .num-badge')).toHaveText(['✓','✓','✓','4','','','']);
   expect(await page.locator('.level-card').evaluateAll(x=>x.map(b=>b.className.match(/status-([a-z]+)/)[1]))).toEqual(['done','done','done','new','locked','locked','locked']);
   await expect(page.locator('.shelf-badge .shelf-name')).toHaveText([/Story Sharer/,/Service Scholar/,/Service Saver/,/Service Spotter/,/Service Star/,/Service Superstar/,/Completion Champion/]);
-  await expect(page.locator('.shelf-badge').nth(2).locator('.img-placeholder')).toBeVisible();
+  await expect(page.locator('.shelf-badge').nth(2).getByAltText('Service Saver badge')).toBeVisible();
   await expect(page.locator('.welcome-text')).toContainText("You've finished 3 of 7 levels. Great progress! Carry on with Level 4 below.");
   await page.locator('#levelCard6').dispatchEvent('click');
   await expect(page.locator('#lockedMsg6')).toHaveText('Finish Level 5 first to open this level.');

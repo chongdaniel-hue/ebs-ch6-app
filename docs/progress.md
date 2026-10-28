@@ -669,3 +669,10 @@ Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap
 - Only what the old page adds is converted, so a student who finished only the new Part 1 in 0.11.0 never gets Part 2, even if a stale 0.10.0 page saves that record again. Saves from the 0.11.0 app are never converted.
 - Tests in `tests/seven-levels.spec.js` ("the 0.10.0 app saving after the server update"): finishing the old Level 2 (students 31 and 33), starting the old Check, Part 1 alone never gaining Part 2, and the app sending its version. The first two fail without the fix.
 - The order stays: redeploy Apps Script first, then push to Vercel.
+
+
+## Service Saver artwork (28 October 2026, version 0.11.1)
+- Added the user-requested Service Saver badge in place of the Level 3 placeholder. BADGE_L3 now uses assets/img/badge-service-saver.png (256px PNG with transparency). The shared image map supplies the shelf, award popup and learning report.
+- Generated with the built-in image-generation tool, using Service Scholar and Service Star as style references. Prompt: glossy cartoon circular gold medallion with a teal/turquoise rim, emerald shield, gold check, helping hand and sparkles; bold white ribbon text SERVICE / SAVER; transparent background. Full-resolution original: /Users/juf/.codex/generated_images/01a159f7-f388-7363-8e2b-b4783338e943/exec-65507778-5bfe-4436-869f-5636fac9c046.png.
+- Updated existing placeholder expectations to require the generated badge image. No progress or backend changes.
+- Validation: 13 targeted checks passed, 1 duplicate phone check skipped. Inspected the shelf and award popup at 1280px and 360px: transparent edges, matching proportions, readable ribbon, no overflow.

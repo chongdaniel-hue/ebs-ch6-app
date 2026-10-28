@@ -14,7 +14,7 @@ test("landing page shell", async ({ page }, testInfo) => {
   await expect.poll(() => banner.evaluate(el => el.complete && el.naturalWidth > 0)).toBe(true);
   await expect(banner).toHaveAttribute("alt", "Welcome to your journey on Customer Service! The Nexora staff member and customer welcome you to the activity.");
   await expect(page.locator(".credits")).toContainText("A team effort by Anthony, Daniel, Joshua and Jufinnie (NIE 2026)");
-  await expect(page.locator(".credits")).toContainText("Version 0.11.0");
+  await expect(page.locator(".credits")).toContainText("Version 0.11.1");
   await expect(page.locator(".credits a.teacher-link")).toHaveText("Teacher Mode");
   // Zoom allowed.
   const vp = await page.locator('meta[name="viewport"]').getAttribute("content");
@@ -54,9 +54,8 @@ test("image map: all artwork loads, failed requests show accessible placeholders
     document.querySelector(".page").innerHTML = ids.map(id => `<div class="block test-img" data-id="${id}"><p><strong>${id}</strong></p>${imgHtml(id)}</div>`).join("");
   }, ids);
   await page.waitForTimeout(800);
-  // The Level 3 badge is not drawn yet: it shows its placeholder box until the file is added.
-  await expect(page.locator('.test-img[data-id="BADGE_L3"] .img-placeholder')).toBeVisible();
-  for (const id of ids.filter(id => id !== "BADGE_L3")) {
+  // Every badge now has installed artwork, including Service Saver.
+  for (const id of ids) {
     const box = page.locator(`.test-img[data-id="${id}"]`);
     const img = box.locator("img");
     await expect(img, `${id} should load`).toBeVisible();
