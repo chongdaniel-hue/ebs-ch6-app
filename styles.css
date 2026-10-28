@@ -1373,7 +1373,6 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 /* Key-term icons: 3.75rem is 2.5 times the original 1.5rem book icon. */
 .term-list .term-definition{align-items:center;gap:16px;background:var(--term-bg);border-color:var(--term-border);}
 .term-service{--term-bg:#EAF4FF;--term-border:#4675A8;}
-.term-list .term-def strong{color:#B45309;}
 .term-quality{--term-bg:#EAF7EF;--term-border:#2D7B56;}
 .term-breakdown{--term-bg:#FFF4D8;--term-border:#A46A16;}
 .term-recovery{--term-bg:#F2EDFF;--term-border:#7855AD;}
@@ -1689,3 +1688,6 @@ fieldset.roleplay-stages{margin-left:0;margin-right:0;min-width:0;}
 @media(min-width:700px){.badge-shelf{grid-template-columns:repeat(7,minmax(0,1fr));}}
 /* Level 3 card 5: the Stage 4 label sits as close to the video heading as on the other stage cards. */
 .lesson-card .stage-label + .lesson-video{margin:4px 0 0;}
+
+/* Consistent keyword emphasis throughout the lesson notes and recovery guides. */
+strong.keyword-emphasis{color:#B45309;}

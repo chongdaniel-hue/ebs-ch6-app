@@ -679,3 +679,6 @@ Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap
 
 ## Key-term definition emphasis (28 October 2026, version 0.11.2)
 - Changed the bold phrase happy and satisfied to accessible dark orange (#B45309), following the user’s revised colour choice in the Customer service key-term definition. Shared key-term rendering applies this on the terms page and Level 2 card 1. No wording, layout or progress changes. Preview requested before publication.
+
+## Consistent orange keywords (28 October 2026, preview 0.11.3)
+- User requested the same orange for all coloured, bold keywords. Marked the existing lesson keyword phrases and the shared boldHtml output with keyword-emphasis, styled #B45309. Covers both notes levels, the home key-term page, recovery path and recovery guides. Headings, term names, labels and other UI retain their colours. Text and progress rules are unchanged.

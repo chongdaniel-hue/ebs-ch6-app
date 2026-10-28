@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.11.2";
+const APP_VERSION = "0.11.3";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -1689,7 +1689,7 @@ function hIcon(icon) { return `<span class="h-icon" aria-hidden="true">${icon}</
 // Key words in a line of notes, in bold. Only how the text looks changes, never what it says.
 function boldHtml(text, phrases) {
   let html = escapeHtml(text);
-  (phrases || []).forEach(p => { const e = escapeHtml(p); html = html.replace(e, () => `<strong>${e}</strong>`); });
+  (phrases || []).forEach(p => { const e = escapeHtml(p); html = html.replace(e, () => `<strong class='keyword-emphasis'>${e}</strong>`); });
   return html;
 }
 
@@ -2121,18 +2121,18 @@ const L2_CARDS = [
     ${keyTermsHtml()}`) },
   { label: "What is customer service?", ...notesPart(() => `
     <h2 class="section-title">${hIcon("🤝")}What is customer service?</h2>
-    ${definitionHtml(`<p><strong>Customer service</strong> refers to what businesses do for their customers so that they are <strong>happy and satisfied</strong>.</p>`, "TERM_SERVICE")}
-    <p>It takes place <strong>the moment a customer enters</strong> a shop, a restaurant or an attraction, and <strong>continues even after the customer has made a purchase</strong> and left the venue.</p>
+    ${definitionHtml(`<p><strong>Customer service</strong> refers to what businesses do for their customers so that they are <strong class='keyword-emphasis'>happy and satisfied</strong>.</p>`, "TERM_SERVICE")}
+    <p>It takes place <strong class='keyword-emphasis'>the moment a customer enters</strong> a shop, a restaurant or an attraction, and <strong class='keyword-emphasis'>continues even after the customer has made a purchase</strong> and left the venue.</p>
     ${zoomImgHtml("C05", "comic-img")}
     <h2 class="section-title">${hIcon("⭐")}What is quality customer service?</h2>
-    ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to <strong>exceed their expectations</strong>.</p>`, "TERM_QUALITY")}`) },
+    ${definitionHtml(`<p><strong>Quality customer service</strong> means doing more for customers to <strong class='keyword-emphasis'>exceed their expectations</strong>.</p>`, "TERM_QUALITY")}`) },
   { label: "Why quality customer service matters", ...notesPart(() => `
     <h2 class="section-title">${hIcon("❓")}Why does quality customer service matter?</h2>
     <p>If a business provides quality customer service:</p>
     ${iconCardsHtml([
-      { icon: "🔁", html: "Customers will have a <strong>positive experience</strong> and they will choose to <strong>return repeatedly</strong>;" },
-      { icon: "🗣️", html: "Customers will <strong>recommend the business</strong> to their relatives and friends; and" },
-      { icon: "🤝", html: "<strong>Customer loyalty</strong> is created, ensuring the <strong>continuity of the business</strong>." }
+      { icon: "🔁", html: "Customers will have a <strong class='keyword-emphasis'>positive experience</strong> and they will choose to <strong class='keyword-emphasis'>return repeatedly</strong>;" },
+      { icon: "🗣️", html: "Customers will <strong class='keyword-emphasis'>recommend the business</strong> to their relatives and friends; and" },
+      { icon: "🤝", html: "<strong class='keyword-emphasis'>Customer loyalty</strong> is created, ensuring the <strong class='keyword-emphasis'>continuity of the business</strong>." }
     ], "cols-3")}
     ${zoomImgHtml("C01", "comic-img")}`) },
   { label: "Skills and qualities", ...notesPart(() => `
@@ -2148,10 +2148,10 @@ const L2_CARDS = [
     ], "cols-3 grid-6")}`) },
   { label: "Good product knowledge", ...notesPart(() => `
     <h2 class="section-title">${hIcon("📱")}Good product knowledge</h2>
-    ${definitionHtml(`<p><strong>Product knowledge</strong> refers to knowledge a service staff has of a product's <strong>features and benefits</strong>.</p>`, "📖")}
+    ${definitionHtml(`<p><strong>Product knowledge</strong> refers to knowledge a service staff has of a product's <strong class='keyword-emphasis'>features and benefits</strong>.</p>`, "📖")}
     <p>Product knowledge includes:</p>
     ${productKnowledgeExamplesHtml()}
-    <p class="pk-why">Service staff with good product knowledge will be able to <strong>meet the needs and wants of customers</strong> and <strong>increase customer satisfaction</strong> so that they will want to come back again.</p>`) },
+    <p class="pk-why">Service staff with good product knowledge will be able to <strong class='keyword-emphasis'>meet the needs and wants of customers</strong> and <strong class='keyword-emphasis'>increase customer satisfaction</strong> so that they will want to come back again.</p>`) },
   { label: "The four stages", ...notesPart(() => `
     <h2 class="section-title">${hIcon("🗺️")}The four stages of providing customer service</h2>
     <table class="stage-table">
@@ -2164,36 +2164,36 @@ const L2_CARDS = [
   { label: "Stage 1: Approaching customers", ...notesPart(() => `
     ${stageLabelHtml(1)}
     <h2 class="section-title">${hIcon("👋")}Approaching customers: 3 approaches</h2>
-    <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> As soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by <strong>making eye contact, smiling and greeting them politely</strong>.</span></p>
+    <p class="when-box"><span class="when-icon" aria-hidden="true">⏰</span> <span><strong>When to approach:</strong> As soon as a customer enters the store. If you are busy serving someone else, still acknowledge the new customer by <strong class='keyword-emphasis'>making eye contact, smiling and greeting them politely</strong>.</span></p>
     <ul class="approach-cards">
       <li class="approach-card">
         <span class="ic-icon" aria-hidden="true">👋</span>
         <h3 class="approach-name">1. Greeting Approach</h3>
-        <p>Greet the customer <strong>in a friendly way</strong> as they enter, e.g.</p>
+        <p>Greet the customer <strong class='keyword-emphasis'>in a friendly way</strong> as they enter, e.g.</p>
         ${sayHtml("\"Good morning!\"")}
-        <p>For a regular customer, <strong>use their name</strong>:</p>
+        <p>For a regular customer, <strong class='keyword-emphasis'>use their name</strong>:</p>
         ${sayHtml("\"Good morning, Mr Tan!\"")}
       </li>
       <li class="approach-card">
         <span class="ic-icon" aria-hidden="true">🙋</span>
         <h3 class="approach-name">2. Service Approach</h3>
-        <p>Ask a <strong>polite question</strong> to show you're ready to help, e.g.</p>
+        <p>Ask a <strong class='keyword-emphasis'>polite question</strong> to show you're ready to help, e.g.</p>
         ${sayHtml("\"How may I assist you?\"")}
-        <p>If a customer comes up to you to ask for something or to pay, serve them <strong>as quickly as possible</strong>.</p>
+        <p>If a customer comes up to you to ask for something or to pay, serve them <strong class='keyword-emphasis'>as quickly as possible</strong>.</p>
         <p class="approach-combine">You can also combine the greeting and service approaches:</p>
         ${sayHtml("\"Good morning! How may I assist you?\"")}
       </li>
       <li class="approach-card">
         <span class="ic-icon" aria-hidden="true">📱</span>
         <h3 class="approach-name">3. Product Approach</h3>
-        <p>When a customer is <strong>looking closely at a product</strong>, ask a question about it to help them go from just being interested to <strong>actually buying it</strong>, e.g.</p>
+        <p>When a customer is <strong class='keyword-emphasis'>looking closely at a product</strong>, ask a question about it to help them go from just being interested to <strong class='keyword-emphasis'>actually buying it</strong>, e.g.</p>
         ${sayHtml("\"This phone has a great camera. Would you like to try it out?\"")}
       </li>
     </ul>
     <p>Whether salespeople use the greeting, service or product approach, the purpose is to:</p>
     ${iconCardsHtml([
-      { icon: "😊", html: "Make customers feel <strong>comfortable or welcome</strong> in the store so that they are likely to buy from the business; and" },
-      { icon: "🔁", html: "Ensure customers <strong>return to the business again</strong> in the future." }
+      { icon: "😊", html: "Make customers feel <strong class='keyword-emphasis'>comfortable or welcome</strong> in the store so that they are likely to buy from the business; and" },
+      { icon: "🔁", html: "Ensure customers <strong class='keyword-emphasis'>return to the business again</strong> in the future." }
     ], "cols-2")}
     ${zoomImgHtml("C03", "comic-img")}`) },
   { label: "Watch: A better welcome at Nexora", key: "s2.video", ...notesPart(() => `
@@ -2209,7 +2209,7 @@ const L2_CARDS = [
     ${stageLabelHtml(2)}
     <h2 class="section-title">${hIcon("📱")}Presenting product information</h2>
     ${stagePartHtml(1, "🔍", "Finding out customers' needs and wants")}
-    <p>Once you have greeted the customer, find out what they need by <strong>asking the correct questions and listening carefully</strong>. Then it is easier to show them the correct product.</p>
+    <p>Once you have greeted the customer, find out what they need by <strong class='keyword-emphasis'>asking the correct questions and listening carefully</strong>. Then it is easier to show them the correct product.</p>
     ${scenarioTableHtml()}`) },
   { label: "Stage 2: Presenting the product", ...notesPart(() => `
     ${stageLabelHtml(2)}
@@ -2242,14 +2242,14 @@ const L2_CARDS = [
   { label: "Stage 3: Closing the customer experience positively", ...notesPart(() => `
     ${stageLabelHtml(3)}
     <h2 class="section-title">${hIcon("✅")}Closing the customer experience positively</h2>
-    <p>The final goal of every salesperson is to <strong>complete a sale</strong> and close the customer experience positively.</p>
+    <p>The final goal of every salesperson is to <strong class='keyword-emphasis'>complete a sale</strong> and close the customer experience positively.</p>
     <p>Signs that the customer had a positive experience:</p>
     ${iconCardsHtml([
       { icon: "🗣️", html: boldHtml("Makes remarks such as \"This is exactly the item I am looking for.\"", ["Makes remarks"]) },
       { icon: "😊", html: boldHtml("Looks happy with the product and is not looking at other products.", ["Looks happy"]) },
       { icon: "🛍️", html: boldHtml("Asks for other products that can complement the recently purchased product.", ["Asks for other products"]) }
     ], "chips")}
-    <p class="closing-lead"><strong>Show appreciation</strong> to customers when closing, even if they do not buy:</p>
+    <p class="closing-lead"><strong class='keyword-emphasis'>Show appreciation</strong> to customers when closing, even if they do not buy:</p>
     <ul class="closing-lines">
       <li class="closing-line"><p class="closing-when"><span aria-hidden="true">🧾</span> After a sale:</p>${sayHtml("\"Thank you, I'm sure the product will meet your needs. It has been a pleasure serving you.\"")}</li>
       <li class="closing-line"><p class="closing-when"><span aria-hidden="true">👋</span> If the customer does not buy:</p>${sayHtml("\"Certainly, thank you for your interest. Do come back if you decide to buy it another day.\"")}</li>
@@ -2258,8 +2258,8 @@ const L2_CARDS = [
   { label: "Stage 3: After-sales support", ...notesPart(() => `
     ${stageLabelHtml(3)}
     <h2 class="section-title">${hIcon("🛡️")}After-sales support</h2>
-    ${definitionHtml(`<p><strong>After-sales service</strong> refers to the <strong>help given to customers after they have bought a product</strong>.</p>`, "📖")}
-    <p>Providing good after-sales service is one way businesses can be <strong>better than their competitors</strong>.</p>
+    ${definitionHtml(`<p><strong>After-sales service</strong> refers to the <strong class='keyword-emphasis'>help given to customers after they have bought a product</strong>.</p>`, "📖")}
+    <p>Providing good after-sales service is one way businesses can be <strong class='keyword-emphasis'>better than their competitors</strong>.</p>
     ${iconCardsHtml([
       { icon: "🛡️", html: namedCardHtml("Warranty", "Explain what the warranty covers and remind customers to keep their receipt.") },
       { icon: "🛠️", html: namedCardHtml("Repairs", "Explain how to arrange a repair and what happens next.") },
@@ -2268,18 +2268,18 @@ const L2_CARDS = [
     ], "cols-2 grid-4")}
     <p class="enquiry-lead">When handling customers' enquiries, salespeople should:</p>
     ${iconCardsHtml([
-      { icon: "👂", html: "<strong>Listen</strong> to the customers carefully." },
-      { icon: "❓", html: "<strong>Clarify</strong> with them by asking questions to get a better understanding." },
-      { icon: "✅", html: "Provide them with <strong>relevant and accurate information</strong>." }
+      { icon: "👂", html: "<strong class='keyword-emphasis'>Listen</strong> to the customers carefully." },
+      { icon: "❓", html: "<strong class='keyword-emphasis'>Clarify</strong> with them by asking questions to get a better understanding." },
+      { icon: "✅", html: "Provide them with <strong class='keyword-emphasis'>relevant and accurate information</strong>." }
     ], "chips")}`) },
   { label: "Stage 4: Service breakdown and service recovery", ...notesPart(() => `
     ${stageLabelHtml(4)}
     <h2 class="section-title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
-    ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers <strong>make a complaint</strong> about a product or service.</p><p class="def-more">Common causes: Unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
-    ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business <strong>takes action</strong> in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}
+    ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers <strong class='keyword-emphasis'>make a complaint</strong> about a product or service.</p><p class="def-more">Common causes: Unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
+    ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business <strong class='keyword-emphasis'>takes action</strong> in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}
     ${zoomImgHtml("C04", "comic-img")}
-    <p>A customer's complaint provides an opportunity for a business to <strong>build customer loyalty</strong>. This is because if the complaint is handled well, the customer's <strong>bad experience can be turned into a good one</strong>.</p>
-    <p>A business will <strong>lose its customers to competitors</strong> if it does not try to win a customer back.</p>`) },
+    <p>A customer's complaint provides an opportunity for a business to <strong class='keyword-emphasis'>build customer loyalty</strong>. This is because if the complaint is handled well, the customer's <strong class='keyword-emphasis'>bad experience can be turned into a good one</strong>.</p>
+    <p>A business will <strong class='keyword-emphasis'>lose its customers to competitors</strong> if it does not try to win a customer back.</p>`) },
   { label: "The 8 service recovery steps", ...notesPart(() => `
     <h2 class="section-title">${hIcon("🛤️")}The 8 service recovery steps</h2>
     <p>Follow Nexora's staff member as he uses the 8 steps with a customer whose new phone screen cracked on its own.</p>
