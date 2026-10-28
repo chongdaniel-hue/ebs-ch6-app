@@ -185,10 +185,10 @@ window.APP_CONFIG = {
       alt: "Three-panel comic. 1, WALKS IN: The Nexora staff member waves at a customer entering the store: \"Welcome to Nexora!\" 2, PAYS: At the counter, he hands her a Nexora bag with a new phone: \"Here's your new phone. Enjoy!\" 3, A WEEK LATER: At home, the customer messages Nexora Online Chat 24/7 on her phone: \"I bought a phone last week. How do I back up my photos?\" The reply: \"Happy to help! Let me show you the steps.\""
     },
     C06: {
-      file: "assets/img/C06-handling-objections.jpg",
+      file: "assets/img/C06-handling-objections-v2.jpg",
       emoji: "🖼️",
       label: "Handling objections comic",
-      alt: "Four-panel comic at a Nexora store. 1, SELLING POINT: The customer, holding a phone: \"This phone is a bit heavy.\" \"Hmm… I'm not so sure if I should get this.\" The staff member: \"It's heavier because it has a bigger battery, so it lasts the whole day.\" 2, YES, BUT: Beside a $1,299 price tag, the customer: \"The Nexora Prime is expensive.\" The staff member: \"Yes, it costs more, but its fast processor runs your games smoothly.\" 3, SHARE CONCERNS: The customer: \"Hmm… I'm not so sure if I should get this.\" The staff member: \"What worries you most about switching to a new phone?\" 4, CORRECT MISCONCEPTION: The customer: \"So the warranty covers everything, right?\" The staff member, holding a warranty card: \"Good question! The warranty covers manufacturing defects. Accidental damage, such as dropping the phone, isn't covered.\""
+      alt: "Four-panel comic at a Nexora store. 1, SELLING POINT: The customer, holding a phone: \"This phone is a bit heavy.\" The staff member: \"It's heavier because it has a bigger battery, so it lasts the whole day.\" 2, YES, BUT: Beside a $1,299 price tag, the customer: \"The Nexora Prime is expensive.\" The staff member: \"Yes, it costs more, but its fast processor runs your games smoothly.\" 3, SHARE CONCERNS: The customer: \"Hmm… I'm not so sure if I should get this.\" The staff member: \"What worries you most about switching to a new phone?\" 4, CORRECT MISCONCEPTION: The customer: \"So the warranty covers everything, right?\" The staff member, holding a warranty card: \"Good question! The warranty covers manufacturing defects. Accidental damage, such as dropping the phone, isn't covered.\""
     },
     C07: {
       file: "assets/img/C07-closing-positively.jpg",
