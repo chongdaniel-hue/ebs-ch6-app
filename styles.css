@@ -1565,7 +1565,6 @@ html:has(.lesson-card-nav){scroll-padding-bottom:84px;}
 }
 /* After-sales support: four cards, two by two. */
 @media (min-width:640px){ .icon-cards.grid-4{grid-template-columns:repeat(2, minmax(0, 1fr));} }
-.page p.second-chance{margin-top:12px;}
 /* Quick check. */
 .qc-options{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:12px;max-width:480px;}
 .qc-btn{width:100%;text-align:center;}
@@ -1607,3 +1606,55 @@ fieldset.roleplay-stages{margin-left:0;margin-right:0;min-width:0;}
   .path-face{position:static;margin:8px 0 0;font-size:1.8rem;}
   .path-label{font-size:1rem;}
 }
+
+/* ---------- 0.9.0: Stage 2 in three parts, Stage 3 closing ---------- */
+.definition-emoji{flex:0 0 auto;font-size:1.5rem;line-height:1.2;}
+/* "1 🔍 Finding out customers' needs and wants": numbered like a step. */
+.stage-part{display:flex;align-items:center;gap:10px;margin:4px 0 12px;font-size:1.12rem;color:var(--brand-dark);}
+.stage-part-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-size:.95rem;font-weight:700;}
+.stage-part-icon{font-size:1.4rem;line-height:1;}
+/* Needs and wants: a two-column table; on phones each row is a card. */
+.scenario-table{width:100%;margin-top:16px;border-collapse:separate;border-spacing:0 10px;}
+.scenario-table thead th{padding:0 14px 2px;text-align:left;font-size:.95rem;color:var(--brand-dark);}
+.scenario-table tbody th,.scenario-table tbody td{padding:12px 14px;vertical-align:top;text-align:left;background:var(--paper);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.scenario-table tbody th{width:40%;font-weight:600;border-left:4px solid var(--brand);border-radius:10px 0 0 10px;}
+.scenario-table tbody td{border-right:1px solid var(--border);border-radius:0 10px 10px 0;}
+.scenario-cell{display:flex;align-items:flex-start;gap:10px;}
+.scenario-cell .ic-icon{font-size:1.6rem;flex:0 0 auto;}
+.page .scenario-table td p{margin:0;max-width:none;}
+.page .scenario-table td p + p{margin-top:6px;}
+.scenario-label{display:none;}
+@media (max-width:639px){
+  .scenario-table,.scenario-table tbody,.scenario-table tr,.scenario-table tbody th,.scenario-table tbody td{display:block;width:auto;}
+  .scenario-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+  .scenario-table{border-spacing:0;}
+  .scenario-table tr{margin-bottom:12px;border:1px solid var(--border);border-left:4px solid var(--brand);border-radius:10px;background:var(--paper);overflow:hidden;}
+  .scenario-table tbody th,.scenario-table tbody td{border:none;border-radius:0;background:transparent;}
+  .scenario-table tbody th{padding:12px 12px 8px;}
+  .scenario-table tbody td{padding:8px 12px 12px;border-top:1px dashed var(--border);}
+  .scenario-label{display:block;margin-bottom:4px;font-size:.85rem;font-weight:700;color:var(--brand-dark);}
+}
+/* Questions and objections: four numbered technique cards with an example. */
+.technique-cards{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px;}
+.page .technique-cards > li{max-width:none;}
+.technique-card{display:flex;flex-direction:column;gap:8px;padding:16px;border:1px solid var(--border);border-top:4px solid var(--brand);border-radius:12px;background:var(--paper);}
+.technique-title{display:flex;align-items:flex-start;gap:10px;margin:0;font-size:1.05rem;line-height:1.35;color:var(--brand-dark);}
+.technique-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;font-size:.9rem;}
+.page .technique-card p{margin:0;max-width:none;}
+.technique-example{padding-top:10px;border-top:1px dashed var(--border);}
+.page .technique-card p.technique-example-label{margin-bottom:4px;}
+.page .technique-card p.say{margin:4px 0 0;}
+.say-who{font-weight:700;}
+@media (min-width:760px){ .technique-cards{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+/* Closing: two lines staff can say, each under its situation. */
+.page p.closing-lead,.page p.enquiry-lead{margin-top:24px;}
+.closing-lines{list-style:none;margin:0;padding:0;display:grid;gap:12px;}
+.page .closing-lines > li{max-width:none;}
+.closing-line{padding:14px 16px;border:1px solid var(--border);border-left:4px solid var(--brand);border-radius:12px;background:var(--paper);}
+.page .closing-line p.closing-when{margin:0 0 6px;font-weight:700;color:var(--brand-dark);}
+.page .closing-line p.say{margin:0;}
+@media (min-width:760px){ .closing-lines{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+/* A definition straight under a card heading never touches it. */
+.lesson-card .head-row + .definition,.teacher-lesson .head-row + .definition{margin-top:12px;}
+/* Phones: chips are sentences of different lengths, so each takes its own height. */
+@media (max-width:639px){ .icon-cards.chips{grid-auto-rows:auto;} }

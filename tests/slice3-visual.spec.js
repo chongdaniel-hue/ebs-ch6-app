@@ -47,7 +47,7 @@ test("Level 1: the three question cards line up and the boxes are the same size"
 test("images are shown in full and the Foodpanda pair is the same height", async ({ page, request }, testInfo) => {
   await student(page, request, 32);
   await page.goto("/#level2");
-  for (let c = 0; c < 15; c++) {
+  for (let c = 0; c < 18; c++) {
     await page.evaluate(c => { setUi("s2.card", c); renderLevel(2); }, c);
     await page.waitForTimeout(300);
     const cropped = await page.locator("img.content-img").evaluateAll(imgs => imgs.filter(i => i.naturalWidth).map(i => {
@@ -56,7 +56,7 @@ test("images are shown in full and the Foodpanda pair is the same height", async
     }).filter(x => x.off > 0.02));
     expect(cropped, "no image squashed or cut").toEqual([]);
   }
-  await page.evaluate(() => { setUi("s2.card", 13); renderLevel(2); });
+  await page.evaluate(() => { setUi("s2.card", 16); renderLevel(2); });
   await page.waitForTimeout(300);
   const heights = await page.locator(".img-pair img").evaluateAll(imgs => imgs.map(i => Math.round(i.getBoundingClientRect().height)));
   expect(heights.length).toBe(2);
@@ -98,7 +98,7 @@ test("blocks line up: same left and right edges on every page", async ({ page, r
     expect(await edgeProblems(page), name).toEqual([]);
   }
   await page.goto("/#level2");
-  for (let c = 0; c < 15; c++) {
+  for (let c = 0; c < 18; c++) {
     await page.evaluate(c => { setUi("s2.card", c); renderLevel(2); }, c);
     await page.waitForTimeout(300);
     expect(await edgeProblems(page), `level2 card ${c + 1}`).toEqual([]);
@@ -145,7 +145,7 @@ test("Read aloud reads a block of notes, not the questions, and stops on a secon
     await page.locator("#lessonCard .listen-btn").click();
     return text;
   };
-  const poor = await readCard(13);
+  const poor = await readCard(16);
   expect(poor).toContain("A customer complained to a food delivery app");
   expect(poor).not.toContain("Was this good service recovery");
   // Cards: the words read aloud are the words shown, name and description kept apart.

@@ -69,9 +69,12 @@
         in textbook wording only; capital letters after labels.
    0.8.1 New link for Alex (a Gemini Skill); capital letters after the colon in
         headings and the When to approach line.
+   0.9.0 Textbook corrections in Level 2; Stage 2 in three parts (needs and wants,
+        presenting the product, questions and objections) and Stage 3 in two
+        (closing, after-sales support and enquiries): 18 cards.
    ============================================================ */
 
-const APP_VERSION = "0.8.1";
+const APP_VERSION = "0.9.0";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -973,16 +976,20 @@ function updateLessonNext(){
 }
 // The card on screen; arriving at a card (not a redraw of the same one) starts the path count again.
 let lessonCardShown=-1;
-// Old card positions (10-card layout) map to the matching card of the 15-card layout.
-const L2_OLD_CARDS={compact10:[1,2,3,5,6,9,11,12,13,14]};
+// Old card positions (10-card layout) map to the matching card of the 15-card layout, and
+// 15-card positions to the 18-card layout (Stage 2 in three parts, Stage 3 in two).
+const L2_OLD_CARDS={compact10:[1,2,3,5,6,9,11,12,13,14],cards15:[0,1,2,3,4,5,6,7,8,9,12,14,15,16,17]};
 function renderLessonCard(){
   stopSpeaking();setUi('route.level',2);
   const cards=L2_CARDS;
-  if(getUi('s2.cardLayout')!=="cards15"){
-    const old=Number(getUi('s2.card'))||0;
-    if(getUi('s2.cardLayout')==="compact10")setUi('s2.card',L2_OLD_CARDS.compact10[old]??0);
-    else if(getUi('s2.card')!==undefined){const map=[0,1,2,2,3,4,4,5,5,6,7,7,7,7,7,7,7,7,8,9,9];setUi('s2.card',L2_OLD_CARDS.compact10[map[old]??0]??0);}
-    setUi('s2.cardLayout','cards15');saveLocal();
+  if(getUi('s2.cardLayout')!=="cards18"){
+    if(getUi('s2.cardLayout')!=="cards15"){
+      const old=Number(getUi('s2.card'))||0;
+      if(getUi('s2.cardLayout')==="compact10")setUi('s2.card',L2_OLD_CARDS.compact10[old]??0);
+      else if(getUi('s2.card')!==undefined){const map=[0,1,2,2,3,4,4,5,5,6,7,7,7,7,7,7,7,7,8,9,9];setUi('s2.card',L2_OLD_CARDS.compact10[map[old]??0]??0);}
+    }
+    if(getUi('s2.card')!==undefined)setUi('s2.card',L2_OLD_CARDS.cards15[Number(getUi('s2.card'))||0]??0);
+    setUi('s2.cardLayout','cards18');saveLocal();
   }
   let pos=Number(getUi('s2.card'))||0;pos=Math.max(0,Math.min(pos,cards.length-1));setUi('s2.card',pos);const card=cards[pos];
   if(lessonCardShown!==pos){lessonCardShown=pos;pathShownNow=0;}
@@ -1616,7 +1623,8 @@ function hIcon(icon) { return `<span class="h-icon" aria-hidden="true">${icon}</
 
 // A textbook definition, the one to learn: the same 📖 box everywhere.
 function definitionHtml(innerHtml, iconId) {
-  return `<div class="definition" role="note">${graphicIconHtml(iconId, "definition-graphic")}<div class="def-body">${innerHtml}</div></div>`;
+  const icon = (CONFIG.IMAGES || {})[iconId] ? graphicIconHtml(iconId, "definition-graphic") : `<span class="definition-emoji" aria-hidden="true">${iconId}</span>`;
+  return `<div class="definition" role="note">${icon}<div class="def-body">${innerHtml}</div></div>`;
 }
 
 // A row of icon cards (stacks on phones). items: [{icon, html}]
@@ -1781,7 +1789,7 @@ const L1_PART = {
    support) and performing service recovery. */
 
 const STAGES = [
-  { icon: "👋", short: "Approach", name: "Approaching customers", text: "Greet the customer, show you're happy to help." },
+  { icon: "👋", short: "Approach", name: "Approaching customers", text: "Greet the customer and show you're happy to help." },
   { icon: "📱", short: "Present", name: "Presenting product information", text: "Find out their needs, present a suitable product, explain why it suits their needs, handle questions or objections (when the customer is unsure or disagrees)." },
   { icon: "✅", short: "Close", name: "Closing the customer experience positively", text: "Summarise what the customer decided and any next steps, thank the customer, and give good after-sales support (e.g. warranty, repairs, exchanges and refunds)." },
   { icon: "🛠️", short: "Recovery", name: "Performing service recovery", text: "Respond well when something goes wrong." }
@@ -1869,7 +1877,7 @@ function keyTermsHtml() {
 // member's line is in the comic's speech bubble (and its alt text); a hidden copy lets
 // Read aloud read each heading followed by its line.
 const PRODUCT_KNOWLEDGE_EXAMPLES = [
-  { id: "features", icon: "📋", image: "PK_FEATURES", title: "Product features and specifications (e.g. screen size, battery life)",
+  { id: "features", icon: "📋", image: "PK_FEATURES", title: "Product features and benefits (e.g. a large screen that makes reading easier)",
     dialogue: "\"The Nexora Spark has a large screen for reading and an all-day battery.\"" },
   { id: "price", icon: "💲", image: "PK_PRICE", title: "Price and available options",
     dialogue: "\"The Nexora Core is $799. You can upgrade to 256GB for $80 more, or 512GB for $160 more.\"" },
@@ -1984,6 +1992,54 @@ function wirePath(el) {
   });
 }
 
+// Stage 2 is in three numbered parts, one card each.
+function stagePartHtml(n, icon, title) {
+  return `<h3 class="stage-part"><span class="stage-part-num" aria-hidden="true">${n}</span><span class="stage-part-icon" aria-hidden="true">${icon}</span><span><span class="visually-hidden">Part ${n}: </span>${escapeHtml(title)}</span></h3>`;
+}
+// Stage 2, part 1 (textbook p. 129): what the salesperson can do in each scenario. A table on
+// wide screens; on phones each row stacks as a card.
+const NEEDS_SCENARIOS = [
+  { icon: "🎯", scenario: "The customers know exactly what they want.",
+    action: ["The salesperson can get the customers to try the product immediately."] },
+  { icon: "👀", scenario: "The customers have nothing specific in mind to buy and are just browsing.",
+    action: ["The salesperson may inform customers of new arrivals or special promotions to arouse their interest."] },
+  { icon: "🤔", scenario: "The customers only have a general idea of what they want.",
+    action: ["Ask open-ended questions to encourage the customer to share more about their needs.", "Listen carefully to what the customer says.", "Pay attention to the customer's body language by observing his or her response."] }
+];
+function scenarioTableHtml() {
+  return `<table class="scenario-table">
+    <thead><tr><th scope="col">Scenario</th><th scope="col">What the salesperson can do</th></tr></thead>
+    <tbody>${NEEDS_SCENARIOS.map(r => `<tr>
+      <th scope="row"><span class="scenario-label" aria-hidden="true">Scenario</span><span class="scenario-cell"><span class="ic-icon" aria-hidden="true">${r.icon}</span><span>${escapeHtml(r.scenario)}</span></span></th>
+      <td><span class="scenario-label" aria-hidden="true">What the salesperson can do</span>${r.action.map(a => `<p>${escapeHtml(a)}</p>`).join("")}</td>
+    </tr>`).join("")}</tbody>
+  </table>`;
+}
+// Stage 2, part 3 (textbook p. 135): four techniques, each with a Nexora example.
+const OBJECTION_TECHNIQUES = [
+  { title: "Turn a negative remark into a selling point.",
+    text: "Point out to customers that what they see as a negative aspect of the product may also have positive functions.",
+    example: [["Customer", "\"This phone is a bit heavy.\""], ["Staff", "\"It's heavier because it has a bigger battery, so it lasts the whole day.\""]] },
+  { title: "Use the \"yes, but\" response.",
+    text: "Agree with the customers first and then point out an advantage that can adequately offset their concerns.",
+    example: [["Customer", "\"The Nexora Prime is expensive.\""], ["Staff", "\"Yes, it costs more, but its fast processor runs your games smoothly.\""]] },
+  { title: "Encourage customers to share their concerns.",
+    text: "Ask customers to tell you about their concerns. As the customers elaborate, they may provide you with clues on how to address their concerns.",
+    example: [["Staff", "\"What worries you most about switching to a new phone?\""]] },
+  { title: "Correct misconceptions.",
+    text: "This method should be used when customers are misinformed. However, be sure to do this tactfully so as not to come across as rude.",
+    example: [["Customer", "\"So the warranty covers everything, right?\""], ["Staff", "\"Good question! The warranty covers manufacturing defects. Accidental damage, such as dropping the phone, isn't covered.\""]] }
+];
+function objectionCardsHtml() {
+  return `<ol class="technique-cards">${OBJECTION_TECHNIQUES.map((t, i) => `<li class="technique-card">
+      <h4 class="technique-title"><span class="technique-num" aria-hidden="true">${i + 1}</span><span>${escapeHtml(t.title)}</span></h4>
+      <p>${escapeHtml(t.text)}</p>
+      <div class="technique-example"><p class="technique-example-label"><strong>Example:</strong></p>
+        ${t.example.map(([who, line]) => `<p class="say technique-say"><span class="say-who">${who}:</span> ${escapeHtml(line)}</p>`).join("")}
+      </div>
+    </li>`).join("")}</ol>`;
+}
+
 // Each card: label (progress line), html(ctx), wire(el, ctx); key = a required reflection;
 // ready() = Next is allowed; check(el) = list of unanswered items before Next.
 const L2_CARDS = [
@@ -2007,17 +2063,18 @@ const L2_CARDS = [
     ${zoomImgHtml("C01", "comic-img")}`) },
   { label: "Skills and qualities", ...notesPart(() => `
     <h2 class="section-title">${hIcon("🧑‍💼")}Skills and qualities of a good customer service employee</h2>
-    <p>Some skills and qualities customer service employees need:</p>
+    <p>To deliver quality customer service, service staff need these skills and qualities:</p>
     ${iconCardsHtml([
       { icon: "😊", html: namedCardHtml("Approachable", "Friendly and easy to talk to, so customers feel comfortable asking for help") },
       { icon: "🎯", html: namedCardHtml("Customer-focused", "Paying attention to what each customer needs and putting those needs first") },
-      { icon: "💬", html: namedCardHtml("Clear communication skills", "Explaining things simply") },
       { icon: "🧠", html: namedCardHtml("Knowledgeable", "Knowing the products well, so you can answer questions accurately") },
+      { icon: "💬", html: namedCardHtml("Clear communication skills", "Explaining things clearly and simply, and listening carefully") },
       { icon: "🛠️", html: namedCardHtml("Problem-solving skills", "Providing solutions, not just apologising") },
       { icon: "👋", html: namedCardHtml("Able to close the customer experience positively", "Ending on a good note, e.g. thanking the customer and inviting them back") }
     ], "cols-3 grid-6")}`) },
   { label: "Good product knowledge", ...notesPart(() => `
     <h2 class="section-title">${hIcon("📱")}Good product knowledge</h2>
+    ${definitionHtml(`<p><strong>Product knowledge</strong> refers to knowledge a service staff has of a product's features and benefits.</p>`, "📖")}
     <p>Staff need good product knowledge to answer questions accurately, not guess. This includes:</p>
     ${productKnowledgeExamplesHtml()}
     <p class="pk-why">Customers trust staff who know their products, so they buy with confidence and come back again.</p>`) },
@@ -2075,29 +2132,73 @@ const L2_CARDS = [
     <ol class="match-list qc-list">${QUICK_CHECK.map(it => quickCheckItemHtml(it, ctx.readOnly)).join("")}</ol>`,
     wire: (el) => wireQuickCheck(el),
     check: (el) => QUICK_CHECK.filter(it => !qcResolved(it)).map(it => ({ el: el.querySelector(`[data-key="s2.qc.${it.id}"]`), name: it.id + ")" })) },
-  { label: "Stage 2: Presenting product information", ...notesPart(() => `
+  { label: "Stage 2: Finding out customers' needs and wants", ...notesPart(() => `
     ${stageLabelHtml(2)}
-    <h2 class="section-title">${hIcon("🎯")}Presenting product information: Suitability</h2>
-    ${zoomImgHtml("SUITABILITY", "notes-img suitability-img")}
-    <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>`) },
+    <h2 class="section-title">${hIcon("📱")}Presenting product information</h2>
+    ${stagePartHtml(1, "🔍", "Finding out customers' needs and wants")}
+    <p>Once you have greeted the customer, find out what they need by asking the correct questions and listening carefully. Then it is easier to show them the correct product.</p>
+    ${scenarioTableHtml()}`) },
+  { label: "Stage 2: Presenting the product", ...notesPart(() => `
+    ${stageLabelHtml(2)}
+    <h2 class="section-title">${hIcon("📱")}Presenting product information</h2>
+    ${stagePartHtml(2, "🛍️", "Presenting the product")}
+    <p>Techniques for effective product presentation:</p>
+    ${iconCardsHtml([
+      { icon: "📱", html: "Hold the product carefully and with pride." },
+      { icon: "⭐", html: "Tell customers about the unique features and benefits of the product." },
+      { icon: "👆", html: "Demonstrate how to use the product and, if possible, let the customers hold or use it." },
+      { icon: "👂", html: "Listen to customers' queries and provide detailed answers." },
+      { icon: "💬", html: escapeHtml("Use positive words such as \"comfortable\", \"interesting\" or \"attractive\" to describe the features of the product.") },
+      { icon: "🔁", html: "If necessary, repeat the product's features and benefits several times, especially if they match the needs that the customers have expressed." }
+    ], "chips")}
+    <p>Don't just list every good feature. Point out the features that match what this customer needs. For example, a customer who takes lots of photos should hear information about the phone's camera, not how good the phone looks.</p>
+    ${zoomImgHtml("SUITABILITY", "notes-img suitability-img")}`) },
+  { label: "Stage 2: Handling questions and objections", ...notesPart(() => `
+    ${stageLabelHtml(2)}
+    <h2 class="section-title">${hIcon("📱")}Presenting product information</h2>
+    ${stagePartHtml(3, "🙋", "Handling customers' questions and objections")}
+    <p>When customers ask questions or raise objections, it is often a sign that they are interested in the product. Use this chance to persuade them to buy.</p>
+    ${objectionCardsHtml()}`) },
   { label: "Stage 3: Closing the customer experience positively", ...notesPart(() => `
     ${stageLabelHtml(3)}
+    <h2 class="section-title">${hIcon("✅")}Closing the customer experience positively</h2>
+    <p>The final goal of every salesperson is to complete a sale and close the customer experience positively.</p>
+    <p>Signs that the customer had a positive experience:</p>
+    ${iconCardsHtml([
+      { icon: "🗣️", html: escapeHtml("Makes remarks such as \"This is exactly the item I am looking for.\"") },
+      { icon: "😊", html: "Looks happy with the product and is not looking at other products." },
+      { icon: "🛍️", html: "Asks for other products that can complement the recently purchased product." }
+    ], "chips")}
+    <p class="closing-lead">Show appreciation to customers when closing, even if they do not buy:</p>
+    <ul class="closing-lines">
+      <li class="closing-line"><p class="closing-when"><span aria-hidden="true">🧾</span> After a sale:</p>${sayHtml("\"Thank you, I'm sure the product will meet your needs. It has been a pleasure serving you.\"")}</li>
+      <li class="closing-line"><p class="closing-when"><span aria-hidden="true">👋</span> If the customer does not buy:</p>${sayHtml("\"Certainly, thank you for your interest. Do come back if you decide to buy it another day.\"")}</li>
+    </ul>`) },
+  { label: "Stage 3: After-sales support", ...notesPart(() => `
+    ${stageLabelHtml(3)}
     <h2 class="section-title">${hIcon("🛡️")}After-sales support</h2>
+    ${definitionHtml(`<p><strong>After-sales service</strong> refers to the help given to customers after they have bought a product.</p>`, "📖")}
     <p>Closing the customer experience positively includes giving good after-sales support, so customers choose your business over competitors.</p>
     ${iconCardsHtml([
       { icon: "🛡️", html: namedCardHtml("Warranty", "Explain what the warranty covers and remind customers to keep their receipt.") },
       { icon: "🛠️", html: namedCardHtml("Repairs", "Explain how to arrange a repair and what happens next.") },
-      { icon: "💬", html: namedCardHtml("Multi-channel support", "Offer help in-store, by phone or through online chat.") },
+      { icon: "💬", html: namedCardHtml("Hotline and online chat", "Answer customers' enquiries and complaints in-store, by phone or through online chat.") },
       { icon: "🔄", html: namedCardHtml("Exchanges and refunds", "Explain the store's rules for exchanges and refunds.") }
-    ], "cols-2 grid-4")}`) },
+    ], "cols-2 grid-4")}
+    <p class="enquiry-lead">When handling customers' enquiries, salespeople should:</p>
+    ${iconCardsHtml([
+      { icon: "👂", html: "Listen to the customers carefully." },
+      { icon: "❓", html: "Clarify with them by asking questions to get a better understanding." },
+      { icon: "✅", html: "Provide them with relevant and accurate information." }
+    ], "chips")}`) },
   { label: "Stage 4: Service breakdown and service recovery", ...notesPart(() => `
     ${stageLabelHtml(4)}
     <h2 class="section-title">${hIcon("⚠️")}Service breakdown and service recovery</h2>
     ${definitionHtml(`<p><strong>Service breakdown:</strong> A service breakdown occurs when customers make a complaint about a product or service.</p><p class="def-more">Common causes: Unfriendly or unhelpful staff, a product that does not meet expectations, or an advertised product that is not available in the store.</p>`, "TERM_BREAKDOWN")}
     ${definitionHtml(`<p><strong>Service recovery:</strong> Service recovery is a process whereby a business takes action in response to service breakdown or failure.</p>`, "TERM_RECOVERY")}
     ${zoomImgHtml("C04", "comic-img")}
-    <p class="after-path">Handled well, a service breakdown can improve customer loyalty. If it is handled badly, you can lose the customer to your competitors.</p>
-    <p class="second-chance">A complaint is a second chance. If you fix it well, the customer may become more loyal. If you ignore it, they may go to a competitor and tell their friends.</p>`) },
+    <p>A customer's complaint provides an opportunity for a business to build customer loyalty. This is because if the complaint is handled well, the customer's bad experience can be turned into a good one.</p>
+    <p>A business will lose its customers to competitors if it does not try to win a customer back.</p>`) },
   { label: "The 8 service recovery steps", ...notesPart((ctx) => {
       // First time on the path: Step 1 only. Coming back later (or a teacher grant): all 8 at once.
       if (!pathShownNow) pathShownNow = hasLevelGrant(2) || isDone(2) || pathShown() >= 1 ? 8 : 1;
@@ -2120,7 +2221,7 @@ const L2_CARDS = [
     <h2 class="section-title">${hIcon("↩️")}Handling returns of unsatisfactory products</h2>
     <p>If a customer returns a product they are unhappy with, the business can offer:</p>
     ${iconCardsHtml([
-      { icon: "🔁", html: namedCardHtml("Replacement", "Replace it with the same product.") },
+      { icon: "🔁", html: namedCardHtml("Replacement", "Replace it with a similar product.") },
       { icon: "🔄", html: namedCardHtml("Exchange", "Offer to exchange it with a different product.") },
       { icon: "💵", html: namedCardHtml("Refund", "Give a refund.") }
     ], "cols-3")}

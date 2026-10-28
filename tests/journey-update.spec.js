@@ -1,15 +1,15 @@
 const {test,expect}=require('@playwright/test');
 const {resetServer,login,expectNoSidewaysScroll,expectNoAmpersand,CODE}=require('./helpers');
 async function start(page,request){await resetServer(request,['NEW']);await login(page,'NEW',1);await page.locator('#briefing button').click();await page.evaluate(()=>{localStorage.setItem('ch6_unlock_all','true');saveLocal();});}
-test('Level 2 has 15 cards with back/next progress, automatic saving and required reflections',async({page,request},info)=>{
- await start(page,request);await page.goto('/#level2');await expect(page.locator('#lessonProgressText')).toHaveText('1 of 15 · 4 key terms');await expect(page.locator('#lessonCard')).toHaveCount(1);await expect(page.locator('#lessonBack')).toBeDisabled();
+test('Level 2 has 18 cards with back/next progress, automatic saving and required reflections',async({page,request},info)=>{
+ await start(page,request);await page.goto('/#level2');await expect(page.locator('#lessonProgressText')).toHaveText('1 of 18 · 4 key terms');await expect(page.locator('#lessonCard')).toHaveCount(1);await expect(page.locator('#lessonBack')).toBeDisabled();
  await expect(page.locator('#lessonCard .term-definition')).toHaveCount(4);await expect(page.locator('#lessonCard .exam-label')).toHaveCount(0);await expect(page.locator('#lessonCard .term-name')).toHaveText(['Customer service','Quality customer service','Service breakdown','Service recovery']);
- const labels=['4 key terms','What is customer service?','Why quality customer service matters','Skills and qualities','Good product knowledge','The four stages','Stage 1: Approaching customers','Watch: A better welcome at Nexora','Quick check','Stage 2: Presenting product information','Stage 3: Closing the customer experience positively','Stage 4: Service breakdown and service recovery','The 8 service recovery steps','Real-life example: Poor service recovery','Handling returns'];
+ const labels=['4 key terms','What is customer service?','Why quality customer service matters','Skills and qualities','Good product knowledge','The four stages','Stage 1: Approaching customers','Watch: A better welcome at Nexora','Quick check',"Stage 2: Finding out customers' needs and wants",'Stage 2: Presenting the product','Stage 2: Handling questions and objections','Stage 3: Closing the customer experience positively','Stage 3: After-sales support','Stage 4: Service breakdown and service recovery','The 8 service recovery steps','Real-life example: Poor service recovery','Handling returns'];
  expect(await page.evaluate(()=>L2_CARDS.map(c=>c.label))).toEqual(labels);
- await page.locator('#lessonNext').click();await expect(page.locator('#lessonProgressText')).toContainText('2 of 15');await page.locator('#lessonNext').click();await expect(page.locator('#reflectionRequired')).toHaveCount(0);await expect(page.locator('#lessonProgressText')).toContainText('3 of 15');
+ await page.locator('#lessonNext').click();await expect(page.locator('#lessonProgressText')).toContainText('2 of 18');await page.locator('#lessonNext').click();await expect(page.locator('#reflectionRequired')).toHaveCount(0);await expect(page.locator('#lessonProgressText')).toContainText('3 of 18');
  await page.evaluate(()=>{setUi('s2.card',7);renderLevel(2);});await page.locator('#lessonNext').click();await expect(page.locator('#reflectionRequired')).toBeVisible();await page.keyboard.press('Escape');
- await page.locator('[data-answer="s2.video"]').fill('Alex greeted June and helped her choose a phone.');await page.locator('#lessonNext').click();await expect(page.locator('#lessonProgressText')).toContainText('9 of 15');await page.locator('#lessonBack').click();await expect(page.locator('[data-answer="s2.video"]')).toHaveValue('Alex greeted June and helped her choose a phone.');
- await page.reload();await expect(page.locator('#lessonProgressText')).toContainText('8 of 15');
+ await page.locator('[data-answer="s2.video"]').fill('Alex greeted June and helped her choose a phone.');await page.locator('#lessonNext').click();await expect(page.locator('#lessonProgressText')).toContainText('9 of 18');await page.locator('#lessonBack').click();await expect(page.locator('[data-answer="s2.video"]')).toHaveValue('Alex greeted June and helped her choose a phone.');
+ await page.reload();await expect(page.locator('#lessonProgressText')).toContainText('8 of 18');
  // The four stages, the four-panel comic and its own Remember this line.
  await page.evaluate(()=>{setUi('s2.card',5);renderLevel(2);});await expect(page.locator('.stage-row')).toHaveCount(4);
  await expect(page.locator('.stage-row th')).toHaveText(['1. Approaching customers','2. Presenting product information','3. Closing the customer experience positively','4. Performing service recovery']);
@@ -18,18 +18,19 @@ test('Level 2 has 15 cards with back/next progress, automatic saving and require
  await expect(page.locator('.recap-card p')).toHaveText('The four stages are approaching customers, presenting product information, closing the customer experience positively and performing service recovery.');
  await expect(page.locator('#lessonCard')).not.toContainText('support services');
  await expectNoSidewaysScroll(page);await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`tests/screenshots/new-four-stages-${info.project.name}.png`,fullPage:true});
- // Stage 3: after-sales support, four cards.
- await page.evaluate(()=>{setUi('s2.card',10);renderLevel(2);});await expect(page.locator('#lessonCard h2')).toHaveText('After-sales support');await expect(page.locator('#lessonCard .icon-card')).toHaveCount(4);
- await expect(page.locator('#lessonCard .icon-card').nth(3)).toHaveText(/Exchanges and refunds\s*Explain the store's rules for exchanges and refunds\./);
- // Stage 4: definitions, C04, then the two loyalty lines.
- await page.evaluate(()=>{setUi('s2.card',11);renderLevel(2);});await expect(page.locator('#lessonCard [data-img="C04"]')).toHaveCount(1);await expect(page.locator('#lessonCard .second-chance')).toHaveText('A complaint is a second chance. If you fix it well, the customer may become more loyal. If you ignore it, they may go to a competitor and tell their friends.');
+ // Stage 3: after-sales support, four cards, then the three enquiry chips.
+ await page.evaluate(()=>{setUi('s2.card',13);renderLevel(2);});await expect(page.locator('#lessonCard h2')).toHaveText('After-sales support');await expect(page.locator('#lessonCard .grid-4 .icon-card')).toHaveCount(4);
+ await expect(page.locator('#lessonCard .grid-4 .icon-card').nth(3)).toHaveText(/Exchanges and refunds\s*Explain the store's rules for exchanges and refunds\./);
+ // Stage 4: definitions, C04, then the two textbook lines (pp. 140 and 141).
+ await page.evaluate(()=>{setUi('s2.card',14);renderLevel(2);});await expect(page.locator('#lessonCard [data-img="C04"]')).toHaveCount(1);await expect(page.locator('#lessonCard .second-chance')).toHaveCount(0);
+ await expect(page.locator('#lessonCard > p, #lessonCard .part > p').filter({hasText:/complaint|win a customer back/})).toHaveText(["A customer's complaint provides an opportunity for a business to build customer loyalty. This is because if the complaint is handled well, the customer's bad experience can be turned into a good one.","A business will lose its customers to competitors if it does not try to win a customer back."]);
  // Card 14: the 8 steps in textbook wording, 1 to 4 on the left and 5 to 8 on the right on wide screens.
- await page.evaluate(()=>{setUi('s2.card',13);renderLevel(2);});await expect(page.locator('.step-strip li')).toHaveText(["1Listen carefully to the complaint. Give customers full attention.","2Be patient. Do not interrupt customers when they are describing their unhappiness.","3Apologise to the customers for the inconvenience caused.","4Acknowledge their feelings and assure them of help to solve the problem.","5Ask questions if more information is needed.","6Offer solutions.","7Refer customers to more senior staff if unable to provide them with an acceptable solution.","8Thank customers for bringing the problem to our attention."]);
+ await page.evaluate(()=>{setUi('s2.card',16);renderLevel(2);});await expect(page.locator('.step-strip li')).toHaveText(["1Listen carefully to the complaint. Give customers full attention.","2Be patient. Do not interrupt customers when they are describing their unhappiness.","3Apologise to the customers for the inconvenience caused.","4Acknowledge their feelings and assure them of help to solve the problem.","5Ask questions if more information is needed.","6Offer solutions.","7Refer customers to more senior staff if unable to provide them with an acceptable solution.","8Thank customers for bringing the problem to our attention."]);
  const cols=await page.locator('.step-strip li').evaluateAll(li=>li.map(x=>Math.round(x.getBoundingClientRect().left)));
  if(info.project.name==='laptop'){expect(new Set(cols.slice(0,4)).size).toBe(1);expect(new Set(cols.slice(4)).size).toBe(1);expect(cols[4]).toBeGreaterThan(cols[0]);}else{expect(new Set(cols).size).toBe(1);}
  await expectNoSidewaysScroll(page);
  await expect(page.locator('[data-reflection="s2.think1"] label')).toHaveText('Was this good service recovery? Which of the 8 service recovery steps were missing?');
- await page.evaluate(()=>{setUi('s2.card',14);renderLevel(2);});await expect(page.locator('.recap-card p')).toHaveText("If a customer is unhappy with a product, you can offer a replacement, an exchange or a refund. Always check the store's return rules first.");
+ await page.evaluate(()=>{setUi('s2.card',17);renderLevel(2);});await expect(page.locator('.recap-card p')).toHaveText("If a customer is unhappy with a product, you can offer a replacement, an exchange or a refund. Always check the store's return rules first.");
  await expectNoAmpersand(page);
 });
 test('quick check: nothing pre-selected, instant feedback, one more try, then the answer; required before Next; not scored',async({page,request},info)=>{
@@ -47,7 +48,7 @@ test('quick check: nothing pre-selected, instant feedback, one more try, then th
  await expect(item('c').locator('.right-tag')).toBeVisible();
  await page.reload();await expect(item('b').locator('.feedback.right')).toBeVisible();await expect(item('c').locator('.feedback.wrong')).toContainText('The answer is Product');
  await expectNoSidewaysScroll(page);await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`tests/screenshots/quick-check-${info.project.name}.png`,fullPage:true});
- await page.locator('#lessonNext').click();await expect(page.locator('#lessonProgressText')).toContainText('10 of 15');
+ await page.locator('#lessonNext').click();await expect(page.locator('#lessonProgressText')).toContainText('10 of 18');
  expect(await page.evaluate(()=>ALL_MARKED().some(it=>/qc/.test(it.attemptKey)) || Object.keys(rec.first).some(k=>/qc/.test(k)))).toBe(false);
 });
 test('chat completion accepts any pasted text containing gemini, with no server check',async({page,request})=>{
@@ -94,9 +95,13 @@ test('every lesson card has a heading, no overflow or emoji text, and correct st
 });
 
 test('Home opens the route progress directly below the sticky header',async({page,request})=>{await start(page,request);await page.goto('/#level2');await page.locator('#homeBtn').click();await expect(page).toHaveURL(/#home$/);await expect(page.locator('#routeProgress')).toBeFocused();await expect.poll(()=>page.locator('#routeProgress').evaluate(el=>Math.abs(el.getBoundingClientRect().top-document.querySelector('.topbar').getBoundingClientRect().bottom))).toBeLessThan(25);});
-test('old card positions (21-card and 10-card layouts) move to the matching card without losing answers',async({page,request})=>{await start(page,request);await page.evaluate(()=>{setUi('s2.card',17);setAnswer('s2.video','Alex welcomed June and offered to help.');});await page.goto('/#level2');await expect(page.locator('#lessonProgressText')).toContainText('13 of 15');expect(await page.evaluate(()=>getAnswer('s2.video'))).toBe('Alex welcomed June and offered to help.');await page.reload();await expect(page.locator('#lessonProgressText')).toContainText('13 of 15');
- await page.evaluate(()=>{setUi('s2.cardLayout','compact10');setUi('s2.card',4);renderLevel(2);});await expect(page.locator('#lessonProgressText')).toContainText('7 of 15 · Stage 1');
- await page.evaluate(()=>{setUi('s2.cardLayout','compact10');setUi('s2.card',9);renderLevel(2);});await expect(page.locator('#lessonProgressText')).toContainText('15 of 15');});
+test('old card positions (21-card, 10-card and 15-card layouts) move to the matching card without losing answers',async({page,request})=>{await start(page,request);await page.evaluate(()=>{setUi('s2.card',17);setAnswer('s2.video','Alex welcomed June and offered to help.');});await page.goto('/#level2');await expect(page.locator('#lessonProgressText')).toContainText('16 of 18');expect(await page.evaluate(()=>getAnswer('s2.video'))).toBe('Alex welcomed June and offered to help.');await page.reload();await expect(page.locator('#lessonProgressText')).toContainText('16 of 18');
+ await page.evaluate(()=>{setUi('s2.cardLayout','compact10');setUi('s2.card',4);renderLevel(2);});await expect(page.locator('#lessonProgressText')).toContainText('7 of 18 · Stage 1');
+ // 15-card layout: Stage 2 stays on Stage 2 part 1, Stage 3 moves to the closing card, returns stays last.
+ await page.evaluate(()=>{setUi('s2.cardLayout','cards15');setUi('s2.card',9);renderLevel(2);});await expect(page.locator('#lessonProgressText')).toContainText("10 of 18 · Stage 2: Finding out customers' needs and wants");
+ await page.evaluate(()=>{setUi('s2.cardLayout','cards15');setUi('s2.card',10);renderLevel(2);});await expect(page.locator('#lessonProgressText')).toContainText('13 of 18 · Stage 3: Closing the customer experience positively');
+ await page.evaluate(()=>{setUi('s2.cardLayout','cards15');setUi('s2.card',13);renderLevel(2);});await expect(page.locator('#lessonProgressText')).toContainText('17 of 18 · Real-life example');
+ await page.evaluate(()=>{setUi('s2.cardLayout','compact10');setUi('s2.card',9);renderLevel(2);});await expect(page.locator('#lessonProgressText')).toContainText('18 of 18');});
 test('report shows "Nothing to look at again" only once Level 3 Q2 and Level 5 Q1 and Q2 have all been tried',async({page,request})=>{
  await start(page,request);
  await page.goto('/#report');await expect(page.locator('.look-none')).toHaveText('Finish Levels 3 and 5 to see what to look at again.');

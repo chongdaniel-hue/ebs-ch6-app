@@ -14,7 +14,7 @@ async function openKnowledge(page,request){
 // Card 5: the five aspects (textbook wording), each with its comic. The staff member's line is
 // in the comic's speech bubble and its alt text; no separate line shows under the picture.
 const LINES={
-  features:["Product features and specifications (e.g. screen size, battery life)","The Nexora Spark has a large screen for reading and an all-day battery."],
+  features:["Product features and benefits (e.g. a large screen that makes reading easier)","The Nexora Spark has a large screen for reading and an all-day battery."],
   price:["Price and available options","The Nexora Core is $799. You can upgrade to 256GB for $80 more, or 512GB for $160 more."],
   care:["How to use or care for the product","You may use a protective case and wipe the screen with a soft, dry cloth to maintain its condition."],
   warranty:["Warranty and after-sales support","Every Nexora phone has a 1-year warranty for manufacturing defects. Keep your receipt, and bring the phone to our Nexora Care Bar if anything goes wrong."],
@@ -24,6 +24,7 @@ const LINES={
 test("good product knowledge shows each aspect with its comic, the line in the bubble and the alt text",async({page,request},testInfo)=>{
   const errors=watchErrors(page);
   await openKnowledge(page,request);
+  await expect(page.locator("#lessonCard .definition")).toHaveText("Product knowledge refers to knowledge a service staff has of a product's features and benefits.");
   await expect(page.locator("#lessonCard")).toContainText("Staff need good product knowledge to answer questions accurately, not guess. This includes:");
   await expect(page.locator(".pk-why")).toHaveText("Customers trust staff who know their products, so they buy with confidence and come back again.");
   await expect(page.locator("#lessonCard")).not.toContainText("The staff member says");

@@ -9,6 +9,8 @@ function watchErrors(page) {
     // A picture not yet added to assets/img/ is expected to 404: the app shows its placeholder box.
     const url = (m.location() && m.location().url) || "";
     if (/404/.test(m.text()) && /\/assets\/img\//.test(url)) return;
+    // Messages YouTube's own embedded player logs now and then (not the app's code).
+    if (/^https:\/\/www\.youtube-nocookie\.com\//.test(url)) return;
     errors.push(`${m.text()} ${url}`);
   });
   page.on("pageerror", e => errors.push(String(e)));
