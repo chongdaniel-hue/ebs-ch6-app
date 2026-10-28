@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.11.5";
+const APP_VERSION = "0.11.6";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -2026,7 +2026,7 @@ function quickCheckItemHtml(it, readOnly) {
   else if (state === "retry") feedback = `<p class="feedback wrong" role="status">✗ ${escapeHtml(it.hint)}</p>`;
   else if (state === "revealed") feedback = `<p class="feedback wrong" role="status">✗ The answer is ${escapeHtml(it.correct)}: ${escapeHtml(it.reason)}</p>`;
   const line = it.lines
-    ? `<div class="qc-lines">${it.lines.map(([who, l]) => `<p class="say technique-say"><span class="say-who">${who}:</span> ${escapeHtml(l)}</p>`).join("")}</div>`
+    ? `<div class="qc-lines">${it.lines.map(([who, l]) => `<p class="say technique-say ${who === "Customer" ? "customer-say" : "staff-say"}"><span class="say-who">${who}:</span> ${escapeHtml(l)}</p>`).join("")}</div>`
     : sayHtml(it.quote);
   return `<li class="match-item qc-item" data-key="${qcKey(it)}">
     <div class="match-line"><span class="match-letter">${it.id})</span> ${line}</div>
@@ -2108,7 +2108,7 @@ function objectionCardsHtml() {
       <h4 class="technique-title"><span class="technique-num" aria-hidden="true">${i + 1}</span><span>${escapeHtml(t.title)}</span></h4>
       <p>${boldHtml(t.text, t.bold)}</p>
       <div class="technique-example"><p class="technique-example-label"><strong>Example:</strong></p>
-        ${t.example.map(([who, line]) => `<p class="say technique-say"><span class="say-who">${who}:</span> ${escapeHtml(line)}</p>`).join("")}
+        ${t.example.map(([who, line]) => `<p class="say technique-say ${who === "Customer" ? "customer-say" : "staff-say"}"><span class="say-who">${who}:</span> ${escapeHtml(line)}</p>`).join("")}
       </div>
     </li>`).join("")}</ol>`;
 }

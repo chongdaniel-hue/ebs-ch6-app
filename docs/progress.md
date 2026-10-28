@@ -692,3 +692,5 @@ Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap
 - Release 0.11.4: added matching orange, green and purple banners for Stages 2, 3 and 4; updated the approach quick-check instruction to “Select the most appropriate approach for each question.” Includes the pending product knowledge box and student-style teacher preview layout.
 
 - Preview: removed the redundant uncertainty speech bubble from panel 1 of the objections comic; retained that dialogue in panel 3 and updated image alt text.
+
+- Preview: objection quick-check questions a–d use light purple customer boxes and pale blue staff boxes, retaining explicit speaker labels and all wording.
