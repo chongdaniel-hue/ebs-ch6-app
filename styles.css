@@ -1139,14 +1139,16 @@ h2,h3{color:var(--brand-dark);line-height:1.3;}
 
 .check-row{margin-top:14px;}
 .page .feedback{max-width:none;}
+/* Self-check prompt (0.12.0): neutral, so it never looks like right or wrong feedback
+   (no ✓ or ✗, no coloured left border, no red or pink). */
 .check-note{
   display:flex;gap:10px;align-items:flex-start;
   margin:14px 0 0;
   padding:12px 14px;
-  border:1px solid var(--border);
-  border-left:4px solid var(--brand);
-  border-radius:0 10px 10px 0;
-  background:#FCFAFB;
+  border:1px solid #D6D9DE;
+  border-radius:10px;
+  background:#F8F9FB;
+  color:var(--ink, #1F2937);
 }
 .page p.check-note{max-width:none;}
 .check-icon{font-size:1.2rem;line-height:1.3;}
@@ -1700,3 +1702,14 @@ strong.keyword-emphasis{color:#A84B08;}
 
 /* Separate consecutive definition boxes in lesson notes. */
 .definition + .definition{margin-top:16px;}
+
+/* ---------- 0.12.0: How to get your chat link (Levels 4, 5 and 6) ---------- */
+.share-steps{margin:10px 0 14px;}
+.page p.share-steps-title{margin:0 0 10px;font-weight:600;color:var(--ink, #1F2937);max-width:none;}
+.share-steps-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;}
+.share-step{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;}
+.share-step-num{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:0.95rem;}
+.share-step-icon{flex:0 0 auto;display:inline-flex;width:28px;height:28px;font-size:1.4rem;line-height:1;}
+.share-step-icon .ui-graphic{width:28px;height:28px;}
+.share-step-text{flex:1 1 auto;}
+.page .share-steps-list,.page .share-steps-list > li{max-width:none;}

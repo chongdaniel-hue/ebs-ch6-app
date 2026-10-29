@@ -36,7 +36,7 @@ test('the notes: Level 2 has 13 cards and Level 3 has 7, with back/next progress
 });
 test('quick check: nothing pre-selected, instant feedback, one more try, then the answer; required before Next; not scored',async({page,request},info)=>{
  await start(page,request);await page.evaluate(()=>{setUi('s2.cardLayout','cards15');setUi('s2.card',8);saveLocal();});await page.goto('/#level2');
- await expect(page.locator('#lessonCard h2')).toHaveText('Quick check: Which approach is this?');await expect(page.locator('#lessonCard')).toContainText('Tap one for each.');
+ await expect(page.locator('#lessonCard h2')).toHaveText('Quick check: Which approach is this?');await expect(page.locator('#lessonCard')).toContainText('Select the most appropriate approach for each question.');
  await expect(page.locator('#lessonCard .listen-btn')).toHaveCount(0);
  await expect(page.locator('.qc-btn')).toHaveCount(9);await expect(page.locator('.qc-btn.picked')).toHaveCount(0);await expect(page.locator('.qc-btn[aria-pressed="true"]')).toHaveCount(0);
  await page.locator('#lessonNext').click();await expect(page.locator('#notFinished')).toContainText('a)');await page.keyboard.press('Escape');
@@ -77,7 +77,7 @@ test('Level 7 permits edits before retry, guards empty text and keeps first trie
  const first=await page.evaluate(()=>JSON.stringify(rec.first));await page.evaluate(()=>{L5_MARKED.forEach(it=>setAnswer(it.answerKey,it.correct));renderLevel(5);});await page.locator('#checkAgainBtn').click();expect(await page.evaluate(()=>JSON.stringify(rec.first))).toBe(first);await expect(page.locator('.all-good,.missed-card')).toBeVisible();
 });
 test('recovery faces change red to green, confidence faces differ, champion confetti respects reduced motion',async({page,request},info)=>{
- await start(page,request);await page.evaluate(()=>{teacher={};renderTeacherLesson(7);});const fills=await page.locator('.path-face .mood-graphic>circle').evaluateAll(xs=>xs.map(x=>x.getAttribute('fill')));expect(fills).toHaveLength(8);expect(new Set(fills).size).toBe(8);expect(fills[0]).toBe('#ef4444');expect(fills[7]).toBe('#22c55e');
+ await start(page,request);await page.evaluate(()=>{teacher={};teacherPreviewPositions[7]={tab:3,part:1};renderTeacherLesson(7);});const fills=await page.locator('.path-face .mood-graphic>circle').evaluateAll(xs=>xs.map(x=>x.getAttribute('fill')));expect(fills).toHaveLength(8);expect(new Set(fills).size).toBe(8);expect(fills[0]).toBe('#ef4444');expect(fills[7]).toBe('#22c55e');
  await page.goto('/#level7');await page.evaluate(()=>{setUi('s5.tab',1);renderLevel(5);});const shapes=await page.locator('.face-options').first().locator('.mood-graphic').evaluateAll(xs=>xs.map(x=>x.outerHTML));expect(new Set(shapes).size).toBe(4);await expectNoSidewaysScroll(page);await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`tests/screenshots/new-confidence-${info.project.name}.png`,fullPage:true});
  await page.evaluate(()=>showChampionPopup());await expect(page.locator('.confetti-burst i')).toHaveCount(48);await page.keyboard.press('Escape');await page.evaluate(()=>document.querySelector('.confetti-burst')?.remove());await page.emulateMedia({reducedMotion:'reduce'});await page.evaluate(()=>showChampionPopup());await expect(page.locator('.confetti-burst')).toHaveCount(0);
 });

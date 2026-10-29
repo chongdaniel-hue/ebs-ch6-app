@@ -714,3 +714,36 @@ Dan ran the new `Code.gs` with students still on the 0.10.0 page and found a gap
 - Release 0.11.8 publishes matching illustrated route/header icons, consistent Levels 2/3 headers, Teacher Home navigation and Level 6 roleplay wording updates.
 
 - Release 0.11.9: restored the original fresh-chat greeting instruction and example to Level 5 only, removed it from Level 6, and darkened the shared keyword orange to #A84B08 to improve contrast on purple cards while retaining consistent keyword colour.
+
+## Five fixes from three student simulations (29 October 2026, version 0.12.0)
+Dan's storyboard 0.12.0 matches the live 0.11.9 site and marks every new line "🆕 0.12.0" (section H lists the five fixes). Nothing stored changed: no answer, attempt or level keys, and `Code.gs` is unchanged (it holds none of these lines), so no Apps Script redeploy is needed.
+
+### 1. How to get your chat link (Levels 4, 5 and 6)
+- "Use Share in Gemini and copy the conversation link then paste it below." is replaced by "How to get your chat link:" and three numbered steps (📤 Share, 🔗 Create public link then Copy link, 📋 paste below). One shared component (`shareLinkStepsHtml`), identical in all three levels: a numbered wine circle, a line icon and the text, each row at least 44px tall.
+- Two line icons added to `assets/icons/ui.svg` (`share`, `link`) and mapped from 📤 and 🔗 in `config.js`, so the steps use line icons like the rest of the app.
+- Unchanged: the link box, the tick box, the "gemini" rule and its messages.
+
+### 2. One rule for typed answers
+Every box where students write a sentence needs at least 20 characters, shown as "at least one full sentence" (`MIN_RESPONSE_CHARS`, `FULL_SENTENCE`). The list Dan approved:
+- Already 20: Level 1 Q1 to Q3, the Level 2 video reflection, the Level 3 Think about it boxes.
+- New: Level 4 Q1 reason (`s3.q1b`), Level 5 Q2 and Q3 (`s4.q1`, `s4.q2`), Level 6 Q2 and Q3 (`s6.q1`, `s6.q2`), Level 7 Q3 (`s5.q5`, at Check answer and Check again), Q4 and Q5 (`s5.q6`, `s5.q7`).
+- Exempt: Level 4 "Skill or quality" (`s3.q1a`, must not be empty) and the three chat-link boxes.
+- Wording: the Level 1 instruction ("Type at least one full sentence in each box, then tap Submit."), the reflection hint ("Write at least one full sentence..."), "Answer too short" and "Complete all questions" ("… Write at least one full sentence in each box."), and the Level 1 items ("✗ Q{n}: Write at least one full sentence").
+- Agreed with Dan: work submitted before 0.12.0 is not checked again; the rule applies the next time a student submits. So "Next: Exit ticket" still only checks that Q3 is not empty.
+
+### 3. Self-check prompts
+- Level 4 Q1 and Level 7 Q3 now start "Self-check:" (were "Check your reason:" and "Check your answer:"), the rest word for word.
+- New neutral style for `.check-note`: very light grey background (#F8F9FB), thin grey border all round (#D6D9DE), rounded corners, the 🔎 icon, no ✓ or ✗, no coloured left border, no red or pink.
+
+### 4. Look at these again
+- R: "Closing the customer experience positively (Level 3, Stage 3: Closing the customer experience positively)".
+- After Dan's check of the other lines: Q "Presenting product information (Level 2, Stage 2: Presenting product information)" and S "Approaching customers (Level 2, Stage 1: Approaching customers)". The other six lines already pointed to where their topic is taught. Shown in the summary card and the learning report.
+
+### 5. Not finished yet pop-ups
+- Every pop-up lists everything missing at once, labelled as on screen. Level 1 and the Level 5 and 6 Reflect tabs now label their questions "Q1.", "Q2." and "Q3." (were "1.", "2." and "3."); "Box 2" and similar are gone.
+- Level 4 lists "Q1: Skill or quality" and "Q1: This is important to customers because"; Levels 5 and 6 list "Q1: Choose the stages (steps) you used", "Q2" and "Q3" together (before, Q1 was shown on its own first).
+- The learning report and Teacher Mode's full report use the same Q labels.
+
+### Checks (local server only)
+- New `tests/v012-fixes.spec.js`, run at 1366x768 (Chromebook), 810x1080 (iPad), 1280px and 360px (two new Playwright projects, `chromebook` and `ipad`, run this file only): share-link steps identical in Levels 4 to 6 with the link rule unchanged; every sentence box rejects a short answer and the exempt boxes accept one; both self-check prompts beside right and wrong feedback; the line R pointer in the summary card and the report; empty submits in Levels 1, 4, 5, 6 and 7 and the exit ticket; answers saved before 0.12.0 (short ones included) still show and submitted levels stay submitted; reload restores.
+- Older tests brought up to date with the group's 0.11.1 to 0.11.9 changes (stage banners instead of stage labels, the approach quick-check instruction, the product-knowledge benefits definition box, "Open chat with angry Suzzie", the one-card teacher preview, the new image ids) and with the 0.12.0 wording.

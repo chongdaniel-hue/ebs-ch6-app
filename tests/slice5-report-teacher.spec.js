@@ -31,7 +31,7 @@ function finishedRecord(reg, { wrong = [], q7 = "", faces = [2, 3, 1, 0] } = {})
     "s1.q1": a(`Good story ${reg}`), "s1.q2": a(`Bad story ${reg}`), "s1.q3": a("Staff who care"),
     "s2.think1": a("No, no solution was offered."), "s3.q1a": a("Knowledgeable"), "s3.q1b": a("Accurate answers"),
     "s4.q1": a("I greeted her"), "s4.q2": a("Ask more questions"), "s5.q5": a("customers return"),
-    "s5.q6": a("8 steps"), "s5.q7": a(q7)
+    "s5.q6": a("Service recovery has 8 steps."), "s5.q7": a(q7)
   };
   faces.forEach((f, i) => { answers[`s5.q8.${i + 1}`] = a(f); });
   return {
@@ -65,7 +65,7 @@ test.describe("6.1 My learning report", () => {
     await expect(page.locator(".report-scores .ic-body")).toHaveText(["Level 4, Q2: First try 3 / 4.", "Level 7, Q1 and Q2: First try 2 / 5."]);
     await expect(page.locator("#lookTitle")).toHaveText("Look at these again");
     await expect(page.locator(".look-list li")).toHaveText([
-      "Closing the customer experience positively (Level 2, The four stages)",
+      "Closing the customer experience positively (Level 3, Stage 3: Closing the customer experience positively)",
       "What customer service is (Level 2, What is customer service?)",
       "The 8 steps of service recovery (Level 3, The 8 service recovery steps)"
     ]);
@@ -86,7 +86,7 @@ test.describe("6.1 My learning report", () => {
 
   test("all right first time; opened from the Level 7 pop-up", async ({ page, request }, testInfo) => {
     await resetServer(request, ["3E1"]);
-    const r = finishedRecord(6, { q7: "What is a refund?" });
+    const r = finishedRecord(6, { q7: "What is a refund in a shop?" });
     delete r.done["5"];
     await apiPost(request, { action: "save", record: r });
     await login(page, "3E1", 6);
@@ -167,7 +167,7 @@ test.describe("T.3 Results", () => {
     // A student's full report.
     await rows.nth(1).click();
     await expect(page.locator("#stuTitle")).toHaveText("Test Student 2 · Class 3E1, Register No. 2");
-    await expect(page.locator(".qa").first()).toHaveText("1. Think of a time you got GOOD customer service (e.g. at a bubble tea shop, a hawker stall, or when ordering on GrabFood). What did the staff do?Good story 2");
+    await expect(page.locator(".qa").first()).toHaveText("Q1. Think of a time you got GOOD customer service (e.g. at a bubble tea shop, a hawker stall, or when ordering on GrabFood). What did the staff do?Good story 2");
     const q2Row = page.locator(".student-report table").first().locator("tbody tr").nth(2);
     await expect(q2Row.locator("td")).toHaveText(["Performing service recovery (wrong)", "Closing the customer experience positively (right)"]);
     await expect(page.locator(".qa", { hasText: "Was this good service recovery" }).locator(".qa-a")).toHaveText("No, no solution was offered.");

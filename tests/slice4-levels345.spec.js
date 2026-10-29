@@ -95,7 +95,7 @@ test.describe("Level 3: Chat with Alex", () => {
 
     // Required: Not finished yet, with only Go back.
     await page.click("#submitL3");
-    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Q1 (skill or quality)", "✗ Q1 (why it is important)", "✗ Q2 P", "✗ Q2 Q", "✗ Q2 R", "✗ Q2 S"]);
+    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Q1: Skill or quality", "✗ Q1: This is important to customers because", "✗ Q2 P", "✗ Q2 Q", "✗ Q2 R", "✗ Q2 S"]);
     await expect(page.locator("#notFinished button")).toHaveText(["Go back"]);
     await page.locator("#notFinished button").click();
 
@@ -110,7 +110,7 @@ test.describe("Level 3: Chat with Alex", () => {
     await page.click("#submitL3");
     await saved; // the first attempt goes to the server at once
 
-    await expect(page.locator('[data-q="q1"] .check-note')).toHaveText("Check your reason: Does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.");
+    await expect(page.locator('[data-q="q1"] .check-note')).toHaveText("Self-check: Does it say how this skill or quality helps the customer? For example, a knowledgeable officer answers questions accurately, so the customer doesn't get wrong information.");
     await expect(page.locator('[data-q="q1"] textarea').first()).toHaveAttribute("readonly", "");
     const fb = id => page.locator(`.match-item[data-key="s3.q2.${id}"] .feedback`);
     await expect(fb("P")).toHaveText("✓ Correct: Apologising and asking about a problem are part of service recovery.");
@@ -150,8 +150,8 @@ test.describe("Level 3: Chat with Alex", () => {
     await expect(card.locator("h3")).toHaveText("Let's learn from these");
     await expect(card.locator(".missed-intro")).toHaveText("Good effort! Here are 2 things to look at again:");
     await expect(card.locator("li")).toHaveText([
-      "Presenting product information (Level 2, The four stages)",
-      "Closing the customer experience positively (Level 2, The four stages)"
+      "Presenting product information (Level 2, Stage 2: Presenting product information)",
+      "Closing the customer experience positively (Level 3, Stage 3: Closing the customer experience positively)"
     ]);
     expect(await page.evaluate(() => {
       const c = document.querySelector(".missed-card"), r = document.querySelector(".recap-card");
@@ -228,15 +228,15 @@ test.describe("Level 4: Serve Suzzie at Stylez", () => {
 
     await expect(page.locator("#part0 > p").first()).toHaveText("Think about your roleplay with Suzzie.");
     await expect(page.locator(".story-card .field-label")).toHaveText([
-      "2. What is one thing you feel you did well when serving Suzzie?",
-      "3. What is one thing you would do differently next time?"
+      "Q2. What is one thing you feel you did well when serving Suzzie?",
+      "Q3. What is one thing you would do differently next time?"
     ]);
     await expect(page.locator(".story-card textarea").nth(0)).toHaveAttribute("placeholder", "I did well at...");
     await expect(page.locator(".story-card textarea").nth(1)).toHaveAttribute("placeholder", "Next time, I would...");
     await page.locator('[data-roleplay-stage="Approach"]').check();
     await page.fill('textarea[data-answer="s4.q1"]', "I greeted her straight away.");
     await page.click("#submitL4");
-    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Box 3"]);
+    await expect(page.locator("#notFinished .missing-list li")).toHaveText(["✗ Q3"]);
     await expect(page.locator("#notFinished button")).toHaveText(["Go back"]);
     await page.locator("#notFinished button").click();
     await page.fill('textarea[data-answer="s4.q2"]', "Next time, I would ask more questions.");
@@ -303,7 +303,7 @@ test.describe("Level 5: Check and Exit Ticket", () => {
     await expect(fb("s5.q3.iii")).toHaveText("✗ Count the 8 steps of service recovery. Is apologising the last step?");
     await expect(fb("s5.q3.iv")).toHaveText("✓ Correct: That is the textbook definition of service breakdown.");
     await expect(fb("s5.q4")).toHaveText("✗ The staff member apologised, but then blamed the customer's phone. Which step is about acknowledging feelings and assuring help?");
-    await expect(page.locator('[data-q="q5"] .check-note')).toHaveText("Check your answer: Did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?");
+    await expect(page.locator('[data-q="q5"] .check-note')).toHaveText("Self-check: Did you name one reason (customers return repeatedly, customers recommend the business to their relatives and friends, or customer loyalty ensures the continuity of the business) and explain what it means for the business?");
     await expect(page.locator("#nextBtn")).toHaveCount(0); // held back until Check again
     await checkPage(page, testInfo, "slice4-level5-feedback");
 

@@ -182,7 +182,7 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await page.locator(".tick-input").check();
   await page.click("#nextBtn");
   await page.fill('textarea[data-answer="s3.q1a"]', "Knowledgeable");
-  await page.fill('textarea[data-answer="s3.q1b"]', "accurate answers");
+  await page.fill('textarea[data-answer="s3.q1b"]', "he gave me accurate answers about prices.");
   for (const [id, v] of [["P", "3"], ["Q", "0"], ["R", "1"], ["S", "0"]]) await page.selectOption(`#sel_${id}`, v);
   await check(page, testInfo, "level3-thinkback", problems);
   await page.click("#submitL3");
@@ -204,8 +204,8 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await page.locator(".tick-input").check();
   await page.click("#nextBtn");
   await page.locator('[data-roleplay-stage="Approach"]').check();
-  await page.fill('textarea[data-answer="s4.q1"]', "Greeted her");
-  await page.fill('textarea[data-answer="s4.q2"]', "Ask more");
+  await page.fill('textarea[data-answer="s4.q1"]', "I greeted her as soon as she came in.");
+  await page.fill('textarea[data-answer="s4.q2"]', "Next time, I would ask more questions.");
   await page.click("#submitL4");
   await check(page, testInfo, "level4-recap", problems);
   await page.click("#finishBtn");
@@ -220,7 +220,7 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await check(page, testInfo, "level6-reflect", problems);
   await page.locator('[data-recovery-step="Apologise"]').check();
   await page.fill('textarea[data-answer="s6.q1"]', "Calmer, because I said sorry.");
-  await page.fill('textarea[data-answer="s6.q2"]', "Ask more questions");
+  await page.fill('textarea[data-answer="s6.q2"]', "Next time, I would ask more questions.");
   await page.click("#submitL6");
   await check(page, testInfo, "level6-recap", problems);
   await page.click("#finishBtn");
@@ -232,14 +232,14 @@ test("every student screen", async ({ page, request }, testInfo) => {
   await check(page, testInfo, "level5-check", problems);
   for (const [id, label] of [["i", "True"], ["ii", "True"], ["iii", "True"], ["iv", "True"]]) await page.locator(`.tf-item[data-key="s5.q3.${id}"] .tf-btn`, { hasText: label }).click();
   await page.locator(".mcq-btn", { hasText: "Our chargers" }).click();
-  await page.fill('textarea[data-answer="s5.q5"]', "customers return");
+  await page.fill('textarea[data-answer="s5.q5"]', "customers return repeatedly to the shop.");
   await page.click("#submitL5");
   await check(page, testInfo, "level5-feedback", problems);
   await page.click("#checkAgainBtn");
   await check(page, testInfo, "level5-revealed", problems);
   await page.click("#nextBtn");
-  await page.fill('textarea[data-answer="s5.q6"]', "8 steps");
-  await page.fill('textarea[data-answer="s5.q7"]', "Refunds?");
+  await page.fill('textarea[data-answer="s5.q6"]', "Service recovery has 8 steps.");
+  await page.fill('textarea[data-answer="s5.q7"]', "How do refunds work in a shop?");
   for (const r of [1, 2, 3, 4]) await page.locator(`.face-btn[data-key="s5.q8.${r}"][data-value="${r - 1}"]`).click();
   await check(page, testInfo, "level5-exit", problems);
   await page.click("#submitExit");

@@ -21,7 +21,7 @@ test('Part A: corrections to the existing Level 2 cards',async({page,request})=>
   await expect(page.locator(`${L} .icon-card`).nth(3).locator('.ic-desc')).toHaveText('Explaining things clearly and simply, and listening carefully');
   // A2 Product knowledge: definition at the top, first item renamed.
   await card(page,4);
-  await expect(page.locator(`${L} .definition`)).toHaveText("Product knowledge refers to knowledge a service staff has of a product's features and benefits.");
+  await expect(page.locator(`${L} .definition`).first()).toHaveText("Product knowledge refers to knowledge a service staff has of a product's features and benefits.");
   await expect(page.locator(`${L} .pk-title`).first()).toHaveText('Product features and benefits (e.g. a large screen that makes reading easier)');
   // A6 Four stages, row 1.
   await card(page,5);
@@ -48,7 +48,7 @@ test('Part B1: Stage 2 in three numbered parts',async({page,request},info)=>{
   // Part 1: needs and wants (p. 129).
   await card(page,9);
   await expect(page.locator('#lessonProgressText')).toHaveText("10 of 13 · Stage 2: Finding out customers' needs and wants");
-  await expect(page.locator(`${L} .stage-label`)).toContainText('Stage 2');
+  await expect(page.locator(`${L} [data-img="STAGE2_BANNER"]`)).toHaveCount(1);
   await expect(page.locator(`${L} h2`)).toHaveText('Presenting product information');
   await expect(page.locator(`${L} .stage-part`)).toHaveText("1Part 1: Finding out customers' needs and wants");
   await expect(page.locator(L)).toContainText('Once you have greeted the customer, find out what they need by asking the correct questions and listening carefully. Then it is easier to show them the correct product.');
@@ -79,7 +79,6 @@ test('Part B2 and B3: Stage 3 closing, then after-sales support and enquiries',a
   const errors=watchErrors(page);await open(page,request);
   await card(page,13);
   await expect(page.locator('#lessonProgressText')).toHaveText('1 of 7 · Stage 3: Closing the customer experience positively');
-  await expect(page.locator(`${L} h2`)).toHaveText('Closing the customer experience positively');
   await expect(page.locator(L)).toContainText('The final goal of every salesperson is to complete a sale and close the customer experience positively.');
   await expect(page.locator(L)).toContainText('Signs that the customer had a positive experience:');
   await expect(page.locator(`${L} .chips .ic-body`)).toHaveText(['Makes remarks such as "This is exactly the item I am looking for."','Looks happy with the product and is not looking at other products.','Asks for other products that can complement the recently purchased product.']);

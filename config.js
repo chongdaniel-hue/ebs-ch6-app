@@ -51,6 +51,8 @@ window.APP_CONFIG = {
     "🔄": "repeat",
     "👀": "eyes",
     "📋": "clipboard",
+    "📤": "share",
+    "🔗": "link",
     "👋": "wave",
     "🎉": "celebration",
     "🔒": "lock",

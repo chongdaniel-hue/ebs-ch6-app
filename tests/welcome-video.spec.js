@@ -24,25 +24,24 @@ async function expectYouTubeVideo(page,key){
  expect(Math.abs(box.w/box.h-16/9)).toBeLessThan(0.03);expect(box.right).toBeLessThanOrEqual(box.page);expect(box.iw).toBeGreaterThan(box.w-4);expect(box.border).toBe('1px');expect(box.radius).toBeGreaterThan(0);
 }
 
+async function previewCard(page,num,card){await page.evaluate(([num,card])=>{teacherPreviewPositions[num]={tab:card,part:1};renderTeacherLesson(num);},[num,card]);}
 test('both YouTube videos are embedded privately, without autoplay, in their agreed places',async({page,request},testInfo)=>{
  await resetServer(request,['3E1']);await page.goto('/#teacher-preview-2');await page.locator('#teacherCode').fill(CODE());await page.locator('#teacherEnter').click();
- // Video A in Level 2, Video B in Level 3.
- await expect(page.locator('.video-frame iframe')).toHaveCount(1);await expect(page.locator('video, .video-transcript, [src*=".mp4"]')).toHaveCount(0);
- await expectYouTubeVideo(page,'betterWelcome');
- // Video A: card 8, right after card 7 (the three approaches and C03), with its reflection under it.
- const partA=page.locator('#teacherPart2_7_0');await expect(partA.locator('.video-frame[data-video="betterWelcome"]')).toHaveCount(1);
- await expect(page.locator('#teacherPart2_6_0 [data-img="C03"]')).toHaveCount(1);
+ // Video A in Level 2 card 8, Video B in Level 3 card 5 (the preview shows one card at a time).
+ await expect(page.locator('video, .video-transcript, [src*=".mp4"]')).toHaveCount(0);
+ await previewCard(page,2,6);await expect(page.locator('#lessonCard [data-img="C03"]')).toHaveCount(1);
+ await previewCard(page,2,7);
+ await expect(page.locator('.video-frame iframe')).toHaveCount(1);await expectYouTubeVideo(page,'betterWelcome');
+ const partA=page.locator('#lessonCard');await expect(partA.locator('.video-frame[data-video="betterWelcome"]')).toHaveCount(1);
  await expect(partA.locator('.video-link + .think-card [data-answer="s2.video"]')).toHaveCount(1);
  await expect(partA.locator('.think-card label')).toHaveText('What did Alex do to make June feel welcome? Why did she bring her friend back?');
  await expectNoSidewaysScroll(page);await expectNoAmpersand(page);
- await page.locator('#teacherPart2_7_0').screenshot({path:`tests/screenshots/video-a-${testInfo.project.name}.png`});
- // Video B: Level 3 card 5, on its own card straight after the 8 steps.
- await page.goto('/#teacher-preview-3');
+ await partA.screenshot({path:`tests/screenshots/video-a-${testInfo.project.name}.png`});
+ await previewCard(page,7,3);await expect(page.locator('#lessonCard .path-stop')).toHaveCount(8);await expect(page.locator('#lessonCard .video-frame')).toHaveCount(0);
+ await previewCard(page,7,4);
  await expect(page.locator('.video-frame iframe')).toHaveCount(1);await expectYouTubeVideo(page,'serviceRecovery');
- await expect(page.locator('#teacherPart7_4_0 .video-frame[data-video="serviceRecovery"]')).toHaveCount(1);
- await expect(page.locator('#teacherPart7_3_0 .path-stop')).toHaveCount(8);await expect(page.locator('#teacherPart7_3_0 .video-frame')).toHaveCount(0);
  await expectNoSidewaysScroll(page);await expectNoAmpersand(page);
- await page.locator('#teacherPart7_4_0 .lesson-video').screenshot({path:`tests/screenshots/video-b-${testInfo.project.name}.png`});
+ await page.locator('#lessonCard .lesson-video').screenshot({path:`tests/screenshots/video-b-${testInfo.project.name}.png`});
  expect(await page.evaluate(()=>localStorage.getItem('ch6_active'))).toBeNull();
 });
 

@@ -82,7 +82,7 @@ test('the bold words do not change the wording, and Read aloud reads the sentenc
 test('nothing in Levels 4, 5 and 7 (Levels 3 to 5 before 0.11.0) gained bold',async({page,request})=>{
   await open(page,request);
   // The bold words in Levels 3 to 5 before 0.10.0, by stored level number.
-  const BEFORE={"3.0":[],"3.1":[],"4.0":["You are the customer service officer. Suzzie is your customer."],"4.1":["2.","3."],"5.0":[],"5.1":[]};
+  const BEFORE={"3.0":[],"3.1":[],"4.0":["You are the customer service officer. Suzzie is your customer."],"4.1":["Q2.","Q3."],"5.0":[],"5.1":[]};
   const now={};
   for(const n of [3,4,5]){
     await page.goto('/#home');await page.goto(`/#level${({3:4,4:5,5:7})[n]}`);

@@ -34,6 +34,9 @@ module.exports = defineConfig({
   },
   projects: [
     { name: "laptop", use: { viewport: { width: 1280, height: 800 } } },
-    { name: "phone", use: { viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true } }
+    { name: "phone", use: { viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true } },
+    // Students' PLDs (0.12.0): a Chromebook and an iPad, for the 0.12.0 checks only.
+    { name: "chromebook", testMatch: /v012-fixes.spec.js/, use: { viewport: { width: 1366, height: 768 } } },
+    { name: "ipad", testMatch: /v012-fixes.spec.js/, use: { viewport: { width: 810, height: 1080 }, hasTouch: true } }
   ]
 });

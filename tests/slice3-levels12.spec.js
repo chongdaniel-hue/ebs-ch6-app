@@ -52,25 +52,25 @@ test.describe("Level 1", () => {
     await expect(part.locator("p").first()).toHaveText("There are no right or wrong answers.");
     await expect(part.locator(".tip")).toHaveText("Tip: Don't name real people. Your teacher will read your answers.");
     await expect(part.locator(".field-label")).toHaveText([
-      "1. Think of a time you got GOOD customer service (e.g. at a bubble tea shop, a hawker stall, or when ordering on GrabFood). What did the staff do?",
-      "2. Think of a time you got BAD customer service. What happened?",
-      "3. Look at your two stories. What do you think makes customer service good or bad?"
+      "Q1. Think of a time you got GOOD customer service (e.g. at a bubble tea shop, a hawker stall, or when ordering on GrabFood). What did the staff do?",
+      "Q2. Think of a time you got BAD customer service. What happened?",
+      "Q3. Look at your two stories. What do you think makes customer service good or bad?"
     ]);
     const boxes = part.locator("textarea");
     for (const [i, hint] of ["The staff member...", "What happened was...", "I think customer service is good when... and bad when..."].entries()) {
       await expect(boxes.nth(i)).toHaveAttribute("placeholder", hint);
       await expect(boxes.nth(i)).toHaveValue(""); // nothing pre-filled
     }
-    await expect(part.locator("p", { hasText: "Type at least one sentence" })).toHaveText("Type at least one sentence (at least 20 characters) in each box, then tap Submit.");
+    await expect(part.locator("p", { hasText: "Type at least one" })).toHaveText("Type at least one full sentence in each box, then tap Submit.");
     await checkPage(page, testInfo, "slice3-level1");
 
-    // Box 2 empty: Not finished yet, listed by name, with Go back and Submit anyway.
+    // Q2 empty: Not finished yet, listed by its on-screen label, with Go back only.
     await boxes.nth(0).fill("Staff smiled and helped me.");
     await boxes.nth(2).fill("Good when staff care.");
     await page.click("#submitL1");
     const modal = page.locator("#notFinished");
     await expect(modal.locator("h2")).toHaveText("Not finished yet");
-    await expect(modal.locator(".missing-list li")).toHaveText(["✗ Box 2: Write at least 20 characters"]);
+    await expect(modal.locator(".missing-list li")).toHaveText(["✗ Q2: Write at least one full sentence"]);
     await expect(modal.locator("button")).toHaveText(["Go back"]);
     await expect(page.locator('[data-key="s1.q2"]')).toHaveClass(/incomplete/);
     await checkPage(page, testInfo, "slice3-level1-not-finished");

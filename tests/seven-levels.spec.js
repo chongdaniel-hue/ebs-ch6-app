@@ -172,7 +172,7 @@ test.describe('the 0.10.0 app saving after the server update',()=>{
     await resetServer(request,['3E1']);await login(page,'3E1',37);await page.locator('#briefing button').click();
     const body=page.waitForRequest(r=>r.url().endsWith('/api')&&r.method()==='POST'&&r.postDataJSON().action==='save');
     await page.evaluate(()=>setAnswer('s1.q1','A story about good service.','now'));
-    expect((await body).postDataJSON().app).toBe('0.11.0');
+    expect((await body).postDataJSON().app).toBe('0.12.0');
   });
 });
 
@@ -215,7 +215,7 @@ test('Level 3: 7 cards, all 8 steps at once, the video on its own card, reflecti
       await expect(page.locator('#lessonNext')).toBeEnabled();
     }
     if(i===4){
-      await expect(page.locator('#lessonCard .stage-label')).toContainText('Stage 4');
+      await expect(page.locator('#lessonCard [data-img="STAGE4_BANNER"]')).toHaveCount(1);
       await expect(page.locator('#lessonCard .video-title')).toHaveText('Watch: The 8 steps in action');
       await expect(page.locator('#lessonCard .video-prompt')).toHaveText('Watch Alex use all 8 steps to help June with her cracked phone.');
       await expect(page.locator('#lessonCard .video-frame iframe')).toHaveAttribute('src',/IWZ4xwI2fF8/);
@@ -285,7 +285,7 @@ test('Level 6: lock on tick plus Gemini link, the 8-step checklist, Finish and t
   const main=page.locator('#levelMain');
   await expect(main.locator('.intro-with-pic p')).toHaveText('This time, Suzzie is upset about a problem with something she bought at Stylez. You are the customer service officer. Use the 8 service recovery steps to win her back. During your chat, try to:');
   await expect(main.locator('.win-back-tips .ic-body')).toHaveText(['Listen, be patient and apologise for the inconvenience caused','Acknowledge her feelings and ask questions to find out what happened','Offer a solution, and thank her for bringing the problem to your attention']);
-  await expect(main.locator('.gem-btn')).toContainText('Open chat with Suzzie (new tab)');
+  await expect(main.locator('.gem-btn')).toContainText('Open chat with angry Suzzie (new tab)');
   await expect(main.locator('.gem-btn')).toHaveAttribute('href','https://gemini.google.com/share/d/195NZFPCmJGy2oOoT9Kg-rpIayst2Zjdb?usp=sharing');
   await expect(main.locator('details')).toHaveCount(2);
   for(const d of await main.locator('details').all()) expect(await d.evaluate(x=>x.open)).toBe(false);
@@ -303,7 +303,7 @@ test('Level 6: lock on tick plus Gemini link, the 8-step checklist, Finish and t
   await page.screenshot({path:`tests/screenshots/level6-tab1-unlocked-${info.project.name}.png`,fullPage:true});
   await page.locator('#nextBtn').click();
   // Tab 2: nothing ticked at first; each step has its icon; no stage colours.
-  await expect(main.locator('legend')).toHaveText('1. Which of the 8 steps did you use?');
+  await expect(main.locator('legend')).toHaveText('Q1. Which of the 8 steps did you use?');
   await expect(main.locator('.step-chip')).toHaveText(['Listen','Be patient','Apologise','Acknowledge','Ask questions','Offer solutions','Refer','Thank'].map(t=>new RegExp(`^\\s*${t}\\s*$`)));
   await expect(main.locator('.step-chip input:checked')).toHaveCount(0);
   await expect(main.locator('.step-chip .ui-graphic, .step-chip svg, .step-chip img')).toHaveCount(8);
@@ -325,7 +325,7 @@ test('Level 6: lock on tick plus Gemini link, the 8-step checklist, Finish and t
   await expect(main.locator('.step-chip input:checked')).toHaveCount(2);
   await page.locator('#finishBtn').click();
   await expect(page.locator('#badgeModal')).toContainText('You earned the Service Superstar badge!');
-  await expect(page.locator('#badgeModal img')).toHaveAttribute('src',/badge-service-superstar\.png/);
+  await expect(page.locator('#badgeModal img.badge-img')).toHaveAttribute('src',/badge-service-superstar\.png/);
   await page.locator('#badgeModal').getByRole('button',{name:'Back to my route'}).click();
   expect(await statuses(page)).toEqual(['done','done','done','done','done','done','new']);
   expect(await page.evaluate(()=>[getAnswer('s6.steps'),getAnswer('s6.tick'),!!rec.submitted.s6,!!rec.done[6]])).toEqual([['Apologise','Offer solutions'],true,true,true]);
@@ -364,9 +364,9 @@ test('home route and badge shelf of seven, report and Teacher Mode for seven lev
   await expect(page.locator('.teacher-lesson-links a')).toHaveText(['Level 1','Level 2','Level 3','Level 4','Level 5','Level 6','Level 7']);
   await page.locator('.teacher-lesson-links a',{hasText:'Level 3'}).click();
   await expect(page.locator('h1')).toHaveText('Level 3: Learn: Customer Service (Part 2)');
-  await expect(page.locator('.teacher-step-title')).toHaveCount(7);
+  await expect(page.locator('#lessonProgressText')).toHaveText('1 of 7 · Stage 3: Closing the customer experience positively');
   await page.goto('/#teacher-preview-6');await expect(page.locator('h1')).toHaveText('Level 6: Win Suzzie Back');
-  await expect(page.locator('.teacher-step-title')).toHaveText(['Roleplay','Reflect']);
+  await expect(page.locator('.step-tab .step-label')).toHaveText(['Roleplay','Reflect']);
   await page.goto('/#teacher');await page.locator('.tabs .tab',{hasText:'Results'}).click();
   await page.locator('#resultsClass').selectOption('3E1');
   await expect(page.locator('.results-summary .sum-list').first().locator('li')).toHaveText(['Level 1: 1 of 1','Level 2: 1 of 1','Level 3: 1 of 1','Level 4: 0 of 1','Level 5: 0 of 1','Level 6: 0 of 1','Level 7: 0 of 1']);
@@ -401,9 +401,9 @@ test('student text for seven levels: Before you start, Serve Suzzie, the Check h
   expect(await page.evaluate(()=>L5_Q3.find(i=>i.id==='iv').hint)).toBe('Look at the definition of service breakdown in Level 3. When does a service breakdown occur?');
   expect(await page.evaluate(()=>LOOK_AGAIN)).toEqual({
     "s3q2.P":"Performing service recovery (Level 3, Stage 4: Service breakdown and service recovery)",
-    "s3q2.Q":"Presenting product information (Level 2, The four stages)",
-    "s3q2.R":"Closing the customer experience positively (Level 2, The four stages)",
-    "s3q2.S":"Approaching customers (Level 2, The four stages)",
+    "s3q2.Q":"Presenting product information (Level 2, Stage 2: Presenting product information)",
+    "s3q2.R":"Closing the customer experience positively (Level 3, Stage 3: Closing the customer experience positively)",
+    "s3q2.S":"Approaching customers (Level 2, Stage 1: Approaching customers)",
     "s5q3.i":"What customer service is (Level 2, What is customer service?)",
     "s5q3.ii":"Good product knowledge (Level 2, Good product knowledge)",
     "s5q3.iii":"The 8 steps of service recovery (Level 3, The 8 service recovery steps)",
