@@ -286,7 +286,7 @@ test('Level 6: lock on tick plus Gemini link, the 8-step checklist, Finish and t
   await expect(main.locator('.intro-with-pic p')).toHaveText('This time, Suzzie is upset about a problem with something she bought at Stylez. You are the customer service officer. Use the 8 service recovery steps to win her back. During your chat, try to:');
   await expect(main.locator('.win-back-tips .ic-body')).toHaveText(['Listen, be patient and apologise for the inconvenience caused','Acknowledge her feelings and ask questions to find out what happened','Offer a solution, and thank her for bringing the problem to your attention']);
   await expect(main.locator('.gem-btn')).toContainText('Open chat with angry Suzzie (new tab)');
-  await expect(main.locator('.gem-btn')).toHaveAttribute('href','https://gemini.google.com/share/d/195NZFPCmJGy2oOoT9Kg-rpIayst2Zjdb?usp=sharing');
+  await expect(main.locator('.gem-btn')).toHaveAttribute('href','https://gemini.google.com/share/d/1JLzD6DxE312XorvYwQ-Oj3WwyR6s4-Kk?usp=sharing');
   await expect(main.locator('details')).toHaveCount(2);
   for(const d of await main.locator('details').all()) expect(await d.evaluate(x=>x.open)).toBe(false);
   await expect(main.locator('details summary')).toHaveText(['Show the 8 steps',/Stylez store facts/]);

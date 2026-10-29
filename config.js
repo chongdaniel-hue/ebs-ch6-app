@@ -27,7 +27,7 @@ window.APP_CONFIG = {
   GEMS: {
     alex: "https://gemini.google.com/share/d/1QRxLwDMbt93_M7IEil2jxrtNOEu74pwi?usp=sharing",
     suzzie: "https://gemini.google.com/share/d/1D1h2fvX3L6KnSJHjCGQSm1ZkVWUnu8E3?usp=sharing",
-    suzzieRecovery: "https://gemini.google.com/share/d/195NZFPCmJGy2oOoT9Kg-rpIayst2Zjdb?usp=sharing"
+    suzzieRecovery: "https://gemini.google.com/share/d/1JLzD6DxE312XorvYwQ-Oj3WwyR6s4-Kk?usp=sharing"
   },
 
   /* ---------- 3. Images ----------

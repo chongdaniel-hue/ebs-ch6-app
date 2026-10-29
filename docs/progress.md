@@ -747,3 +747,5 @@ Every box where students write a sentence needs at least 20 characters, shown as
 ### Checks (local server only)
 - New `tests/v012-fixes.spec.js`, run at 1366x768 (Chromebook), 810x1080 (iPad), 1280px and 360px (two new Playwright projects, `chromebook` and `ipad`, run this file only): share-link steps identical in Levels 4 to 6 with the link rule unchanged; every sentence box rejects a short answer and the exempt boxes accept one; both self-check prompts beside right and wrong feedback; the line R pointer in the summary card and the report; empty submits in Levels 1, 4, 5, 6 and 7 and the exit ticket; answers saved before 0.12.0 (short ones included) still show and submitted levels stay submitted; reload restores.
 - Older tests brought up to date with the group's 0.11.1 to 0.11.9 changes (stage banners instead of stage labels, the approach quick-check instruction, the product-knowledge benefits definition box, "Open chat with angry Suzzie", the one-card teacher preview, the new image ids) and with the 0.12.0 wording.
+
+- Preview (29 October): updated only Level 6 angry Suzzie’s chatbot link to the new shared chat ending 1JLzD6DxE312XorvYwQ-Oj3WwyR6s4-Kk.
