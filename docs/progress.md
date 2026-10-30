@@ -749,3 +749,5 @@ Every box where students write a sentence needs at least 20 characters, shown as
 - Older tests brought up to date with the group's 0.11.1 to 0.11.9 changes (stage banners instead of stage labels, the approach quick-check instruction, the product-knowledge benefits definition box, "Open chat with angry Suzzie", the one-card teacher preview, the new image ids) and with the 0.12.0 wording.
 
 - Preview (29 October): updated only Level 6 angry Suzzie’s chatbot link to the new shared chat ending 1JLzD6DxE312XorvYwQ-Oj3WwyR6s4-Kk.
+
+- Release 0.12.2 (30 October): updated the normal Suzzie chatbot link for Level 5 to the shared chat ending 1dYSavt5Xo5k0_EzCtCI-bRjHjoXCQtEh. Alex and angry Suzzie links are unchanged.
