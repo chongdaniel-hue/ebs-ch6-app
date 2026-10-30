@@ -757,3 +757,5 @@ Every box where students write a sentence needs at least 20 characters, shown as
 - Preview 0.12.4: added Back to student mode beside Home throughout signed-in Teacher Mode. It clears the teacher session and returns to student home or registration, preserving student progress. Header actions wrap on phones.
 
 - Release 0.12.4: published Back to student mode with Home on its right in the teacher header.
+
+- Release 0.12.5: server-confirmed no_class responses on active profile load or save now release the cached identity, record, pending queue and device unlock. Registration refreshes to the teacher-selected class. Network failures retain offline work.

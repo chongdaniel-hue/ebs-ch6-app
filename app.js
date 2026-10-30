@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.12.4";
+const APP_VERSION = "0.12.5";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -610,7 +610,7 @@ function handleSaveReply(key, sent, reply) {
     return;
   }
   if (!reply.ok) {
-    if(["name_required","name_mismatch","profile_setup_required"].includes(reply.error) && key === activeKey()){releaseResetProfile(key);return;}
+    if(["no_class","name_required","name_mismatch","profile_setup_required"].includes(reply.error) && key === activeKey()){releaseResetProfile(key);return;}
     console.warn(`Save for ${key} refused (${reply.error}); not retrying.`);
     dropFromQueue(key);
     return;
@@ -3732,7 +3732,7 @@ async function syncActiveFromServer() {
   try { reply = await loadStudentRecord(student.cls, student.reg, profileName(rec)); }
   catch (e) { serverUnreachable = true; updateNetBanner(); return; }
   if(key !== activeKey() || generation !== (resetGenerations.get(key) || 0))return;
-  if(!reply.ok){if(["name_required","name_mismatch","profile_setup_required"].includes(reply.error))releaseResetProfile(key);return;}
+  if(!reply.ok){if(["no_class","name_required","name_mismatch","profile_setup_required"].includes(reply.error))releaseResetProfile(key);return;}
   if (String(rec.baseClearedAt || "") > String(reply.clearedAt || "")) return;
   const before = JSON.stringify(rec);
   if (reply.clearedAt && String(rec.baseClearedAt || "") < reply.clearedAt) {
