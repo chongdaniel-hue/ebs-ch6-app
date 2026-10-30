@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.12.2";
+const APP_VERSION = "0.12.3";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -1086,12 +1086,13 @@ function renderLessonCard(n){
 /* ---------------- Router ---------------- */
 
 let routeReturnLevel = null;
-function backToRoute(n){if(teacher && /^#teacher(?:-preview-[1-7])?$/.test(location.hash)){location.hash="#teacher";return;}routeReturnLevel=n || Number(getUi("route.level")) || 1;if(location.hash === "#home")render();else location.hash="#home";}
+function backToRoute(n){if(teacher && /^#teacher(?:-home|-preview-[1-7])?$/.test(location.hash)){if(location.hash==="#teacher-home")renderTeacherRoute();else location.hash="#teacher-home";return;}routeReturnLevel=n || Number(getUi("route.level")) || 1;if(location.hash === "#home")render();else location.hash="#home";}
 
 function render() {
   const hash = window.location.hash;
   document.querySelectorAll(".modal-backdrop").forEach(m => { if (m.id !== "briefing") m.remove(); });
   document.querySelectorAll(".zoom-backdrop").forEach(m => m.remove());
+  if (hash === "#teacher-home") { if(teacher)renderTeacherRoute();else renderTeacherGate();window.scrollTo(0,0);return;}
   if (hash === "#teacher") { renderTeacher(); window.scrollTo(0, 0); return; }
   const teacherLevel = hash.match(/^#teacher-preview-([1-7])$/);
   if (teacherLevel) {
@@ -3308,7 +3309,7 @@ function renderTeacherGate() {
       return;
     }
     teacher = { code, classes: reply.classes || [], removed: reply.removed || [], hidden: reply.hidden || [], tab: "classes", results: null, view: null, notice: "" };
-    if (/^#teacher-preview-[1-7]$/.test(window.location.hash)) render();
+    if (/^#teacher(?:-home|-preview-[1-7])$/.test(window.location.hash)) render();
     else renderTeacherHome();
   });
 }
@@ -3390,6 +3391,10 @@ function renderClassesTab(el, message) {
       ]
     });
   }));
+}
+
+function renderTeacherRoute() {
+  setGraphicHtml(app,`${topBarHtml({})}<main class="page"><div class="block landing-banner">${imgHtml("WELCOME","welcome-activity-banner")}</div><div class="block"><h1 class="page-title">Teacher view</h1><p class="teacher-preview-note">View any level without completing activities. Student progress is unchanged.</p><a class="btn secondary" href="#teacher">Teacher administration</a></div><section class="block" aria-labelledby="routeTitle"><h2 class="section-title" id="routeTitle">Your route</h2><ol class="route">${LEVELS.map(s=>`<li class="level-item"><a class="level-card" href="#teacher-preview-${s.pos}"><span class="num-badge" aria-hidden="true">${s.pos}</span><span class="info"><span class="level-name with-graphic"><span aria-hidden="true">${levelIconHtml(s)}</span><span>${escapeHtml(s.title)}</span></span><span class="level-desc">${escapeHtml(s.desc)}</span><span class="status-pill">Teacher preview</span></span></a></li>`).join("")}</ol></section></main>${footerHtml()}`);
 }
 
 function teacherLessonLinksHtml(current) {

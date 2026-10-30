@@ -751,3 +751,5 @@ Every box where students write a sentence needs at least 20 characters, shown as
 - Preview (29 October): updated only Level 6 angry Suzzie’s chatbot link to the new shared chat ending 1JLzD6DxE312XorvYwQ-Oj3WwyR6s4-Kk.
 
 - Release 0.12.2 (30 October): updated the normal Suzzie chatbot link for Level 5 to the shared chat ending 1dYSavt5Xo5k0_EzCtCI-bRjHjoXCQtEh. Alex and angry Suzzie links are unchanged.
+
+- Release 0.12.3: Home within Teacher Mode now opens a teacher-only main route page with the welcome banner and all seven levels available, preserving teacher authentication and student data. Direct teacher-home access still requires sign-in.
