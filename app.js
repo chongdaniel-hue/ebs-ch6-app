@@ -81,7 +81,7 @@
         meaning (see CLAUDE.md); older records are migrated (migrateRecord).
    ============================================================ */
 
-const APP_VERSION = "0.12.3";
+const APP_VERSION = "0.12.4";
 const CONFIG = window.APP_CONFIG || {};
 
 /* ---------------- Utilities ---------------- */
@@ -706,6 +706,7 @@ new MutationObserver(() => labelFormControls()).observe(app, { childList: true, 
 function topBarHtml(opts) {
   const o = opts || {};
   const titleTag = o.titleIsHeading ? "h1" : "p";
+  const teacherView = !!teacher && /^#teacher(?:-home|-preview-[1-7])?$/.test(location.hash);
   return `
     <header class="topbar">
       <div class="topbar-inner">
@@ -715,7 +716,7 @@ function topBarHtml(opts) {
           ${o.showSubtitle ? `<p class="topbar-sub">A self-study revision module</p>${Array.isArray(classList) && classList.length ? `<p class="topbar-chip">${escapeHtml(classList[0])}</p>` : ""}` : ""}
           ${o.showChip && student ? `<p class="topbar-chip"><span data-student-text>${escapeHtml(profileName(rec))}</span>${profileName(rec) ? " · " : ""}${escapeHtml(student.cls)} · Register No. ${student.reg}</p>` : ""}
         </div>
-        ${o.showHome ? `<a href="#home" class="topbar-home" id="homeBtn" onclick="event.preventDefault();backToRoute('route')">🏠 Home</a>` : ""}
+        <nav class="topbar-actions" aria-label="View navigation">${teacherView ? `<button type="button" class="topbar-home" id="studentModeBtn" onclick="backToStudentMode()">Back to student mode</button>` : ""}${o.showHome || teacherView ? `<a href="#home" class="topbar-home" id="homeBtn" onclick="event.preventDefault();backToRoute('route')">🏠 Home</a>` : ""}</nav>
       </div>
     </header>`;
 }
@@ -1086,6 +1087,7 @@ function renderLessonCard(n){
 /* ---------------- Router ---------------- */
 
 let routeReturnLevel = null;
+function backToStudentMode(){stopSpeaking();teacher=null;routeReturnLevel=null;location.hash="#home";}
 function backToRoute(n){if(teacher && /^#teacher(?:-home|-preview-[1-7])?$/.test(location.hash)){if(location.hash==="#teacher-home")renderTeacherRoute();else location.hash="#teacher-home";return;}routeReturnLevel=n || Number(getUi("route.level")) || 1;if(location.hash === "#home")render();else location.hash="#home";}
 
 function render() {

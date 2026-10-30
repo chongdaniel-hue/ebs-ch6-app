@@ -1713,3 +1713,6 @@ strong.keyword-emphasis{color:#A84B08;}
 .share-step-icon .ui-graphic{width:28px;height:28px;}
 .share-step-text{flex:1 1 auto;}
 .page .share-steps-list,.page .share-steps-list > li{max-width:none;}
+
+.topbar-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+@media(max-width:600px){.topbar-inner:has(#studentModeBtn){flex-wrap:wrap;}.topbar-actions:has(#studentModeBtn){width:100%;justify-content:flex-start;}.topbar-actions #studentModeBtn{font:inherit;}}
